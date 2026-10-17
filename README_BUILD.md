@@ -39,7 +39,7 @@ Recorded build (2026-10-17):
 
 | File | Exit | Output | Pages | Bytes |
 |---|---|---|---|---|
-| `main.tex` | 0 | `main.pdf` | 13 | 654,368 |
+| `main.tex` | 0 | `main.pdf` | 14 | 698,867 |
 | `supplementary.tex` | 0 | `supplementary.pdf` | 4 | 85,411 |
 
 No overfull or underfull boxes were reported in either build. There are no undefined
@@ -73,9 +73,9 @@ references and no ``??'' in the extracted text.
 
 ## 4. Page budget: over the 8-page limit
 
-The current draft is **13 pages**, of which the body ends on page 12 and the references
+The current draft is **14 pages**, of which the body ends on page 13 and the references
 occupy the remainder. It therefore exceeds the 8-page body limit of the CVPR template by
-about four pages. This is a deliberate draft-stage trade-off: the protocol and the
+about five pages. This is a deliberate draft-stage trade-off: the protocol and the
 implementation audit are part of the contribution and were not cut to fit. Before submission,
 the following trims are the lowest-risk ones, in order:
 
@@ -146,7 +146,16 @@ connection shows reuse of full-resolution normalized descriptors and masks for i
 similarity. All coordinates and matrices are schematic. The zero-floored DP follows the
 proposed method, not the current prototype.
 
+At the user's request, a second row adds the proposed JEV extension under the exact name
+`seltive model`: candidate intervals and matched indices, together with original A/B frame
+context, feed evidence selection, visual verification, and result fusion. Unselected,
+uncertain, or failed cases retain the core prediction. Frame mapping, selection policy,
+model backend, and fusion policy still need to be established. The caption distinguishes
+this extension from the core formulation and evaluated results; it does not assert that
+the historical anchor-level JEV implementation follows this candidate-level path.
+
 The figure and its caption were replaced in the method section. An offline cached build
-completed with exit 0; the main PDF remains 13 pages. Figure 2 is on page 5. No overfull
+completed with exit 0; the larger framework and caption bring the main PDF to 14 pages.
+Figure 2 is on page 5, whose rendering was visually checked. No overfull
 or underfull boxes or undefined citations/references were reported; pre-existing package,
 font-substitution, and PDF-version warnings remain.

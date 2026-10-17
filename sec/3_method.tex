@@ -46,7 +46,13 @@ frozen protocol does not have. We never call a feature index a second or a sourc
   anchors. (3) RANSAC, dual-axis support checks and gap splitting produce finite tubes.
   (4) Full-resolution descriptors are reused through the dashed blue connection to
   compute similarities only inside those tubes. Zero-floored local DP, backtrace,
-  trimming, scoring and dual-axis de-duplication yield corresponding temporal intervals.
+  trimming, scoring and dual-axis de-duplication yield candidate temporal intervals.
+  (5) The proposed verification extension, named \texttt{seltive model}, combines
+  selected candidate evidence with original A/B frame context for visual copy
+  verification. Its verdicts feed a proposed fusion step; unselected, uncertain or
+  failed cases retain the core predictions. Selection, backend and fusion remain
+  to be specified; this extension is not part of the core formulation or evaluated
+  results in this draft.
   The path illustrates one tube; extraction repeats across paths and tracks.
   Matrices and coordinates are schematic, not experimental outputs. The alignment
   follows the proposed specification in Section~\ref{sec:method-dp}, which differs

@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="880" viewBox="0 0 1760 880">
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1220" viewBox="0 0 1760 1220">
 <title>FastVCL: sparse-to-tube video copy localization framework</title>
-<desc>Proposed method from the manuscript: fixed ISC descriptors, normalization and masks, sampling grids, tiled mutual Top-K, deduplicated anchors, RANSAC with dual-axis support and gap splitting, finite tubes, in-tube cosine similarity and zero-floored local DP, traceback, trimming, scoring and two-axis deduplication. Matrices and trajectories are schematic, not empirical outputs.</desc>
+<desc>Proposed sparse-to-tube method with an additional selective visual verification branch named seltive model (JEV). Candidate intervals and original A/B frame context feed budgeted evidence selection and visual verification; verdict fusion produces final intervals, while unselected or uncertain candidates retain their core predictions. Matrices and trajectories are schematic, not empirical outputs. Selection and fusion policies remain to be specified.</desc>
 <defs>
 <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#526477"/></marker>
 <marker id="blueArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#2D69AD"/></marker>
 </defs>
-<rect x="0" y="0" width="1760" height="880" rx="0" fill="#FFFFFF" stroke="none" stroke-width="1.5"/>
+<rect x="0" y="0" width="1760" height="1220" rx="0" fill="#FFFFFF" stroke="none" stroke-width="1.5"/>
 <text x="20" y="43" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" font-style="normal" fill="#17283C" text-anchor="start">FastVCL</text>
 <text x="186" y="42" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" font-style="normal" fill="#17283C" text-anchor="start">Sparse-to-tube video copy localization</text>
 <text x="1740" y="40" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="600" font-style="normal" fill="#526477" text-anchor="end">PROPOSED METHOD · SCHEMATIC</text>
@@ -31,8 +31,8 @@
 <rect x="1256" y="76" width="484" height="7" rx="3" fill="#7962A6" stroke="none" stroke-width="1.5"/>
 <circle cx="1285" cy="115" r="16" fill="#7962A6" stroke="none" stroke-width="1.5"/>
 <text x="1285" y="122" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" font-style="normal" fill="#FFFFFF" text-anchor="middle">4</text>
-<text x="1309" y="124" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" font-style="normal" fill="#17283C" text-anchor="start">Refinement &amp; output</text>
-<text x="1276" y="156" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">Align → recover → deduplicate</text>
+<text x="1309" y="124" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" font-style="normal" fill="#17283C" text-anchor="start">Local refinement</text>
+<text x="1276" y="156" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">Align → recover → candidates</text>
 <text x="66" y="213" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="600" font-style="normal" fill="#17283C" text-anchor="start">Query A</text>
 <rect x="66" y="231" width="20" height="13" rx="1" fill="#E7EFF8" stroke="none" stroke-width="1.5"/>
 <rect x="89" y="231" width="20" height="13" rx="1" fill="#A5C4E7" stroke="none" stroke-width="1.5"/>
@@ -459,17 +459,72 @@
 <polygon points="1368.93,647 1455.57,647 1477.23,672 1390.59,672" fill="#16847A" opacity="0.1"/>
 <polygon points="1553.04,647 1621.63,647 1643.29,672 1574.7,672" fill="#C37827" opacity="0.1"/>
 <text x="1490" y="727" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">Score q · min(IoU_A, IoU_B) dedup.</text>
+<polyline points="1490,748 1490,791 538,791 538,845" fill="none" stroke="#526477" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="1014" y="781" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">Candidate intervals + matched indices</text>
+<text x="20" y="826" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#526477" text-anchor="start">ADDITIONAL FRAME INPUT</text>
+<text x="1740" y="826" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#C37827" text-anchor="end">PROPOSED VERIFICATION EXTENSION</text>
+<rect x="20" y="845" width="278" height="207" rx="12" fill="#FFF9F1" stroke="#D6BC98" stroke-width="1.5"/>
+<rect x="336" y="845" width="404" height="207" rx="12" fill="#FFF9F1" stroke="#D6BC98" stroke-width="1.5"/>
+<rect x="778" y="845" width="440" height="207" rx="12" fill="#FFF9F1" stroke="#D6BC98" stroke-width="1.5"/>
+<rect x="1256" y="845" width="484" height="207" rx="12" fill="#FFF9F1" stroke="#D6BC98" stroke-width="1.5"/>
+<text x="159" y="884" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" font-style="normal" fill="#17283C" text-anchor="middle">A/B frame context</text>
+<text x="44" y="928" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="600" font-style="normal" fill="#2D69AD" text-anchor="start">A</text>
+<rect x="76" y="907" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#2D69AD" stroke-width="1.5"/>
+<polyline points="81,926 98,915" fill="none" stroke="#2D69AD" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="113" y="907" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#2D69AD" stroke-width="1.5"/>
+<polyline points="118,926 135,915" fill="none" stroke="#2D69AD" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="150" y="907" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#2D69AD" stroke-width="1.5"/>
+<polyline points="155,926 172,915" fill="none" stroke="#2D69AD" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="187" y="907" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#2D69AD" stroke-width="1.5"/>
+<polyline points="192,926 209,915" fill="none" stroke="#2D69AD" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="224" y="907" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#2D69AD" stroke-width="1.5"/>
+<polyline points="229,926 246,915" fill="none" stroke="#2D69AD" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="44" y="969" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="600" font-style="normal" fill="#7962A6" text-anchor="start">B</text>
+<rect x="76" y="948" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#7962A6" stroke-width="1.5"/>
+<polyline points="81,967 98,956" fill="none" stroke="#7962A6" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="113" y="948" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#7962A6" stroke-width="1.5"/>
+<polyline points="118,967 135,956" fill="none" stroke="#7962A6" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="150" y="948" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#7962A6" stroke-width="1.5"/>
+<polyline points="155,967 172,956" fill="none" stroke="#7962A6" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="187" y="948" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#7962A6" stroke-width="1.5"/>
+<polyline points="192,967 209,956" fill="none" stroke="#7962A6" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="224" y="948" width="29" height="25" rx="2" fill="#FFFFFF" stroke="#7962A6" stroke-width="1.5"/>
+<polyline points="229,967 246,956" fill="none" stroke="#7962A6" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="159" y="1007" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Index → frame mapping</text>
+<text x="159" y="1036" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Original video frames</text>
+<polyline points="298,950 336,950" fill="none" stroke="#526477" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="538" y="884" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" font-style="normal" fill="#17283C" text-anchor="middle">Select evidence</text>
+<text x="538" y="924" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#17283C" text-anchor="middle">Matched frame pairs / snippets</text>
+<text x="538" y="962" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Budgeted verification calls</text>
+<text x="538" y="1007" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Selection policy: to be defined</text>
+<polyline points="740,950 778,950" fill="none" stroke="#526477" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="778" y="845" width="440" height="7" rx="3" fill="#C37827" stroke="none" stroke-width="1.5"/>
+<circle cx="811" cy="882" r="16" fill="#C37827" stroke="none" stroke-width="1.5"/>
+<text x="811" y="889" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" font-style="normal" fill="#FFFFFF" text-anchor="middle">5</text>
+<text x="998" y="891" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" font-style="normal" fill="#17283C" text-anchor="middle">seltive model</text>
+<text x="998" y="931" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400" font-style="normal" fill="#17283C" text-anchor="middle">Visual copy verification</text>
+<text x="998" y="975" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#526477" text-anchor="middle">COPY  /  NOT_COPY  /  UNCERTAIN</text>
+<text x="998" y="1020" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Model backend: to be specified</text>
+<polyline points="1218,950 1256,950" fill="none" stroke="#526477" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="1498" y="884" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" font-style="normal" fill="#17283C" text-anchor="middle">Final copy intervals</text>
+<text x="1498" y="924" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="400" font-style="normal" fill="#17283C" text-anchor="middle">Fuse verification evidence</text>
+<text x="1498" y="962" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Uncertain / failed: retain core result</text>
+<text x="1498" y="1007" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">Y = {(a_s, b_s, a_e, b_e, q)}</text>
+<text x="1498" y="1036" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Fusion policy: to be defined</text>
+<polyline points="538,1052 538,1080 1498,1080 1498,1056" fill="none" stroke="#526477" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+<rect x="739" y="1063" width="552" height="35" rx="0" fill="#FFFFFF" stroke="none" stroke-width="1.5"/>
+<text x="1015" y="1089" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Unselected candidates retain the core result</text>
 <circle cx="159" cy="704" r="4" fill="#2D69AD" stroke="none" stroke-width="1.5"/>
-<polyline points="159,708 159,785 1750,785 1750,202 1704,202" fill="none" stroke="#2D69AD" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8 6" marker-end="url(#blueArrow)"/>
-<rect x="370" y="766" width="1140" height="38" rx="0" fill="#FFFFFF" stroke="none" stroke-width="1.5"/>
-<text x="940" y="793" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="600" font-style="normal" fill="#2D69AD" text-anchor="middle">Full-resolution normalized descriptors + validity masks</text>
-<circle cx="31" cy="848" r="5.5" fill="#2D69AD" stroke="none" stroke-width="1.5"/>
-<text x="45" y="856" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">anchor</text>
-<polyline points="157,848 193,848" fill="none" stroke="#16847A" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="203" y="856" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">track</text>
-<rect x="299" y="838" width="33" height="19" rx="0" fill="#D4EAE5" stroke="none" stroke-width="1.5"/>
-<text x="342" y="856" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">tube</text>
-<polyline points="438,848 473,848" fill="none" stroke="#2D69AD" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#blueArrow)"/>
-<text x="486" y="856" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">local path</text>
-<text x="1740" y="856" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#17283C" text-anchor="end">Output: (a_s, b_s, a_e, b_e, q) · feature-index coordinates</text>
+<polyline points="159,708 159,765 8,765 8,1135 1750,1135 1750,202 1704,202" fill="none" stroke="#2D69AD" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8 6" marker-end="url(#blueArrow)"/>
+<rect x="370" y="1116" width="1140" height="38" rx="0" fill="#FFFFFF" stroke="none" stroke-width="1.5"/>
+<text x="940" y="1143" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="600" font-style="normal" fill="#2D69AD" text-anchor="middle">Full-resolution normalized descriptors + validity masks</text>
+<circle cx="31" cy="1188" r="5.5" fill="#2D69AD" stroke="none" stroke-width="1.5"/>
+<text x="45" y="1196" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">anchor</text>
+<polyline points="157,1188 193,1188" fill="none" stroke="#16847A" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="203" y="1196" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">track</text>
+<rect x="299" y="1178" width="33" height="19" rx="0" fill="#D4EAE5" stroke="none" stroke-width="1.5"/>
+<text x="342" y="1196" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">tube</text>
+<polyline points="438,1188 473,1188" fill="none" stroke="#2D69AD" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#blueArrow)"/>
+<text x="486" y="1196" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#526477" text-anchor="start">local path</text>
+<text x="1740" y="1196" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#17283C" text-anchor="end">Core + proposed selective verification · feature-index coordinates</text>
 </svg>

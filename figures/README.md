@@ -7,7 +7,7 @@
 | 图 | PDF | SVG 编辑源 | PNG 预览 | 当前用途 |
 |---|---|---|---|---|
 | Fig. 1 | [PDF](fig_1_teaser.pdf) | [SVG](fig_1_teaser.svg) | [PNG](fig_1_teaser.png) | 稠密计算域与局部精化的概念对照 |
-| Fig. 2 | [PDF](fig_2_framework.pdf) | [SVG](fig_2_framework.svg) | [PNG](fig_2_framework.png) | 按 Method 重画的完整框架：特征、稀疏对应、轨迹/Tube、局部对齐与输出 |
+| Fig. 2 | [PDF](fig_2_framework.pdf) | [SVG](fig_2_framework.svg) | [PNG](fig_2_framework.png) | 特征、稀疏对应、轨迹/Tube、局部对齐，以及新增的 seltive model 选择性核验分支 |
 | Fig. 3 | [PDF](fig_3_sparse_tracks.pdf) | [SVG](fig_3_sparse_tracks.svg) | [PNG](fig_3_sparse_tracks.png) | 锚点、间隙、有限 Tube 原理示意 |
 | Fig. 4 | [PDF](fig_4_tradeoff.pdf) | [SVG](fig_4_tradeoff.svg) | [PNG](fig_4_tradeoff.png) | 精度—延迟空结果图，无数据点或曲线 |
 
@@ -25,7 +25,9 @@ python3 scripts/generate_paper_placeholders.py
 python3 scripts/generate_framework.py
 ```
 
-框架图与 `sec/3_method.tex` 对应：四个分区包含完整计算链，底部蓝色虚线表示完整分辨率归一化特征及有效性掩码直接进入 Tube 相似度计算。局部路径图对应论文拟议的零下界 DP；所有矩阵、坐标和区间均为示意。总生成脚本会调用这一专用脚本，不会恢复旧的文字流程占位图。
+框架图与 `sec/3_method.tex` 对应：上排四个分区展示核心计算链，底部蓝色虚线表示完整分辨率归一化特征及有效性掩码直接进入 Tube 相似度计算。局部路径图对应论文拟议的零下界 DP；所有矩阵、坐标和区间均为示意。总生成脚本会调用这一专用脚本，不会恢复旧的文字流程占位图。
+
+下排按用户要求加入 JEV，图中名称严格使用 **`seltive model`**：候选区间及匹配索引与原视频帧上下文一起进入证据选择，再进行视觉拷贝核验与结果融合。未选中、核验不确定或调用失败的候选保留核心输出。该分支是拟议的候选区间核验扩展；不能当作历史锚点级 JEV 路由的实现说明。帧映射、选择策略、模型后端及融合策略仍需落实，当前核心方法公式与实验不包含这一扩展。图注同步说明了这一状态。
 
 依赖 Python 3 标准库与 `rsvg-convert`。脚本不读取实验数据，也不生成随机指标；Fig1/3 的坐标为人工定义的说明性几何。建议修改脚本后重生成；如果直接编辑 SVG，应同时保存修改来源并重新导出，避免下次运行脚本覆盖手工修改。
 
@@ -45,14 +47,14 @@ LaTeX 片段见 [placeholders.tex](placeholders.tex)。**四张 PDF 已实际编
 建议英文图注（已写进 LaTeX 片段）：
 
 1. **Conceptual comparison of matching domains.** Dense comparison examines a broad frame-pair domain, whereas the proposed sparse-to-tube design uses temporal proposals to restrict fine-resolution alignment. The geometry is illustrative and does not represent a measured baseline or experimental output.
-2. **FastVCL framework (proposed method).** Fixed ISC descriptors are normalized, sampled and matched by tiled mutual Top-K. Coordinate-deduplicated anchors undergo RANSAC, dual-axis support checks and gap splitting to define finite tubes. Full-resolution descriptors are reused for in-tube similarities. Proposed zero-floored local DP, backtrace, trimming, scoring and dual-axis de-duplication yield copy intervals. Matrices and trajectories are schematic, not experimental outputs.
+2. **FastVCL framework (proposed method).** Fixed ISC descriptors are normalized, sampled and matched by tiled mutual Top-K. Coordinate-deduplicated anchors undergo RANSAC, dual-axis support checks and gap splitting to define finite tubes. Full-resolution descriptors are reused for in-tube similarities. Proposed zero-floored local DP, backtrace, trimming, scoring and dual-axis de-duplication yield candidate intervals. The proposed seltive model extension verifies selected candidate evidence using original A/B frame context before result fusion; unselected, uncertain or failed cases retain the core predictions. Selection, backend and fusion remain to be specified and are outside the core formulation and evaluated results in this draft. Matrices and trajectories are schematic.
 3. **Illustration of anchor-supported refinement.** Sparse correspondences suggest separated support intervals, which define finite tube regions for local alignment. All coordinates are schematic; this figure is not a qualitative benchmark result.
 4. **Placeholder for the accuracy–latency comparison.** No measurements are shown. Operating points will be populated from verified runs using a frozen evaluation and timing protocol.
 
 ## 后续替换
 
 - Fig1：方法定型后核对每个框、箭头和术语。
-- Fig2：当前按 `sec/3_method.tex` 与 `evidence/method_spec.md` 绘制；以后方法变更时同步修改 `scripts/generate_framework.py`、图注和图文件。
+- Fig2：上排按 `sec/3_method.tex` 与 `evidence/method_spec.md` 绘制；下排为新增的 `seltive model` 拟议扩展。以后方法定型或变更时同步修改方法说明、`scripts/generate_framework.py`、图注和图文件。
 - Fig3：可以继续作为原理图；若改作真实案例，必须使用真实 pair、预测与 GT，记录样本选择规则和生成命令。有区间 GT 不等于有逐帧对应真值。
 - Fig4：用真实结果绘图脚本替换；先明确横轴是 mean 还是 P50，以及同口径配置。无数据时保留空图。
 - 占位图的源文件和真实实验图的源数据分开存档；真实图交付 run ID、输入 hash、脚本和输出文件。

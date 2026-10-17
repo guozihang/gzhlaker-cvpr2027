@@ -2,7 +2,9 @@
 """Editable Fig. 2 drawn from sec/3_method.tex, not from benchmark outputs.
 
 The diagram uses illustrative coordinates and matrices. It depicts the proposed
-zero-floored local DP, not the prototype's unconditional-continuation variant.
+zero-floored local DP and a proposed JEV extension named "seltive model" by the user.
+The extension consumes selected candidate evidence and original video frames;
+its selection policy, model backend and score fusion are not implemented here.
 Python standard library + rsvg-convert; run from any directory.
 """
 from html import escape
@@ -23,14 +25,14 @@ BG = '#F7F9FC'
 
 class Canvas:
     def __init__(self):
-        self.parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="880" viewBox="0 0 1760 880">',
+        self.parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1220" viewBox="0 0 1760 1220">',
                       '<title>FastVCL: sparse-to-tube video copy localization framework</title>',
-                      '<desc>Proposed method from the manuscript: fixed ISC descriptors, normalization and masks, sampling grids, tiled mutual Top-K, deduplicated anchors, RANSAC with dual-axis support and gap splitting, finite tubes, in-tube cosine similarity and zero-floored local DP, traceback, trimming, scoring and two-axis deduplication. Matrices and trajectories are schematic, not empirical outputs.</desc>',
+                      '<desc>Proposed sparse-to-tube method with an additional selective visual verification branch named seltive model (JEV). Candidate intervals and original A/B frame context feed budgeted evidence selection and visual verification; verdict fusion produces final intervals, while unselected or uncertain candidates retain their core predictions. Matrices and trajectories are schematic, not empirical outputs. Selection and fusion policies remain to be specified.</desc>',
                       '<defs>',
                       '<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#526477"/></marker>',
                       '<marker id="blueArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#2D69AD"/></marker>',
                       '</defs>']
-        self.rect(0, 0, 1760, 880, '#FFFFFF', radius=0)
+        self.rect(0, 0, 1760, 1220, '#FFFFFF', radius=0)
 
     def rect(self, x, y, w, h, fill='#FFFFFF', stroke='none', radius=9, width=1.5):
         self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{fill}" stroke="{stroke}" stroke-width="{width}"/>')
@@ -115,7 +117,7 @@ def build_framework():
     c.panel(20,278,1,'Fixed features','Query A / reference B',BLUE)
     c.panel(336,404,2,'Sparse matching','Sample → compare → retain',BLUE)
     c.panel(778,440,3,'Temporal proposals','Fit → validate → split',TEAL)
-    c.panel(1256,484,4,'Refinement & output','Align → recover → deduplicate',PURPLE)
+    c.panel(1256,484,4,'Local refinement','Align → recover → candidates',PURPLE)
 
     # 1. Inputs and a shared normalized-descriptor view.
     feature_matrix(c,66,213,'Query A','F_A: M × 256',BLUE)
@@ -208,20 +210,63 @@ def build_framework():
         c.poly([(tx+lo*tw,647),(tx+hi*tw,647),(tx+(hi+.06)*tw,672),(tx+(lo+.06)*tw,672)],color,.10)
     c.text(1490,727,'Score q · min(IoU_A, IoU_B) dedup.',24,INK,600,'middle')
 
+    # Proposed post-localization verification branch. This is a figure-level design,
+    # not a claim that the historical anchor-level JEV pipeline implements this path.
+    c.path([(1490,748),(1490,791),(538,791),(538,845)],MUTED,2.6,arrow=True)
+    c.text(1014,781,'Candidate intervals + matched indices',25,INK,600,'middle')
+    c.text(20,826,'ADDITIONAL FRAME INPUT',22,MUTED,600)
+    c.text(1740,826,'PROPOSED VERIFICATION EXTENSION',22,ORANGE,600,'end')
+    for x,w in [(20,278),(336,404),(778,440),(1256,484)]:
+        c.rect(x,845,w,207,'#FFF9F1','#D6BC98',12)
+
+    c.text(159,884,'A/B frame context',26,INK,700,'middle')
+    for label,yy,color in [('A',921,BLUE),('B',962,PURPLE)]:
+        c.text(44,yy+7,label,23,color,600)
+        for k in range(5):
+            c.rect(76+k*37,yy-14,29,25,'#FFFFFF',color,2,1.5)
+            c.line(81+k*37,yy+5,98+k*37,yy-6,color,1.5)
+    c.text(159,1007,'Index → frame mapping',23,MUTED,anchor='middle')
+    c.text(159,1036,'Original video frames',23,MUTED,anchor='middle')
+    c.path([(298,950),(336,950)],MUTED,2.5,arrow=True)
+
+    c.text(538,884,'Select evidence',27,INK,700,'middle')
+    c.text(538,924,'Matched frame pairs / snippets',24,INK,anchor='middle')
+    c.text(538,962,'Budgeted verification calls',24,MUTED,anchor='middle')
+    c.text(538,1007,'Selection policy: to be defined',23,MUTED,anchor='middle')
+    c.path([(740,950),(778,950)],MUTED,2.5,arrow=True)
+
+    c.rect(778,845,440,7,ORANGE,radius=3)
+    c.circle(811,882,16,ORANGE)
+    c.text(811,889,'5',23,'#FFFFFF',700,'middle')
+    c.text(998,891,'seltive model',34,INK,700,'middle')
+    c.text(998,931,'Visual copy verification',26,INK,anchor='middle')
+    c.text(998,975,'COPY  /  NOT_COPY  /  UNCERTAIN',22,MUTED,600,'middle')
+    c.text(998,1020,'Model backend: to be specified',23,MUTED,anchor='middle')
+    c.path([(1218,950),(1256,950)],MUTED,2.5,arrow=True)
+
+    c.text(1498,884,'Final copy intervals',27,INK,700,'middle')
+    c.text(1498,924,'Fuse verification evidence',25,INK,anchor='middle')
+    c.text(1498,962,'Uncertain / failed: retain core result',23,MUTED,anchor='middle')
+    c.text(1498,1007,'Y = {(a_s, b_s, a_e, b_e, q)}',25,INK,600,'middle')
+    c.text(1498,1036,'Fusion policy: to be defined',23,MUTED,anchor='middle')
+    c.path([(538,1052),(538,1080),(1498,1080),(1498,1056)],MUTED,2.1,'5 5',True)
+    c.rect(739,1063,552,35,'#FFFFFF',radius=0)
+    c.text(1015,1089,'Unselected candidates retain the core result',23,MUTED,anchor='middle')
+
     # Reuse path: local similarities require full descriptors, not just sparse anchors.
     c.circle(159,704,4,BLUE)
-    c.path([(159,708),(159,785),(1750,785),(1750,202),(1704,202)],BLUE,2.4,'8 6',True)
-    c.rect(370,766,1140,38,'#FFFFFF',radius=0)
-    c.text(940,793,'Full-resolution normalized descriptors + validity masks',26,BLUE,600,'middle')
-    c.circle(31,848,5.5,BLUE)
-    c.text(45,856,'anchor',24,MUTED)
-    c.line(157,848,193,848,TEAL,3.5)
-    c.text(203,856,'track',24,MUTED)
-    c.rect(299,838,33,19,'#D4EAE5',radius=0)
-    c.text(342,856,'tube',24,MUTED)
-    c.line(438,848,473,848,BLUE,3,arrow=True)
-    c.text(486,856,'local path',24,MUTED)
-    c.text(1740,856,'Output: (a_s, b_s, a_e, b_e, q) · feature-index coordinates',24,INK,anchor='end')
+    c.path([(159,708),(159,765),(8,765),(8,1135),(1750,1135),(1750,202),(1704,202)],BLUE,2.4,'8 6',True)
+    c.rect(370,1116,1140,38,'#FFFFFF',radius=0)
+    c.text(940,1143,'Full-resolution normalized descriptors + validity masks',26,BLUE,600,'middle')
+    c.circle(31,1188,5.5,BLUE)
+    c.text(45,1196,'anchor',24,MUTED)
+    c.line(157,1188,193,1188,TEAL,3.5)
+    c.text(203,1196,'track',24,MUTED)
+    c.rect(299,1178,33,19,'#D4EAE5',radius=0)
+    c.text(342,1196,'tube',24,MUTED)
+    c.line(438,1188,473,1188,BLUE,3,arrow=True)
+    c.text(486,1196,'local path',24,MUTED)
+    c.text(1740,1196,'Core + proposed selective verification · feature-index coordinates',24,INK,anchor='end')
     c.save()
 
 
