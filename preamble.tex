@@ -1,0 +1,66 @@
+%% Preamble for the FastVCL CVPR draft.
+%% The document class and cvpr.sty are loaded in main.tex; this file only adds
+%% packages, math macros and the visible TODO marker.
+
+% ---------------------------------------------------------------------------
+% Layout / tables / algorithms
+% ---------------------------------------------------------------------------
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{amsthm}
+
+% Algorithm floats inside the two-column text
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\floatname{algorithm}{Algorithm}
+
+% Slightly tighter lists
+\setlist[itemize]{leftmargin=1.2em,topsep=2pt,itemsep=1pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.5em,topsep=2pt,itemsep=1pt,parsep=0pt}
+
+% ---------------------------------------------------------------------------
+% Visible placeholders.  DO NOT redefine these to be empty: an empty TODO would
+% make the draft look finished while the evidence is still outstanding.
+% ---------------------------------------------------------------------------
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\todo}[1]{{\color{red}#1}}
+\newcommand{\TODO}[1]{\textbf{\color{red}[TODO: #1]}}
+\newcommand{\PENDING}{\TODO{PENDING}}
+
+% ---------------------------------------------------------------------------
+% Math notation
+% ---------------------------------------------------------------------------
+\newcommand{\fA}[1]{\bar{f}^{A}_{#1}}
+\newcommand{\fB}[1]{\bar{f}^{B}_{#1}}
+\newcommand{\Sim}{S}
+\newcommand{\Tube}{\mathcal{T}}
+\newcommand{\Anch}{\mathcal{A}}
+\newcommand{\Grid}{\mathcal{G}}
+\newcommand{\Pred}{\mathcal{P}}
+\newcommand{\Step}{\mathcal{S}}
+\newcommand{\Track}{\mathcal{I}}
+\newcommand{\TopK}{\operatorname{TopK}}
+\newcommand{\Dedup}{\operatorname{Dedup}}
+\newcommand{\AnchorCap}{\operatorname{Cap}}
+\newcommand{\minIoU}{\operatorname{IoU}_{\min}}
+\newcommand{\IoU}{\operatorname{IoU}}
+\newcommand{\Tloc}{T_{\mathrm{localize}}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% Shorthand for the two video labels (never use them as a batch size)
+\newcommand{\vidA}{\mathrm{A}}
+\newcommand{\vidB}{\mathrm{B}}
+
+% ---------------------------------------------------------------------------
+% Small spacing helpers
+% ---------------------------------------------------------------------------
+\newcommand{\tabnote}[1]{\par\vspace{-2pt}{\footnotesize #1}}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+\setlength{\abovedisplayshortskip}{2pt}
+\setlength{\belowdisplayshortskip}{2pt}

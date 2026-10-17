@@ -1,0 +1,299 @@
+% Supplementary material -- separate entry point.
+% Build: tectonic supplementary.tex
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage[review]{cvpr}
+\input{preamble}
+
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+\def\paperID{*****}
+\def\confName{CVPR}
+\def\confYear{2027}
+
+\title{Supplementary Material for\\FastVCL: Training-Free Sparse-to-Tube\\Video Copy Localization}
+\author{Anonymous submission\\Paper ID \paperID}
+
+\begin{document}
+\maketitle
+
+\section{Scope and evidence grades}
+\label{sec:s-scope}
+
+This supplement records what was verified, what is proposed, and what is still missing. It is
+not an extra results section. The grades are:
+\textsc{source-verified} (checked against a paper or code location),
+\textsc{proposed} (specified but not validated),
+\textsc{implemented-unvalidated} (present in the reference implementation, not established
+as beneficial), \textsc{pilot-only} (small or incomplete development run),
+\textsc{missing}, and \textsc{conflict}. No claim in the main paper or this supplement is
+benchmark-verified for FastVCL.
+
+\section{Hyperparameters of the reference configuration}
+\label{sec:s-hyper}
+
+The values below are development initial values, not tuned results. Changing them is part of
+E2/E4, not of the definition of the method.
+
+\begin{table}[h]
+\centering
+\caption{Reference configuration (feature-index units unless noted).}
+\label{tab:s-hyper}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}l l@{}}
+\toprule
+Group & Value \\
+\midrule
+Sampling & stride 4; Top-$K$ 1; $\tau=0.7$; mutual on \\
+         & multi-scale off; independent phases off \\
+         & anchor cap 20,000; chunk 64 MB / 512 rows \\
+RANSAC   & $\epsilon_B=4.0$; $h_{\min}=5$; max tracks 8 \\
+         & $g_A=g_B=24$; $g_{\mathrm{back}}=1.0$ \\
+         & $L^A_{\min}=4$; $L^B_{\min}=8$ \\
+         & slope $[0.5,2.0]$; 2,000 iterations; conf.\ 0.99 \\
+         & unweighted least squares; refit on \\
+Tube     & $w_r=12$; $e_A=16$ (+2 boundary margin) \\
+         & min durations $3$ (A), $4$ (B); min anchors 2 \\
+         & $\tau_{\mathrm{align}}=0.6$; $\lambda_{\mathrm{gap}}=0.1$ \\
+         & smoothing window 3; max 4 paths per tube \\
+         & low-quality gap $g_{\mathrm{low}}=2$; $\theta_{\mathrm{dedup}}=0.8$ \\
+         & max 64 segments per pair \\
+Runtime  & CPU/NumPy; float32 similarity; float64 DP \\
+         & per-tile profiling disabled for timing \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Implementation audit: deviations and consequences}
+\label{sec:s-impl}
+
+The main paper specifies the method; this section records where the current reference
+implementation differs, so that a later reader does not mistake a prototype for the
+specification.
+
+\subsection{Local DP restart semantics}
+\label{sec:s-dp}
+
+The proposed recurrence is zero-floored (Eq.~7 of the main paper). The reference
+implementation initializes a cell with no legal predecessor at $\max(0,r_{ij})$, but a cell
+with a legal predecessor receives the continuation value \emph{unconditionally}, even when
+that value is negative. Its documentation defends this as treating a weak frame as weak
+evidence rather than as the absence of evidence. The two readings agree whenever all
+evidence is strong. They differ in two regimes, which are the reason the choice is an
+experimental variable:
+
+\begin{table}[h]
+\centering
+\caption{Deterministic hand-constructed bands (one column). Both use
+$\tau_{\mathrm{align}}=0.6$, $\lambda_{\mathrm{gap}}=0.1$, step set $\{(1,1)\}$. These are
+unit-level semantics checks, not benchmark results.}
+\label{tab:s-dp}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}l c c@{}}
+\toprule
+Input & Zero-floored (proposed) & Continuation (prototype) \\
+\midrule
+10 weak + 5 copy & $1.75$, path found & $0$, unreachable \\
+5 copy, 7 weak, 5 copy & two positive blocks & second negative \\
+ & (two paths) & (still unreachable) \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+In the first input, the prototype's accumulated score after the weak prefix is negative at
+every copy row, so the global maximum is 0 and no prediction is produced. In the second
+input, the prototype finds the first block; after blocking its path, the second block is
+still reached only through the unblocked weak gap and remains negative, so the second copy is
+lost. The zero-floored recurrence restarts at the first copy row (case 1) and at the second
+copy block (case 2). The mirror risk also exists: with a very short accumulated score, a
+single weak frame can trigger an early restart. The zero floor is therefore not universally
+better; E3 measures both on real candidates.
+
+The existing unit test named ``restarts after a negative run'' does not distinguish the two
+semantics: its global maximum lies in the first positive block, so both implementations pass
+while the second block remains negative. Two further diagnostics are required before the
+default is fixed: a long weak prefix followed by a true copy, and two same-track copies with
+a long weak gap at the DP layer.
+
+\subsection{Predecessor addressing}
+\label{sec:s-pred}
+
+The ideal recurrence addresses the predecessor by its band-relative column
+$\delta_u=(j-\Delta j)-c_r(i-\Delta i)$, which is $O(1)$ per step. The reference
+implementation enumerates every column of the predecessor row for the non-diagonal steps and
+filters by the actual index difference; that is $O(W_r)$ per cell and $O(P_rL_rW_r^2)$ per
+tube. The two are reported separately in the complexity section and in E5. A wall-clock
+number is only meaningful with the implementation named.
+
+\subsection{Coarse-stage dot products}
+\label{sec:s-dots}
+
+The implementation performs a forward Top-$K$ scan, a backward Top-$K$ scan and, when ties
+touch the $K$-th position, a re-scan of the tie group. The executed count is therefore close
+to twice the one-direction grid size plus tie work. The efficiency comparisons use the
+executed count, not the idealized one-pass count. The memory budget is a per-stage plan
+computed before allocation; a budget violation is an explicit error, not a silent fallback.
+
+\subsection{Sampling-plan interactions}
+\label{sec:s-plan}
+
+Multi-scale plans and non-default independent-phase plans are implemented, but their
+combination is refused by the configuration rather than silently scanning the product. The
+formal default is a single zero-phase stride-4 grid with Top-1 mutual matching. Multi-scale
+must be compared with a single fine grid at the same dot-product budget; without that control,
+a gain can be a budget increase rather than a scale effect.
+
+\subsection{Segment post-processing}
+\label{sec:s-seg}
+
+A path is smoothed with a centered window of 3; nodes above $\tau_{\mathrm{seg}}=0.6$ are
+strong evidence; runs are split when the A-index gap exceeds $g_{\mathrm{low}}=2$; weak
+leading/trailing nodes are trimmed; a run must reach 3 frames on A, 4 on B and contain two
+independent anchors. Endpoints are $[i_{\text{first}},i_{\text{last}}+1)$ and are clipped to
+the video. The score is
+$0.7\cdot\operatorname{clip}(\bar s,0,1)+0.3\cdot\min(1,N_{\mathrm{seg}}/
+\max(1,L_A/\bar\Delta_A))$. It is not a learned objectness and is not calibrated against one.
+
+\section{Metric details}
+\label{sec:s-metric}
+
+\paragraph{Product, not minimum.}
+For a pair with predictions $P_k$ and GT $G_l$, the official per-pair precision is the
+product of the two axis coverage ratios (Eq.~5 of the main paper). The union is taken over
+the non-empty intersections of each prediction with all GT boxes, separately on each axis;
+the denominator is the sum of the prediction lengths on that axis. Recall is symmetric. The
+two-axis minimum is used only for de-duplicating our own predictions. A system that covers the
+right query interval but the wrong reference interval receives a product near zero, which is
+the intended behaviour.
+
+\paragraph{Sentinel exclusion.}
+The official dataset aggregate drops every per-pair value exactly equal to 1. The degenerate
+cases are: empty prediction with non-empty GT ($P=1$ sentinel, $R=0$); non-empty prediction
+with empty GT ($P=0$, $R=1$ sentinel); both empty ($P=R=1$). A genuine perfect prediction also
+has $P=1$ and is dropped. The implementation therefore reports
+\texttt{excluded\_precision\_eq\_1} and \texttt{excluded\_recall\_eq\_1}, and we preserve the
+behaviour for comparability instead of silently ``fixing'' it. A cleaned version would change
+the numbers and must be a separate protocol, not a drop-in replacement.
+
+\paragraph{Four denominators.}
+For a run, print \texttt{n\_expected} (list size), \texttt{n\_processed}
+(\textsc{ok}+\textsc{empty}), \texttt{n\_precision\_denom}=$|\{p:P_p\neq1\}|$ and
+\texttt{n\_recall\_denom}=$|\{p:R_p\neq1\}|$. The last two are the true macro denominators;
+they are not identical to ``number of non-empty predictions'' or ``number of positives''
+when perfect predictions exist. Also print \texttt{n\_pairs\_with\_gt},
+\texttt{n\_pairs\_with\_pred}, \texttt{n\_pairs\_with\_gt\_and\_pred},
+\texttt{n\_error}, \texttt{n\_skipped} and the threshold used. A run whose status file does
+not account for every selected pair is not admissible.
+
+\paragraph{Negative-pair FAR.}
+The negative FAR is the fraction of the 27,315 key-missing test pairs with at least one
+prediction. It is not defined on the validation split, which has no negatives. The official
+macro mean is not a substitute: a correctly rejected negative pair has $P=R=1$ and is dropped
+from both means, so correct rejections do not enter the reported F1 at all. This is why the
+paper reports FAR separately.
+
+\section{Dataset composition and GT anomalies}
+\label{sec:s-data}
+
+The local VCSL copy has 12,254 feature files (4,388,241,152 bytes), 97,033 training pairs,
+41,798 validation pairs and 54,630 test pairs. Validation is 100\% positive; the test split
+contains 27,315 key-missing pairs, treated as negatives. The CSV hashes are
+\texttt{f7065467\ldots} (val), \texttt{b52c1b5f\ldots} (test) and
+\texttt{47d492e2\ldots} (labels). Feature lengths range from 3 to 12,590 rows.
+
+GT anomalies are kept, counted and never used to adjust candidates or predictions. In
+validation, 60 intervals in 59 pairs extend beyond the feature length (maximum excess 108
+indices) and 4 intervals are zero-length or reversed. In test, 8 intervals are out of range
+and 45 are degenerate. A cleaned-subset analysis, if performed, must be frozen separately and
+must not be presented as the official metric. The old data shipped next to a reference
+implementation (55,530 pairs, 27,765 keys) is a different release and must not be mixed with
+these files.
+
+\section{Protocol details}
+\label{sec:s-protocol}
+
+\paragraph{Iso-budget comparison (E2).}
+The budget is the executed number of dot products, not a nominal stride. For a single grid of
+stride $s$, the one-direction count is $\lceil M/s\rceil\lceil N/s\rceil$; the executed count
+including the two directions and tie passes is read from the run log. A multi-scale or
+multi-phase configuration is compared with a single fine grid whose executed count matches it
+within a pre-declared tolerance. Candidate recall and latency are plotted against this count.
+
+\paragraph{Single-factor rows (E4).}
+Each row changes one item relative to the reference configuration. The RANSAC seed is derived
+from the global seed and the pair id, so reruns are identical. The headline rows are repeated
+with five seeds; the standard deviation is reported. A ``no geometry'' row is implemented as
+a local-window proposal around the highest-scoring anchor clusters at the same dot-product
+budget, never as ``skip fitting and output zero predictions''.
+
+\paragraph{Timing (E5).}
+Start: raw features resident in CPU memory, operators initialized. End: five-column
+predictions exist in memory. Included: normalization, masking, tiling, transfers, sparse
+matching, RANSAC, tube construction, band similarity, DP, traceback, post-processing and
+in-memory serialization. Excluded and reported separately: feature file I/O, result export,
+process initialization, video decoding and ISC extraction. Warm-up at least once, then at
+least three measured rounds; profiling off; GPU timing synchronized at both ends; CPU threads
+and GPU model reported.
+
+\paragraph{TransVCL chunk timing.}
+Sum the chunk-pair times for a video pair and then compute mean/P50/P95 over video pairs.
+Report the number of chunk pairs and the maximum chunk size. A single-chunk time is not a
+video-pair time.
+
+\section{Required log schema}
+\label{sec:s-log}
+
+Future runs should emit the following fields (null when unavailable, never invented):
+\begin{itemize}
+\item \texttt{run\_metadata.json}: run id, method, code commit, dirty-diff hash, config hash,
+dataset version, split, CSV/GT/feature-manifest hashes, evaluator entry point,
+\texttt{coordinate\_convention}, frozen protocol id, seed, hardware, backend, precision,
+\texttt{timing\_scope}, \texttt{profiling\_enabled=false}.
+\item \texttt{predictions.json}: pair id $\rightarrow$ list of
+$[a_s,b_s,a_e,b_e,\text{score}]$.
+\item \texttt{status.jsonl}: pair id, status (\textsc{ok}/\textsc{empty}/\textsc{error}/
+\textsc{skipped}), reason, $M$, $N$.
+\item \texttt{metrics.json}: split, \texttt{n\_expected}, \texttt{n\_processed},
+\texttt{n\_error\_or\_skipped}, \texttt{n\_precision\_denom}, \texttt{n\_recall\_denom},
+\texttt{n\_negative\_pairs}, precision, recall, f1, \texttt{negative\_pair\_far} (null on
+validation), confidence threshold, \texttt{threshold\_selected\_on}, protocol id.
+\item \texttt{per\_pair\_timing.jsonl}: pair id, repeat, warm-up flag,
+\texttt{t\_localize\_ms}, \texttt{t\_io\_ms}, \texttt{t\_export\_ms}, stage times,
+\texttt{actual\_dot\_products}, \texttt{tube\_cells\_evaluated}, number of tubes, CPU RSS,
+GPU peak allocated/reserved, status.
+\end{itemize}
+
+\section{Status of the existing development runs}
+\label{sec:s-status}
+
+The following are recorded so that no later reader mistakes them for benchmark results. They
+are \textsc{pilot-only}.
+\begin{itemize}
+\item A validation run that finished 8,075 of 41,798 pairs (5,873 \textsc{ok}, 2,202
+\textsc{empty}, 0 error, 33,723 skipped) because it was interrupted.
+\item A near-complete validation run that attempted all 41,798 pairs: 28,708 \textsc{ok},
+13,089 \textsc{empty}, 1 error; the metrics file scores 41,797 pairs. It is not a zero-error
+evaluation and its configuration is not a frozen protocol.
+\item A 1,000-row development list whose metrics file is computed over 200 scored pairs; the
+directory name and its \texttt{COMPLETE} label are not a sample-size claim.
+\item A 24-pair synthetic run and several 20-pair real development runs. Synthetic numbers
+are never used as real-data results, and 20-pair numbers carry no statistical claim.
+\item A CUDA implementation that has never executed on a GPU; all GPU-related conclusions
+are \textsc{missing}, not zero.
+\end{itemize}
+
+\section{Reproduction checklist}
+\label{sec:s-repro}
+
+Before any number enters the main tables: (1) freeze the feature content digest, pair CSV,
+GT and evaluator; (2) select each method's threshold on validation and freeze it; (3) run
+validation to zero errors; (4) run test once; (5) fill the four denominators; (6) repeat the
+timing with profiling off and at least three rounds; (7) archive the run id and config hash;
+(8) only then replace the \TODO{PENDING} cells. Until step (8), the main paper must keep the
+placeholders visible.
+
+\end{document}

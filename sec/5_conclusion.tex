@@ -1,0 +1,42 @@
+\section{Conclusion and Limitations}
+\label{sec:conclusion}
+
+We formulated a sparse-to-tube view of training-free video copy localization and a way to
+test it. The pipeline proposes sparse correspondences, fits locally linear temporal tracks with
+support on both axes, and restricts high-resolution alignment to finite tubes. The formulation
+makes the cost structure explicit: fixed-stride coarse matching remains $\Theta(MN)$, a finite
+tube gives $O(LW)$ fine alignment per path under direct offset addressing, and an implementation
+that scans a predecessor row turns the same computation into $O(PLW^2)$. That difference is not
+cosmetic; it separates an arithmetic argument from a wall-clock result.
+
+The paper is organized around three hypotheses rather than an accuracy claim. Candidate
+coverage (H1) can fail even with perfect refinement, because an uncovered copy lies outside
+every tube. Boundary recovery (H2) can hold while the system becomes slower, because a smaller
+domain is not automatically a smaller measured cost (H3). Making these failures explicit tells
+a reader in advance which observation would refute the design and which comparison would expose
+a hidden cost. The novelty gate is deliberately severe: a baseline of one grid, mutual Top-$K$,
+RANSAC and standard Smith--Waterman already contains every classical ingredient, and if the
+additional mechanisms do not beat it at equal dot-product budget, the correct report is a
+negative result.
+
+\paragraph{Limitations.}
+Sparse sampling cannot propose a copy shorter than $(h_{\min}-1)s+1$ feature frames with a
+stride-$s$ grid, and short copies are where deduplication systems are most sensitive. The slope
+range is positive and bounded, so reversed or extreme speed changes are outside the model;
+non-linear speed changes are only approximated by multiple local lines. Repeated backgrounds
+and static logos can generate many mutual anchors at different reference times; the dual-axis
+support test suppresses tracks pinned to one instant but cannot remove all pseudo-evidence. The
+number of tubes can grow with spurious tracks, offsetting the alignment saving. The score $q$
+is uncalibrated and not comparable to detector objectness, so thresholds must be per method.
+Finally, VCSL provides interval boxes, not dense correspondence, so neither the official metric
+nor our diagnostics establish frame-accurate correspondence.
+
+\paragraph{What remains.}
+No benchmark result is reported. A zero-error complete validation run, a frozen threshold for
+every method, a single test execution with four denominators, a controlled comparison against
+the Simple Sparse-to-Band baseline on identical candidates, a real-hardware CUDA parity and
+timing study, and a qualitative figure on real pairs are outstanding. Until then the honest
+status is a specified method and a falsifiable protocol, not a demonstrated improvement. If the
+frozen runs support the mechanism, the contribution is a quality--cost trade-off under fixed
+descriptors; if they do not, the same protocol will have produced a useful negative result about
+where sparse proposals stop being sufficient.

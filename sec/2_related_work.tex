@@ -1,0 +1,88 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Benchmarks and task definitions}
+\label{sec:related-bench}
+
+VCDB~\cite{jiang2014} established a large-scale partial-copy database with temporal
+annotations. The VCSL benchmark~\cite{vcsl2022} (the dataset name; its
+paper title describes the dataset and the copy-overlap-aware protocol) adds segment
+annotations on both temporal axes and a copy-overlap precision/recall based on projected
+interval lengths, together with a common implementation of five baselines: HV, TN, DP, DTW
+and the learned SPD. It aggregates per-pair values at the dataset level by averaging over
+pairs after excluding degenerate value-1 sentinels. We follow this protocol exactly and report
+the four denominators the macro average actually uses (Section~\ref{sec:exp-metric}). The
+2023 Video Similarity Challenge~\cite{pizzi2024vsc} evaluates detection and localization under
+a needle-in-a-haystack setting with a $\mu$AP-style metric, while FiGVCL~\cite{figvcl2025} adds a fine-grained benchmark and
+a metric built on temporal correspondences. These differ in annotation density and in their
+negative-pair convention, which is why we do not mix numbers across releases.
+
+\subsection{Training-free geometric and alignment methods}
+\label{sec:related-classical}
+
+HV methods accumulate votes in a parameter space of temporal offset and scale from descriptor
+matches~\cite{douze2016,jiang2014}. They are training-free and efficient when matches are
+sparse, but the vote space is global and boundary precision is limited by the accumulator
+resolution. TN~\cite{tan2009} builds a visual-temporal consistency structure over matched
+frames and searches for a consistent partial alignment; it handles partial near-duplicates
+but still searches a dense candidate set. DP and DTW~\cite{chou2015} align the similarity
+matrix with a monotone path, and Smith--Waterman~\cite{smith1981} adds a zero floor so that a
+match can start and end anywhere. Chou et al.~\cite{chou2015} combine pattern-based retrieval
+with web-scale localization, and Tian et al.~\cite{tian2013} use a cascaded,
+multi-granularity framework with a two-dimensional Hough transform---a robust line
+detector---before refining the location, already anticipating coarse-to-fine search in the
+time plane.
+
+These methods are already training-free, so the label does not distinguish our system from
+HV, TN, DP or DTW; what differs is \emph{where} the dense comparison is evaluated. Robust
+line fitting is also not new: recent challenge matching tracks estimate a linear temporal
+transform with RANSAC~\cite{liu2023sam,pizzi2024vsc}. We therefore treat mutual matching,
+RANSAC fitting and banded local alignment as \emph{components}, never as contributions.
+
+\subsection{Learned similarity-map and interaction models}
+\label{sec:related-learned}
+
+SPD~\cite{spd2021} formulates alignment as object detection on the frame-to-frame similarity
+matrix; the detector is trained and re-implemented as a learned VCSL
+baseline~\cite{vcsl2022}. TransVCL~\cite{transvcl2023} enhances features with self-/cross
+attention, builds a similarity map, and regresses boxes with a detection head under flexible
+supervision; its matching stage uses a dense mutual/dual-softmax rule. Its inference entry
+splits features into chunks of at most 1,200 frames and enumerates chunk pairs, so it does not
+require a full $M\times N$ allocation for a long pair; its cost is chunk-pair attention,
+in-chunk dense correlation and head work. We account for this chunking when defining the
+timing boundary.
+
+RTR~\cite{rtr2024} adds regional token representations and a self-supervised transitive-pair
+construction, removing manual box labels but still training a representation and a detector.
+TCSVT~\cite{tcsvt2024} couples fast library-scale deduplication with temporal-consistency
+re-ranking; its setting includes retrieval, and its reported timings are per query frame
+rather than a validated end-to-end pair latency. FiGVCL~\cite{figvcl2025} adds a fine-grained
+method on top of its benchmark. More recent work continues the learned direction:
+iESTA~\cite{ding2025iesta} combines an instance-relation graph with transformer semantics,
+VCSA~\cite{li2025vcsa} reduces annotation to a single frame per copied segment, and
+MLT-Dedup~\cite{wang2026mltdedup} uses sparse clip embeddings for retrieval and fine frame
+embeddings for matching in a library-scale system. None of these is a training-free pairwise
+localizer on fixed ISC descriptors, and none isolates the candidate-versus-refinement
+allocation as a controlled variable.
+
+\subsection{Position of this work}
+\label{sec:related-position}
+
+The closest design to ours is the classical assembly of mutual nearest-neighbour matching,
+RANSAC line fitting and banded local alignment, all individually precedented. We do not
+present the assembly as novel. Our contribution is the finite-tube formulation, the separation
+of candidate coverage from boundary refinement, the restart-semantics analysis, and a protocol
+with a strong simple baseline and an iso-budget control. Sampling efficiency has been studied:
+Chen and Satoh~\cite{chen2025sampling} report that much longer sampling intervals than one
+frame per second can preserve or slightly improve accuracy with large speed-ups. That supports
+the premise of H1 but does not test it; we measure candidate coverage as a function of the
+executed dot-product budget and couple it to tube refinement. To our knowledge no
+training-free pairwise VCL paper combines these elements in this controlled way, but we state
+that as a literature claim to be re-checked, not as an established fact.
+
+Two differences are worth stating. Unlike retrieval-plus-re-ranking and library-scale
+deduplication systems, we never search a library and never filter pair candidates by a global
+retrieval score; the input is one pair and the output is its intervals. Unlike learned
+localizers, no downstream parameter is trained, but the ISC encoder is pretrained and
+thresholds are selected on validation. ``Training-free'' means exactly that and nothing more;
+it is not a claim of being unsupervised, label-free or parameter-free.

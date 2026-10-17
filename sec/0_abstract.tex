@@ -1,0 +1,19 @@
+\begin{abstract}
+Video copy localization asks for the temporal intervals that correspond across two
+untrimmed videos. Given fixed pretrained frame descriptors, dense frame-to-frame matching
+and learned interaction networks can localize copies accurately, but they evaluate a large
+part of the $M\times N$ temporal product. We ask whether sparse correspondence proposals can
+confine high-resolution alignment to a small number of locally consistent, time-supported
+regions without training any new downstream parameters. We formulate \emph{FastVCL}, a
+sparse-to-tube pipeline: mutual Top-$K$ anchors on sparse sampling grids, piecewise-linear
+track fitting with dual-axis support and gap splitting, and zero-floored local dynamic
+programming inside finite tubes. We do not assume that this cascade is faster or more
+accurate. Instead we state three falsifiable hypotheses---candidate coverage of short
+segments, boundary recovery inside tubes, and end-to-end benefit---and a protocol that
+compares the pipeline with classical zero-training baselines, learned localizers, and a
+deliberately strong simple sparse-to-band baseline under one frozen evaluation and timing
+boundary. This draft fixes the formulation and the protocol; every quantitative result cell
+is intentionally left pending. \TODO{EMPIRICAL RESULTS PENDING: insert frozen-protocol
+validation/test $\bar P,\bar R,\mathrm{F1}$, negative-pair FAR, boundary error and measured
+latency after the benchmark is complete.}
+\end{abstract}

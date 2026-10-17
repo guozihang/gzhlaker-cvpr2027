@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="555" viewBox="0 0 1440 555">
+<title>Proposed FastVCL framework</title>
+<desc>Draft conceptual figure. No experimental measurements or model outputs.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#536579"/></marker></defs>
+<rect x="0" y="0" width="1440" height="555" rx="0" fill="#FFFFFF" stroke="none"/>
+<text x="28" y="30" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="600" fill="#536579" text-anchor="start">DRAFT SCHEMATIC  /  PROPOSED DESIGN</text>
+<text x="28" y="72" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700" fill="#172B44" text-anchor="start">FastVCL: proposed sparse-to-tube workflow</text>
+<rect x="28" y="147" width="252" height="206" rx="10" fill="#F4F7FB" stroke="#CBD5E1"/>
+<circle cx="53" cy="176" r="14" fill="#16857C" stroke="none"/>
+<text x="53" y="182" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">1</text>
+<text x="44" y="218" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#172B44" text-anchor="start">Fixed frame features</text>
+<text x="44" y="256" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Query / reference</text>
+<text x="44" y="285" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">ISC descriptors</text>
+<text x="44" y="314" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">M x d and N x d</text>
+<line x1="285" y1="247" x2="304" y2="247" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="311" y="147" width="252" height="206" rx="10" fill="#F4F7FB" stroke="#CBD5E1"/>
+<circle cx="336" cy="176" r="14" fill="#16857C" stroke="none"/>
+<text x="336" y="182" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">2</text>
+<text x="327" y="218" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#172B44" text-anchor="start">Sparse correspondences</text>
+<text x="327" y="256" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Sample feature indices</text>
+<text x="327" y="285" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Tiled mutual Top-K</text>
+<text x="327" y="314" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Retain index mapping</text>
+<line x1="568" y1="247" x2="587" y2="247" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="594" y="147" width="252" height="206" rx="10" fill="#F4F7FB" stroke="#CBD5E1"/>
+<circle cx="619" cy="176" r="14" fill="#16857C" stroke="none"/>
+<text x="619" y="182" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">3</text>
+<text x="610" y="218" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#172B44" text-anchor="start">Temporal proposals</text>
+<text x="610" y="256" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Robust track fitting</text>
+<text x="610" y="285" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Check support on both axes</text>
+<text x="610" y="314" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Split unsupported gaps</text>
+<line x1="851" y1="247" x2="870" y2="247" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="877" y="147" width="252" height="206" rx="10" fill="#F4F7FB" stroke="#CBD5E1"/>
+<circle cx="902" cy="176" r="14" fill="#16857C" stroke="none"/>
+<text x="902" y="182" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">4</text>
+<text x="893" y="218" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#172B44" text-anchor="start">Local refinement</text>
+<text x="893" y="256" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Bounded tube regions</text>
+<text x="893" y="285" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Monotone path alignment</text>
+<text x="893" y="314" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Recover interval boundaries</text>
+<line x1="1134" y1="247" x2="1153" y2="247" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1160" y="147" width="252" height="206" rx="10" fill="#F4F7FB" stroke="#CBD5E1"/>
+<circle cx="1185" cy="176" r="14" fill="#16857C" stroke="none"/>
+<text x="1185" y="182" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">5</text>
+<text x="1176" y="218" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#172B44" text-anchor="start">Copy intervals</text>
+<text x="1176" y="256" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Validate and deduplicate</text>
+<text x="1176" y="285" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Zero or more segment pairs</text>
+<text x="1176" y="314" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Attach ranking scores</text>
+<text x="28" y="408" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#172B44" text-anchor="start">Scope</text>
+<text x="28" y="439" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Given video pairs; fixed pretrained descriptors</text>
+<text x="510" y="408" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#172B44" text-anchor="start">Training claim</text>
+<text x="510" y="439" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">No additional downstream model training</text>
+<text x="1015" y="408" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#172B44" text-anchor="start">Open design choices</text>
+<text x="1015" y="439" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">Sampling, alignment, and scoring</text>
+<text x="1015" y="466" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#536579" text-anchor="start">require specification and validation.</text>
+<line x1="28" y1="490" x2="1412" y2="490" stroke="#CBD5E1" stroke-width="2"/>
+<text x="28" y="525" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#536579" text-anchor="start">Conceptual architecture. The prototype is incomplete; arrows do not certify implementation or effectiveness.</text>
+</svg>

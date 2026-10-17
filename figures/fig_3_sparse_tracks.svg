@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="570" viewBox="0 0 1320 570">
+<title>Illustration of anchors, separated tracks, and tubes</title>
+<desc>Draft conceptual figure. No experimental measurements or model outputs.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#536579"/></marker></defs>
+<rect x="0" y="0" width="1320" height="570" rx="0" fill="#FFFFFF" stroke="none"/>
+<text x="28" y="30" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="600" fill="#536579" text-anchor="start">DRAFT SCHEMATIC  /  PROPOSED DESIGN</text>
+<text x="28" y="72" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700" fill="#172B44" text-anchor="start">From anchor support to bounded refinement</text>
+<rect x="28" y="100" width="406" height="352" rx="10" fill="#F4F7FB" stroke="none"/>
+<text x="44" y="135" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#172B44" text-anchor="start">(a) Sparse anchors</text>
+<line x1="70" y1="381" x2="385" y2="381" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="70" y1="381" x2="70" y2="185" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="227.5" y="411" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="middle">Query feature index</text>
+<text x="70" y="173" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="start">Reference feature index</text>
+<circle cx="110.95" cy="345.72" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="136.14999999999998" cy="330.03999999999996" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="161.35" cy="314.36" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="186.55" cy="298.68" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="274.75" cy="243.79999999999998" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="303.1" cy="226.16" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="334.59999999999997" cy="206.56" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="120.4" cy="228.12" r="4" fill="#CB7928" stroke="none"/>
+<circle cx="218.04999999999998" cy="345.72" r="4" fill="#CB7928" stroke="none"/>
+<circle cx="328.3" cy="316.32" r="4" fill="#CB7928" stroke="none"/>
+<rect x="462" y="100" width="406" height="352" rx="10" fill="#F4F7FB" stroke="none"/>
+<text x="478" y="135" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#172B44" text-anchor="start">(b) Separate supported intervals</text>
+<line x1="504" y1="381" x2="819" y2="381" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="504" y1="381" x2="504" y2="185" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="661.5" y="411" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="middle">Query feature index</text>
+<text x="504" y="173" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="start">Reference feature index</text>
+<line x1="544.95" y1="345.72" x2="620.55" y2="298.68" stroke="#16857C" stroke-width="4"/>
+<line x1="708.75" y1="243.79999999999998" x2="768.5999999999999" y2="206.56" stroke="#16857C" stroke-width="4"/>
+<line x1="633.15" y1="290.84000000000003" x2="689.85" y2="255.56" stroke="#CB7928" stroke-width="2" stroke-dasharray="5 5"/>
+<text x="622" y="322" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#CB7928" text-anchor="start">gap</text>
+<circle cx="544.95" cy="345.72" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="570.15" cy="330.03999999999996" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="595.35" cy="314.36" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="620.55" cy="298.68" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="708.75" cy="243.79999999999998" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="737.1" cy="226.16" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="768.5999999999999" cy="206.56" r="5" fill="#2864B4" stroke="none"/>
+<rect x="896" y="100" width="406" height="352" rx="10" fill="#F4F7FB" stroke="none"/>
+<text x="912" y="135" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#172B44" text-anchor="start">(c) Refine inside finite tubes</text>
+<line x1="938" y1="381" x2="1253" y2="381" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="938" y1="381" x2="938" y2="185" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1095.5" y="411" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="middle">Query feature index</text>
+<text x="938" y="173" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="start">Reference feature index</text>
+<polygon points="969.5,362.38 1064.0,303.58 1064.0,282.02 969.5,340.82" fill="#16857C" opacity="0.18"/>
+<line x1="969.5" y1="351.6" x2="1064.0" y2="292.8" stroke="#16857C" stroke-width="3"/>
+<polygon points="1130.15,262.42 1215.2,209.5 1215.2,187.93999999999997 1130.15,240.85999999999999" fill="#16857C" opacity="0.18"/>
+<line x1="1130.15" y1="251.64" x2="1215.2" y2="198.72" stroke="#16857C" stroke-width="3"/>
+<circle cx="978.95" cy="345.72" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="1004.15" cy="330.03999999999996" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="1029.35" cy="314.36" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="1054.55" cy="298.68" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="1142.75" cy="243.79999999999998" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="1171.1" cy="226.16" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="1202.6" cy="206.56" r="5" fill="#2864B4" stroke="none"/>
+<circle cx="44" cy="485" r="5" fill="#2864B4" stroke="none"/>
+<text x="58" y="491" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#536579" text-anchor="start">illustrative anchor</text>
+<line x1="300" y1="484" x2="328" y2="484" stroke="#16857C" stroke-width="4"/>
+<text x="342" y="491" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#536579" text-anchor="start">candidate track</text>
+<rect x="565" y="475" width="30" height="18" rx="0" fill="#E5F2EF" stroke="none"/>
+<text x="608" y="491" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#536579" text-anchor="start">tube search region</text>
+<text x="28" y="542" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#536579" text-anchor="start">Schematic only: no ground truth, inferred path, benchmark sample, or measured boundary accuracy is shown.</text>
+</svg>

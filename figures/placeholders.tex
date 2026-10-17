@@ -1,0 +1,44 @@
+% Internal draft figures only. Requires graphicx in the main preamble.
+% Move individual environments to their corresponding paper sections.
+% All paths are relative to the paper root; build from that directory.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_1_teaser.pdf}
+  \caption{\textbf{Conceptual comparison of matching domains.}
+  Dense comparison examines a broad frame-pair domain, whereas the proposed
+  sparse-to-tube design uses temporal proposals to restrict fine-resolution
+  alignment. The geometry is illustrative and does not represent a measured
+  baseline or experimental output.}
+  \label{fig:teaser}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_2_framework.pdf}
+  \caption{\textbf{Proposed FastVCL workflow.}
+  Fixed frame descriptors are processed into sparse correspondences, temporal
+  proposals, locally refined alignments, and copy intervals. Sampling, alignment,
+  and scoring choices remain subject to specification and validation; the diagram
+  does not certify implementation completeness.}
+  \label{fig:framework}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_3_sparse_tracks.pdf}
+  \caption{\textbf{Illustration of anchor-supported refinement.}
+  Sparse correspondences suggest separated support intervals, which define finite
+  tube regions for local alignment. All coordinates are schematic; this figure is
+  not a qualitative benchmark result.}
+  \label{fig:sparse_tracks}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_4_tradeoff.pdf}
+  \caption{\textbf{Placeholder for the accuracy--latency comparison.}
+  No measurements are shown. Operating points will be populated from verified
+  runs using a frozen evaluation and timing protocol.}
+  \label{fig:tradeoff}
+\end{figure*}

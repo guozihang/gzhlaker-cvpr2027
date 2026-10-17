@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="600" viewBox="0 0 1120 600">
+<title>Results-pending placeholder for accuracy versus latency</title>
+<desc>Draft conceptual figure. No experimental measurements or model outputs.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#536579"/></marker></defs>
+<rect x="0" y="0" width="1120" height="600" rx="0" fill="#FFFFFF" stroke="none"/>
+<text x="28" y="30" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="600" fill="#536579" text-anchor="start">DRAFT PLACEHOLDER  /  RESULTS PENDING</text>
+<text x="28" y="72" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700" fill="#172B44" text-anchor="start">Accuracy versus localization cost</text>
+<line x1="142" y1="483" x2="1062" y2="483" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="142" y1="483" x2="142" y2="128" stroke="#536579" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="142" y="112" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#172B44" text-anchor="start">VCSL F1 (%)</text>
+<text x="602.0" y="522" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" fill="#172B44" text-anchor="middle">Localization latency (ms / pair)</text>
+<rect x="350" y="226" width="500" height="143" rx="10" fill="#F4F7FB" stroke="#CBD5E1"/>
+<text x="600" y="269" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#536579" text-anchor="middle">RESULTS PENDING</text>
+<text x="600" y="307" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#536579" text-anchor="middle">No data points or curves are plotted.</text>
+<text x="600" y="337" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#536579" text-anchor="middle">Axes and operating points will follow the frozen protocol.</text>
+<text x="28" y="565" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#536579" text-anchor="start">Replace using verified results on identical pairs, features, evaluator, and timing boundaries.</text>
+</svg>
