@@ -39,13 +39,18 @@ frozen protocol does not have. We never call a feature index a second or a sourc
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.86\textwidth]{figures/fig_2_framework.pdf}
-  \caption{\textbf{Proposed sparse-to-tube workflow (conceptual schematic).}
-  Fixed descriptors become sparse correspondences (Section~\ref{sec:method-sparse}), temporal
-  proposals (Section~\ref{sec:method-tracks}), finite tubes (Section~\ref{sec:method-tube})
-  and locally refined intervals (Section~\ref{sec:method-dp}). The \textsc{proposed design}
-  label is intentional: the diagram describes the specification, not a verified
-  implementation, and the arrows do not certify effectiveness.}
+  \includegraphics[width=\textwidth]{figures/fig_2_framework.pdf}
+  \caption{\textbf{FastVCL framework (proposed method).}
+  (1) Fixed ISC descriptors are normalized with validity masks.
+  (2) Sampling plans and tiled mutual Top-$K$ matching produce coordinate-deduplicated
+  anchors. (3) RANSAC, dual-axis support checks and gap splitting produce finite tubes.
+  (4) Full-resolution descriptors are reused through the dashed blue connection to
+  compute similarities only inside those tubes. Zero-floored local DP, backtrace,
+  trimming, scoring and dual-axis de-duplication yield corresponding temporal intervals.
+  The path illustrates one tube; extraction repeats across paths and tracks.
+  Matrices and coordinates are schematic, not experimental outputs. The alignment
+  follows the proposed specification in Section~\ref{sec:method-dp}, which differs
+  from the current prototype.}
   \label{fig:framework}
 \end{figure*}
 

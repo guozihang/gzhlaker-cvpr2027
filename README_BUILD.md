@@ -24,22 +24,22 @@ path is present.
 | Supplementary file | `supplementary.tex` (separate entry point) |
 | Bibliography | `main.bib`, BibTeX via Tectonic (`ieeenat_fullname.bst`) |
 
-The local sandbox does not allow writes to `~/Library/Caches`, where Tectonic keeps its
-bundle. The build below therefore redirects `HOME` into the project. On a normal machine,
+The local build reuses the existing project-local Tectonic cache via
+`TECTONIC_CACHE_DIR`, without changing the home directory. On a normal machine,
 `tectonic main.tex` is enough.
 
 ```bash
 # main paper
-HOME="$PWD/.home" tectonic --keep-logs main.tex
+TECTONIC_CACHE_DIR="$PWD/.home/Library/Caches/TectonicProject.Tectonic" tectonic --only-cached --keep-logs main.tex
 # supplementary material
-HOME="$PWD/.home" tectonic --keep-logs supplementary.tex
+TECTONIC_CACHE_DIR="$PWD/.home/Library/Caches/TectonicProject.Tectonic" tectonic --only-cached --keep-logs supplementary.tex
 ```
 
 Recorded build (2026-10-17):
 
 | File | Exit | Output | Pages | Bytes |
 |---|---|---|---|---|
-| `main.tex` | 0 | `main.pdf` | 13 | 525,881 |
+| `main.tex` | 0 | `main.pdf` | 13 | 654,368 |
 | `supplementary.tex` | 0 | `supplementary.pdf` | 4 | 85,411 |
 
 No overfull or underfull boxes were reported in either build. There are no undefined
@@ -115,7 +115,10 @@ supplementary PDF and returned no hits.
 * `evidence/`: seven audit/ledger files (`method_spec.md`, `implementation_status.md`,
   `claims_ledger.md`, `related_work_matrix.md`, `experiment_manifest.md`,
   `experiment_plan.md`, `missing_evidence.md`).
-* `scripts/generate_paper_placeholders.py`: regenerates the four schematic figures.
+* `scripts/generate_paper_placeholders.py`: regenerates all four figures, delegating Fig. 2
+  to `scripts/generate_framework.py`.
+* `scripts/generate_framework.py`: regenerates only the detailed manuscript framework
+  as SVG/PDF/PNG. The figure is included at full text width in `sec/3_method.tex`.
 
 When a frozen run becomes available:
 
@@ -133,3 +136,17 @@ When a frozen run becomes available:
 * The body is over the 8-page limit; see Section 4.
 * The paper reports no benchmark number. That is intentional and is stated in the abstract,
   the experiment section and the conclusion.
+
+## 8. Framework figure update (2026-10-17)
+
+Fig. 2 now depicts the manuscript mechanism with descriptor matrices, sampling grids,
+tiled mutual Top-K matching, sparse anchors, RANSAC and dual-axis support, gap splitting,
+finite tubes, a local DP path, repeated extraction, and paired output intervals. A dashed
+connection shows reuse of full-resolution normalized descriptors and masks for in-tube
+similarity. All coordinates and matrices are schematic. The zero-floored DP follows the
+proposed method, not the current prototype.
+
+The figure and its caption were replaced in the method section. An offline cached build
+completed with exit 0; the main PDF remains 13 pages. Figure 2 is on page 5. No overfull
+or underfull boxes or undefined citations/references were reported; pre-existing package,
+font-substitution, and PDF-version warnings remain.

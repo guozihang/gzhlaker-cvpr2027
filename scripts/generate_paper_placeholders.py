@@ -81,30 +81,9 @@ s.text(28,495,'Question: can selective refinement retain localization quality at
 s.text(28,524,'Illustrative geometry only. No measured speedup, accuracy, or real video pair is shown.',17,C['muted'])
 s.save('fig_1_teaser')
 
-# Figure 2: open research choices are deliberately visible.
-s=SVG(1440,555,'Proposed FastVCL framework')
-s.banner('FastVCL: proposed sparse-to-tube workflow')
-labels=[('Fixed frame features',['Query / reference','ISC descriptors','M x d and N x d']),
-        ('Sparse correspondences',['Sample feature indices','Tiled mutual Top-K','Retain index mapping']),
-        ('Temporal proposals',['Robust track fitting','Check support on both axes','Split unsupported gaps']),
-        ('Local refinement',['Bounded tube regions','Monotone path alignment','Recover interval boundaries']),
-        ('Copy intervals',['Validate and deduplicate','Zero or more segment pairs','Attach ranking scores'])]
-for i,(title,lines) in enumerate(labels):
-    x=28+i*283
-    s.rect(x,147,252,206,C['bg'],C['line'])
-    s.circle(x+25,176,14,C['teal'])
-    s.text(x+25,182,str(i+1),17,C['white'],600,'middle')
-    s.text(x+16,218,title,20,weight=700)
-    for j,line in enumerate(lines): s.text(x+16,256+j*29,line,18,C['muted'])
-    if i<4: s.line(x+257,247,x+276,247,C['muted'],2,arrow=True)
-for x,title,desc in [(28,'Scope','Given video pairs; fixed pretrained descriptors'),(510,'Training claim','No additional downstream model training'),(1015,'Open design choices','Sampling, alignment, and scoring')]:
-    s.text(x,408,title,21,weight=700)
-    if x==1015:
-        s.text(x,439,desc,18,C['muted']); s.text(x,466,'require specification and validation.',18,C['muted'])
-    else: s.text(x,439,desc,18,C['muted'])
-s.line(28,490,1412,490)
-s.text(28,525,'Conceptual architecture. The prototype is incomplete; arrows do not certify implementation or effectiveness.',20,C['muted'])
-s.save('fig_2_framework')
+# Figure 2: detailed manuscript framework (shared standalone generator).
+from generate_framework import build_framework
+build_framework()
 
 # Figure 3: coordinates are authored illustrations, not synthetic benchmark outputs.
 s=SVG(1320,570,'Illustration of anchors, separated tracks, and tubes')
