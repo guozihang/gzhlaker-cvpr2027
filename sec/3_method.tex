@@ -10,12 +10,17 @@ ISC descriptors~\cite{yokoo2021,douze2021isc}
 F_A\in\mathbb{R}^{M\times d},\qquad F_B\in\mathbb{R}^{N\times d},\qquad d=256,
 \end{equation}
 where $i\in\{0,\dots,M-1\}$ and $j\in\{0,\dots,N-1\}$ are \emph{feature indices}. A row is
-valid when it is non-empty, finite and has norm above $\varepsilon=10^{-12}$:
+valid when it is non-empty, finite and has norm above $\varepsilon=10^{-8}$:
 \begin{equation}
-m_i^A=\mathbf{1}\!\left[\lVert F_{A,i}\rVert_2>\varepsilon\right],\qquad
-\fA{i}=\begin{cases}F_{A,i}/\lVert F_{A,i}\rVert_2,&m_i^A=1,\\ \mathbf{0},&m_i^A=0,\end{cases}
+\begin{aligned}
+m_i^A&=\mathbf{1}\!\left[\operatorname{finite}(F_{A,i})\land\lVert F_{A,i}\rVert_2>\varepsilon\right],\\
+\fA{i}&=\begin{cases}F_{A,i}/\lVert F_{A,i}\rVert_2,&m_i^A=1,\\ \mathbf{0},&m_i^A=0.\end{cases}
+\end{aligned}
 \end{equation}
-and analogously $m_j^B,\fB{j}$. Cosine similarity is defined only between valid rows:
+where $\operatorname{finite}$ requires every component to be finite; the norm is
+computed in a precision that avoids overflow. Feature files are checked finite at load, the
+search and tube stages share the same threshold, and segment extraction consumes the
+resulting node-valid mask. Define $m_j^B,\fB{j}$ analogously. Cosine similarity is defined only between valid rows:
 \begin{equation}
 \Sim_{ij}=\begin{cases}\langle \fA{i},\fB{j}\rangle,&m_i^A=m_j^B=1,\\-\infty,&\text{otherwise.}\end{cases}
 \label{eq:sim}
@@ -35,28 +40,18 @@ The output is a set of half-open interval pairs
 \end{equation}
 with uncalibrated score $q$, not a probability. Coordinates are feature indices; converting
 them to seconds or original-video frame numbers requires a verified timestamp map, which the
-frozen protocol does not have. We never call a feature index a second or a source-video frame.
+current draft does not establish. We never call a feature index a second or a source-video frame.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig_2_framework.pdf}
   \caption{\textbf{FastVCL framework (proposed method).}
-  (1) Fixed ISC descriptors are normalized with validity masks.
-  (2) Sampling plans and tiled mutual Top-$K$ matching produce coordinate-deduplicated
-  anchors. (3) RANSAC, dual-axis support checks and gap splitting produce finite tubes.
-  (4) Full-resolution descriptors are reused through the dashed blue connection to
-  compute similarities only inside those tubes. Zero-floored local DP, backtrace,
-  trimming, scoring and dual-axis de-duplication yield candidate temporal intervals.
-  (5) The proposed verification extension, named \texttt{seltive model}, combines
-  selected candidate evidence with original A/B frame context for visual copy
-  verification. Its verdicts feed a proposed fusion step; unselected, uncertain or
-  failed cases retain the core predictions. Selection, backend and fusion remain
-  to be specified; this extension is not part of the core formulation or evaluated
-  results in this draft.
-  The path illustrates one tube; extraction repeats across paths and tracks.
-  Matrices and coordinates are schematic, not experimental outputs. The alignment
-  follows the proposed specification in Section~\ref{sec:method-dp}, which differs
-  from the current prototype.}
+  Normalized fixed features produce sparse mutual anchors, robust temporal tracks and finite
+  tubes. Full-resolution descriptors (blue dashed connection) are reused for in-tube local
+  DP, segment extraction and de-duplication. The lower row adds proposed frame-based
+  verification, named \texttt{seltive model} (Section~\ref{sec:method-selective}); its policies
+  remain unspecified and no result includes it. Matrices, paths and intervals are schematic.
+  The zero-floored DP differs from the current prototype.}
   \label{fig:framework}
 \end{figure*}
 
@@ -73,7 +68,7 @@ I_B^g&=\{p_B^g+k s_B^g:k\ge0\}\cap\{j:m_j^B=1\},
 and only $I_A^g\times I_B^g$ is scored inside plan $g$.
 
 \paragraph{Mutual Top-$K$ anchors.}
-Let $\operatorname{TopK}^{(K)}_{B,g}(i)\subseteq I_B^g$ contain the $K$ elements largest
+Let $\operatorname{TopK}^{(K)}_{B,g}(i)\subseteq I_B^g$ contain the $\min(K,|I_B^g|)$ elements largest
 under the total order $(i,j')\succ(i,j)$ iff $\Sim_{ij'}>\Sim_{ij}$, or
 $\Sim_{ij'}=\Sim_{ij}$ and $j'<j$. Ties are resolved by the smaller original index,
 deterministically and identically in both directions. The plan-level set is
@@ -86,8 +81,8 @@ j\in\operatorname{TopK}^{(K)}_{B,g}(i),\\
 \end{aligned}
 \label{eq:anchors}
 \end{equation}
-Bidirectional membership suppresses one-sided matches in repeated texture, and $\tau$ removes
-weak matches before any geometric model is fitted.
+Bidirectional membership removes one-sided matches; it does not guarantee removal of
+repeated-texture matches. The threshold $\tau$ removes low-cosine anchors.
 
 \paragraph{Merging plans.}
 Across plans, anchors are merged \emph{by original coordinate}:
@@ -101,25 +96,16 @@ $\operatorname{Cap}_{C_{\max}}$ keeps the $C_{\max}$ highest scores (ties by sma
 Without coordinate de-duplication one physical correspondence could support several RANSAC
 inliers and inflate a track's evidence.
 
-\paragraph{Four properties the design must respect.}
-\emph{(i) Nested zero-phase grids.} With zero phases, $I^{8}\subset I^{4}\subset I^{2}$: a
-coarser grid samples no new coordinate and only changes each row's Top-$K$ competition. A
-multi-scale experiment must therefore be compared with a single fine grid at equal
-dot-product budget. \emph{(ii) Phases are two-dimensional.} A synchronous shift $(p,p)$
-covers only $p_B-p_A\equiv0\pmod s$; independent phases tile the full product, and the two
-must not be conflated. \emph{(iii) A sampling lower bound.} A track with $h$ anchors at
-distinct $A$ times occupies at least
-\begin{equation}
-i_{\max}-i_{\min}+1\ge(h-1)s+1
-\quad\Longleftrightarrow\quad
-i_{\max}-i_{\min}\ge(h-1)s
-\label{eq:shortbound}
-\end{equation}
-frames. This is necessary for the track to exist, not sufficient for the copy to be found;
-copies shorter than $(h_{\min}-1)s+1$ are structurally invisible to that grid, which is a main
-risk to H1. \emph{(iv) Top-$K$ is not independent evidence.} The $K$ partners of one frame
-share its time; support must be counted on distinct projected times
-$\pi_A(\Track_r)$ and $\pi_B(\Track_r)$, not on anchor pairs.
+\paragraph{Sampling facts that constrain the experiments.}
+Zero-phase grids are nested ($I^{8}\subset I^{4}\subset I^{2}$): a coarser grid adds no
+coordinate but changes each row's Top-$K$ competition, so a multi-scale run must be compared
+with a single fine grid at an equal executed budget. Independent phase pairs differ from
+synchronous shifts $(p,p)$ and tile the two-dimensional offset. For one stride-$s$ grid, $h$
+distinct A anchor times span at least $(h-1)s$ indices, so a shorter copy cannot supply them
+wholly within itself; outside anchors, tube extension or merged phases may still produce a
+candidate overlapping that copy, and this is not an impossibility theorem. Top-$K$ partners
+share a time and are not independent support. The supplement records the derivations and
+the 64$\times$64 budget counts.
 
 \subsection{Robust temporal tracks with dual-axis validation}
 \label{sec:method-tracks}
@@ -131,16 +117,17 @@ j\approx\alpha_r i+\beta_r,\qquad \alpha_r\in[\alpha_{\min},\alpha_{\max}]\subse
 \label{eq:line}
 \end{equation}
 The slope is an index-step ratio; it equals a playback-speed ratio only when both videos have
-the same constant sampling rate. RANSAC repeatedly draws an anchor pair with
-$|i_2-i_1|\ge\Delta_{\min}$, computes $(\alpha,\beta)$, counts inliers under
+the same constant sampling rate. RANSAC repeatedly draws two anchors at distinct A
+coordinates, computes $(\alpha,\beta)$, counts inliers under
 \begin{equation}
 |j-(\alpha i+\beta)|\le\epsilon_B,
 \label{eq:inlier}
 \end{equation}
 and keeps the best hypothesis. The draw is deterministic given a per-pair seed derived from a
 cryptographic hash of the structured pair identifier, so resumes and reruns see the same
-hypotheses. Accepted inliers are removed before the next round, allowing several copies
-between the same pair.
+hypotheses. Model inliers are removed provisionally; if every split run fails re-validation,
+they are restored so another hypothesis can explain them. This allows several copies between
+the same pair.
 
 \paragraph{Dual-axis re-validation.}
 Each run $\Track_r$ is refitted and accepted only if
@@ -174,27 +161,16 @@ j_{(t+1)}-j_{(t)}>g_B,\\
 \end{aligned}
 \label{eq:gapsplit}
 \end{equation}
-Each run is re-validated by \eqref{eq:recheck}--\eqref{eq:span}. The A- and B-gap rules stop
-one line from claiming a copy across unrelated content; the backwards rule rejects
-non-monotone correspondences. Splitting can only create more proposals, never fewer.
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.86\textwidth]{figures/fig_3_sparse_tracks.pdf}
-  \caption{\textbf{From anchors to finite tubes (illustrative schematic).}
-  (a) Sparse correspondences contain copy-supported and spurious anchors. (b) Inliers of a
-  fitted track split at an unsupported gap. (c) Each interval defines a finite tube, and
-  alignment is restricted to the shaded region. Coordinates are synthetic and hand-chosen;
-  this is an algorithm illustration, \emph{not} a qualitative result on a real pair, and it
-  contains no ground truth or measured boundary.}
-  \label{fig:sparse_tracks}
-\end{figure*}
+Each run is re-validated by \eqref{eq:recheck}--\eqref{eq:span}. The gap rules separate unsupported spans and large backward steps; they do not
+guarantee that later tube extensions or extracted intervals remain disjoint. Splitting can create several runs, but re-validation may reject some or all of them;
+the number of accepted proposals can increase or decrease. The supplement illustrates the
+anchor-to-tube construction on hand-chosen coordinates; it is not a real-pair result.
 
 \subsection{Finite tubes}
 \label{sec:method-tube}
 
 For a track $r$ with support $[i^r_{\min},i^r_{\max}]$ and
-$c_r(i)=\operatorname{round}(\alpha_r i+\beta_r)$,
+$c_r(i)=\operatorname{round}(\alpha_r i+\beta_r)$ (ties to even),
 \begin{equation}
 \begin{aligned}
 \ell_r&=\max(0,\,i^r_{\min}-e_A),\quad
@@ -233,11 +209,14 @@ H_{ij}=\max\Big(&0,\;r_{ij},\\
 \label{eq:localdp}
 \end{equation}
 with $g(\Delta i,\Delta j)=\Delta i+\Delta j-2$. Equation~\eqref{eq:localdp} is a
-Smith--Waterman local alignment~\cite{smith1981} restricted to a finite tube. The zero is a
+Smith--Waterman-style local alignment~\cite{smith1981} with the stated restricted steps;
+it is not the canonical insertion/deletion recurrence. Invalid or previously blocked cells
+have $H=0$, no predecessor and cannot be used as match nodes. The zero is a
 \emph{restart}: a cell may always abandon a bad prefix. A weak frame lowers the accumulated
 score but does not by itself force a restart, so a short weak stretch is bridged while the
 score remains positive; the floor only discards a path once its evidence is exhausted. This is
-exactly the behaviour needed when $e_A$ pulls a non-copy prefix into the tube.
+the intended protection when $e_A$ includes a weak non-copy prefix; its empirical effect
+remains to be tested.
 
 \paragraph{Backtrace and intervals.}
 Let $(i^\star,j^\star)=\argmax H_{ij}$ if $H_{i^\star j^\star}>0$. We follow the predecessor
@@ -248,29 +227,33 @@ visited nodes, ordered by $i$, define
 [b_s,b_e)=[j_{\text{first}},\,j_{\text{last}}+1),
 \label{eq:interval}
 \end{equation}
-which is half-open and integer by construction. A non-positive cell is never a valid start.
+which is half-open and integer by construction. A non-positive cell is never a valid start. For tied positive maxima choose the smallest
+$(i,j)$; for tied transitions prefer a restart, then the stated step order. This deterministic
+rule belongs to the proposed specification.
 
-\paragraph{Restart semantics are a design variable.}
-An alternative keeps a legal continuation unconditionally, even when the accumulated score is
-negative. The readings agree on strong evidence and diverge in two regimes: a long weak prefix
-before a real copy, and two real copies separated by a long weak gap. Unconditional
-continuation carries the prefix's debt into the copy and can prevent it from becoming
-positive, and the second copy inherits the gap's debt. The zero-floored recurrence restarts
-and remains recoverable. We compare both on identical candidate tubes in E3; the zero-floored
-form is the specification studied here, and no claim is made that it wins until that
-comparison exists. The supplementary material gives two deterministic bands on which the two
-readings produce different scores and paths.%
-\footnote{The current research prototype implements the unconditional-continuation variant;
-the specification above is the proposed method. The difference, its consequences and two
-deterministic counterexamples are audited in the supplementary material. E3 decides the
-default.}
+\paragraph{Restart semantics and segment extraction.}
+The prototype instead keeps a legal continuation even when negative: a cell with a legal
+predecessor never restarts, so a negative cell cannot start a traceback but a later strong
+cell inherits its deficit. On a one-cell-wide band, a long weak prefix can then prevent a
+later copy from attaining a positive score; a second copy can inherit a preceding gap's
+negative score. These constructed cases and their exact scores are shown in the supplement.
+E3 compares both rules on identical tubes; neither a toy example nor the zero-floor
+principle establishes a benchmark improvement.
 
-\paragraph{From paths to segments.}
-We smooth matched similarities with a centered window of 3, keep nodes above
-$\tau_{\mathrm{seg}}$ as strong evidence, and split where the original $A$ gap exceeds
-$g_{\mathrm{low}}$. Weak leading/trailing nodes are trimmed before endpoints are read. A run is
-emitted only if it reaches minimum duration on both axes and contains enough independent
-anchors. This makes endpoints supported by evidence rather than by the search window.
+For the proposed output rule, clamp path cosines below zero, then average over a centered
+window of up to three matched nodes with edge padding. Keep nodes at or above
+$\tau_{\mathrm{seg}}$. Consecutive strong nodes belong to the same segment only if
+$i_{t+1}-i_t-1\le g_{\mathrm{low}}$, counting intervening original A indices. Trim to the
+first and last strong nodes, then read endpoints by \eqref{eq:interval}. Apply minimum
+durations on both axes and minimum distinct anchor support within the segment. The proposed
+endpoints have no additional margin; the prototype applies a margin counted in matched path
+rows (default 2), not in feature indices, and counts stored A-anchor entries rather than
+distinct times. Both differences are recorded in the supplement.
+
+After each positive path, block only its matched cells and recompute the DP, up to $P_r$
+attempts, including attempts whose extracted segments are rejected. Blocking a whole row or
+column would remove other copies. Stop before backtrace if no positive unblocked path exists.
+This greedy extraction does not guarantee the globally optimal set of paths.
 
 \subsection{Multi-segment output, score and de-duplication}
 \label{sec:method-segments}
@@ -285,23 +268,50 @@ Two interval pairs are near-duplicates when
 \end{equation}
 The minimum, not an A-only or area IoU, is deliberate. If the same query interval
 $[a_s,a_e)$ is copied at two reference times, $\IoU_A=1$ but $\IoU_B=0$, so both copies are
-kept; an A-only rule would delete one. The rule is for de-duplication, not evaluation; the
+kept; an A-only rule would delete one. A two-dimensional area-IoU rule also keeps this
+disjoint-reference example, so the example alone does not establish an advantage over that rule. The rule is for de-duplication, not evaluation; the
 official metric uses a product (Section~\ref{sec:exp-metric}).
 
 The confidence is an uncalibrated combination of mean smoothed path similarity and anchor
 support,
 \begin{equation}
 q=0.7\cdot\operatorname{clip}(\bar s,0,1)+0.3\cdot
-\min\!\left(1,\frac{|\Track_r^{\mathrm{seg}}|}{\max(1,\,L_A/\bar\Delta_A)}\right),
+\min\!\left(1,\frac{n_A^{\mathrm{seg}}}{\max(1,\,L_A/\bar\Delta_A)}\right),
 \label{eq:score}
 \end{equation}
-with $\bar s$ the mean smoothed cosine, $L_A=a_e-a_s$, and $\bar\Delta_A$ the median A-anchor
-spacing. It is not detector objectness, so each method needs its own threshold.
+where $\bar s$ is the mean smoothed value over retained path nodes, $L_A=a_e-a_s$,
+$n_A^{\mathrm{seg}}$ is the number of distinct A times among track anchors whose A and B
+coordinates both lie inside the segment, and $\bar\Delta_A$ is the median positive spacing
+of distinct track A times (fallback 4 when fewer than two exist). Distinct support avoids
+rewarding repeated Top-$K$ partners as independent times. The prototype counts stored
+A-anchor entries over the A interval only, so Top-$K>1$ can change its support term. This
+proposed rule must be reconciled with the prototype before evaluation. Greedy de-duplication
+visits decreasing $q$, breaking ties by start coordinates and then collection order; apply
+the configured segment cap. The confidence threshold is applied by the evaluation protocol,
+not by the core pipeline, and its mode is declared with the run. Scores are not calibrated
+across methods.
 
 An empty list is a legitimate prediction for a negative or low-confidence pair
 (\textsc{empty}). A missing file, exception, timeout or out-of-memory event is
 \textsc{error}/\textsc{skipped} and is never rewritten as an empty list; doing so would change
 the denominators in Section~\ref{sec:exp-metric}.
+
+\subsection{Proposed selective verification: \texttt{seltive model}}
+\label{sec:method-selective}
+Figure~\ref{fig:framework} includes an optional JEV visual-copy verification branch under
+its requested name, \texttt{seltive model}. It consumes selected candidate intervals and
+matched indices together with original A/B frame context. It therefore requires a verified
+feature-index-to-frame map and additional visual input beyond the fixed ISC descriptors.
+A proposed verifier returns \texttt{COPY}, \texttt{NOT\_COPY} or \texttt{UNCERTAIN}; an
+unselected candidate, uncertain verdict or failed call retains the core prediction.
+Selection, model backend and the action on decisive verdicts remain unspecified. We do not
+assign an unvalidated deletion or score-update rule.
+
+The extension cannot recover a copy absent from its candidate pool and is excluded from
+Algorithm~\ref{alg:fastvcl} and the core H1--H3 comparison. E6 must compare core-only,
+random selection and selective verification on the same pool and call budget, report recall
+loss and false alarms, and add frame acquisition, model calls, failures, retries and fusion
+to the cost. No backend, benefit or downstream training status is established.
 
 \subsection{Algorithm and complexity}
 \label{sec:method-complexity}
@@ -318,7 +328,8 @@ Q^{\mathrm{grid}}_{\mathrm{coarse}}
 \approx MN\sum_{g\in\Grid}\frac{1}{s_A^g s_B^g}.
 \label{eq:qcoarse}
 \end{equation}
-For fixed strides this is $\Theta(MN)$: the constant shrinks, the order does not. Three
+With all rows valid and fixed strides this is $\Theta(MN)$ (an $O(MN)$ upper bound
+with masks): the constant shrinks, the order does not. Three
 properties must be kept apart: not storing the full $M\times N$ matrix (memory, via tiling
 and streaming); keeping few anchors (output sparsity, $|\Anch|\ll MN$); and performing
 sub-quadratic arithmetic (false for fixed strides). If forward and backward Top-$K$ scans are
@@ -341,11 +352,15 @@ O\!\left(P_rL_rW_r^{\,2}\right).
 \end{equation}
 Both bounds are reported, and the measured one is named in the timing results.
 
-\paragraph{Memory.}
-Resident input is $O((M+N)d)$; one band and its DP tables are $O(L_rW_r)$. Since tubes are
-processed one at a time, the numeric workspace peaks at $\max_r(L_rW_r)$, excluding Python
-object overhead, cached debug payloads and overlapping tubes, which are reported separately as
-peak resident memory.
+\paragraph{Whole-pipeline time and memory.}
+In addition to normalization and dot products, account for tiled Top-$K$ selection,
+$O(RI|\Anch|)$ RANSAC hypothesis scoring for at most $R$ rounds and $I$ trials per round,
+refits/sorting, traceback and worst-case $O(C^2)$ greedy de-duplication of $C$ segments.
+The DP bound alone is not the pipeline bound. Resident input is $O((M+N)d)$. Beyond it,
+coarse storage includes the tile ($B_A B_B$ cells), retained Top-$K$ lists
+($K(n_A+n_B)$ entries for sampled lengths $n_A,n_B$), and anchors; sequential refinement
+requires $O(\max_r L_rW_r)$ tables. Peak RSS must also include retained candidates and
+runtime objects. Overlapping tubes duplicate work even when processed sequentially.
 
 \begin{algorithm}[t]
 \caption{FastVCL: one video pair}
@@ -364,15 +379,18 @@ peak resident memory.
 \State split every $r\in\mathcal{R}$ by \eqref{eq:gapsplit}; re-validate
 \State $\mathcal{C}\gets\emptyset$
 \ForAll{tracks $r$}
-  \State build $\Tube_r$ by \eqref{eq:tube}
+  \State build $\Tube_r$ by \eqref{eq:tube}; compute valid similarities once
   \For{$p=1$ \textbf{to} $P_r$}
-    \State run \eqref{eq:localdp}; backtrace a positive path
-    \State convert to intervals by \eqref{eq:interval}; extract/trim segments
-    \State block matched cells; \textbf{break} if no positive path remains
+    \State run \eqref{eq:localdp} on unblocked valid cells
+    \If{no positive score} \State \textbf{break} \EndIf
+    \State backtrace; trim and extract segments $\mathcal C_r$
+    \State $\mathcal C\gets\mathcal C\cup\mathcal C_r$
+    \State block matched cells, including paths yielding no segment
   \EndFor
 \EndFor
 \State $\mathcal{C}\gets$ filter by duration/support; score by \eqref{eq:score}
-\State $\mathcal{Y}\gets$ de-duplicate $\mathcal{C}$ by \eqref{eq:miniou}; sort by $q$
+\State $\mathcal{Y}\gets$ score-ordered de-duplication by \eqref{eq:miniou}
+\State apply segment cap; write scores \Comment{threshold is declared at evaluation}
 \State \Return $\mathcal{Y}$ \Comment{possibly empty}
 \end{algorithmic}
 \end{algorithm}

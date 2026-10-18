@@ -1,161 +1,117 @@
-# Build Record and Template Status
+# Build record and draft status
 
-## 1. Template status (not the official CVPR 2027 kit)
+Last checked: **2026-10-18, round 3**. This is a research draft with pending experiments,
+not a submission-ready paper. The main text ends on page 8; references occupy page 9. The
+supplement is a separate 7-page entry point.
 
-This project is built on the **CVPR 2026 author kit** (`cvpr.sty`, review mode) as a
-fallback. `main.tex` sets `\confYear{2027}` and `\confName{CVPR}` so that the draft is
-labelled for the target venue, but **this is not the official CVPR 2027 author kit**. The
-2027 kit must be dropped in and the page limit, anonymity rules and LLM-use policy re-checked
-once it is published. Do not claim template compliance in the paper or in any external
-message.
+## Current outputs
 
-The review option is enabled (`\usepackage[review]{cvpr}`), which replaces the author block
-with ``Anonymous CVPR submission'' and adds line numbers. The source deliberately contains a
-generic anonymous author field; no real name, institution, email, repository URL or machine
-path is present.
-
-## 2. Toolchain and commands
-
-| Item | Value |
-|---|---|
-| Engine | Tectonic 0.17.0 (XeTeX backend) |
-| Bundle | default Tectonic bundle |
-| Main file | `main.tex` |
-| Supplementary file | `supplementary.tex` (separate entry point) |
-| Bibliography | `main.bib`, BibTeX via Tectonic (`ieeenat_fullname.bst`) |
-
-The local build reuses the existing project-local Tectonic cache via
-`TECTONIC_CACHE_DIR`, without changing the home directory. On a normal machine,
-`tectonic main.tex` is enough.
-
-```bash
-# main paper
-TECTONIC_CACHE_DIR="$PWD/.home/Library/Caches/TectonicProject.Tectonic" tectonic --only-cached --keep-logs main.tex
-# supplementary material
-TECTONIC_CACHE_DIR="$PWD/.home/Library/Caches/TectonicProject.Tectonic" tectonic --only-cached --keep-logs supplementary.tex
-```
-
-Recorded build (2026-10-17):
-
-| File | Exit | Output | Pages | Bytes |
+| Entry point | Exit | PDF | Pages | Bytes |
 |---|---|---|---|---|
-| `main.tex` | 0 | `main.pdf` | 14 | 698,867 |
-| `supplementary.tex` | 0 | `supplementary.pdf` | 4 | 85,411 |
+| `main.tex` | 0 | `main.pdf` | 9 | 414,370 |
+| `supplementary.tex` | 0 | `supplementary.pdf` | 7 | 334,451 |
 
-No overfull or underfull boxes were reported in either build. There are no undefined
-references and no ``??'' in the extracted text.
+The round-two draft had 12 pages (body to page 11). Round three moves the sampling-property
+derivations, the efficiency and ablation matrices, and the teaser/anchor/trade-off figures
+into the supplement, and tightens prose. The main body now fits the fallback template's
+8-page target without reducing font size, margins or figure width. This is a fallback
+template result, not a certification against the final CVPR 2027 kit.
 
-### Non-fatal warnings
+## Reproduce the build
 
-* 24 × ``Trying to include PDF file with version (1.7), which is newer than current output
-  PDF setting (1.5)'' — the four vector figures were exported by a newer producer than
-  XeTeX's default PDF version. Rendering is unaffected.
-* 5 × `lineno.sty:296` and 5 × `algorithm.sty:11` ``Invalid UTF-8 byte or sequence'' — these
-  come from bytes inside the style packages, not from the manuscript. The replaced code
-  points are comments/formatting and do not affect output.
-* `TU/ptm/*` font-shape warnings: `times` is designed for pdfLaTeX and is substituted under
-  XeTeX. The PDF remains legible and uses a Times-like serif. If a strict Times match is
-  required, switch the engine to pdfLaTeX or add a XeTeX font setup; neither changes the
-  content.
-
-## 3. What is in the PDF
-
-* Abstract, Introduction, Related Work, Method, Experiments, Conclusion and Limitations are
-  all full English prose, not an outline.
-* All four vector figures are included through `\includegraphics`:
-  `figures/fig_1_teaser.pdf` (Introduction), `figures/fig_2_framework.pdf` and
-  `figures/fig_3_sparse_tracks.pdf` (Method), `figures/fig_4_tradeoff.pdf` (Experiments).
-* Three structured tables are included: Table 1 (main comparison), Table 2 (efficiency and
-  memory), Table 3 (controlled ablations). Every numeric cell is a placeholder; the captions
-  and notes state this in red.
-* The supplement contains the implementation audit, hyperparameter table, metric details,
-  deterministic DP counterexamples, the log schema and the status of development runs.
-
-## 4. Page budget: over the 8-page limit
-
-The current draft is **14 pages**, of which the body ends on page 13 and the references
-occupy the remainder. It therefore exceeds the 8-page body limit of the CVPR template by
-about five pages. This is a deliberate draft-stage trade-off: the protocol and the
-implementation audit are part of the contribution and were not cut to fit. Before submission,
-the following trims are the lowest-risk ones, in order:
-
-1. Move the metric derivation (Section 4.2) to the supplement and keep only the definition
-   and the four denominators in the main paper.
-2. Compress E0--E5 into one table plus one paragraph each; keep Table 3 as the only ablation
-   float.
-3. Shorten Related Work to the three paragraphs that matter (VCSL protocol; HV/TN/DP/DTW;
-   learned localizers) and move the 2025--2026 list to the supplement.
-4. Reduce Fig. 1 and Fig. 3 to 0.8 column width (they are already at 0.92 text width).
-5. Move the "Four properties" discussion to the supplement and keep the two that affect H1
-   (nesting and the sampling bound).
-
-Do not cut the negative-pair-FAR explanation, the four-denominator paragraph or the
-zero-floor/continuation caveat: those are exactly the points that keep the draft honest.
-
-## 5. Anonymity and verification
-
-Checks performed after the final build:
+Engine: Tectonic 0.17.0, XeTeX backend. The project-local cache avoids network downloads;
+use `TECTONIC_CACHE_DIR`, not a changed HOME directory.
 
 ```bash
-gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -sOutputFile=/tmp/main.txt main.pdf
-grep -inE "$USER|/Users/|Documents/code|github\\.com|@" /tmp/main.txt
-grep -n "??" /tmp/main.txt
+TECTONIC_CACHE_DIR=.home/Library/Caches/TectonicProject.Tectonic tectonic --only-cached --keep-logs main.tex
+TECTONIC_CACHE_DIR=.home/Library/Caches/TectonicProject.Tectonic tectonic --only-cached --keep-logs supplementary.tex
+python3 scripts/check_paper_semantics.py --output evidence/round2_math_checks.json
+git diff --check
 ```
 
-The extracted text contains no user name, no absolute path, no repository URL and no email
-address. The review mode suppresses the author block. The same strict grep was run on the
-supplementary PDF and returned no hits.
+The prototype and evaluator checks need the NumPy interpreter; they are read-only:
 
-## 6. Files and update workflow
+```bash
+PY=/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3
 
-* `main.tex`, `preamble.tex`, `main.bib`, `sec/0_abstract.tex`--`sec/5_conclusion.tex`,
-  `supplementary.tex`: paper sources.
-* `figures/`: four `.pdf` figures plus `.svg` sources and `.png` previews; `figures/README.md`
-  documents their status.
-* `evidence/`: seven audit/ledger files (`method_spec.md`, `implementation_status.md`,
-  `claims_ledger.md`, `related_work_matrix.md`, `experiment_manifest.md`,
-  `experiment_plan.md`, `missing_evidence.md`).
-* `scripts/generate_paper_placeholders.py`: regenerates all four figures, delegating Fig. 2
-  to `scripts/generate_framework.py`.
-* `scripts/generate_framework.py`: regenerates only the detailed manuscript framework
-  as SVG/PDF/PNG. The figure is included at full text width in `sec/3_method.tex`.
+cd ../FastVCL
+PYTHONDONTWRITEBYTECODE=1 "$PY" -B -m unittest discover -s tests -t .
 
-When a frozen run becomes available:
+cd ../gzhlaker_cvpr2027
+PYTHONDONTWRITEBYTECODE=1 "$PY" -B scripts/check_evaluator_parity.py \
+    --output evidence/evaluator_parity.json
+PYTHONDONTWRITEBYTECODE=1 "$PY" -B scripts/check_contract_semantics.py \
+    --output evidence/contract_probes.json
+```
 
-1. Replace the `--` cells in `sec/4_experiments.tex` from that run's `metrics.json` only.
-2. Update the figure/table captions to state the run id, number of pairs and four
-   denominators.
-3. Regenerate Fig. 4 from the real `per_pair_timing.jsonl`; remove the `RESULTS PENDING`
-   label only after the points exist.
-4. Re-run both builds and re-check anonymity.
+On another machine, obtain the required Tectonic bundle normally before using `--only-cached`.
+The default shell Python still lacks NumPy; the DSH runtime above has NumPy 2.3.5. The
+scalar manuscript check uses only the standard library.
 
-## 7. Known limitations of the build
+## Checks and visual review
 
-* The 2027 template is not official; page limits and anonymity should be re-checked.
-* The font substitution (`TU/ptm`) is cosmetic and due to XeTeX.
-* The body is over the 8-page limit; see Section 4.
-* The paper reports no benchmark number. That is intentional and is stated in the abstract,
-  the experiment section and the conclusion.
+- Both builds exit 0. Final logs contain no overfull/underfull boxes and no undefined
+  citations or cross-references.
+- Extracted main/supplementary text contains no `??`, local username or absolute machine path.
+  The review-mode author block is anonymous. This is a text/source check, not a claim that
+  every possible PDF metadata channel has been audited.
+- `git diff --check` passes.
+- Prototype unit suite: 646 tests, 0 failures, 10 CUDA skips; summary in
+  `evidence/prototype_tests_summary.md` (full local log: `evidence/prototype_tests.log`).
+- Evaluator function parity: 211 synthetic cases, 0 per-pair mismatch; macro, exact-1
+  sentinels, denominators, `conf=0` and a five-row status case match the reference
+  (`evidence/evaluator_parity.json`).
+- Contract probes: 8 behaviours observed, including weak prefix, strong–weak–strong, blocked
+  second copy, A-range fallback, ties-to-even, margin 0/2, duplicate-vs-distinct support and
+  the gap boundary (`evidence/contract_probes.json`).
+- The 7 deterministic scalar checks still pass; the report says `benchmark_result=false` and
+  `prototype_executed=false` because it is a separate standard-library check.
+- Main pages were rendered for layout review. The framework figure is on page 3 and remains
+  full width. Table 1 is on page 8. Figures 1–3, Tables 3–4 and the reserved trade-off
+  plane are in the supplement. The two full-width matrices and the verification-scope note
+  share page 7 of the 7-page supplement; there is no overfull box.
+- The title no longer contains a manual `\\` line break. In this toolchain, a title break
+  caused a XeTeX font error (`OT1/cmr/bx/n/12` not loadable) at a later section; removing the
+  break fixes the build. The title still wraps naturally and remains anonymous.
 
-## 8. Framework figure update (2026-10-17)
+Existing non-fatal warnings remain: invalid UTF-8 comments in `lineno.sty`/`algorithm.sty`,
+Times-family substitutions under XeTeX, and included PDF 1.7 figures versus output PDF 1.5.
+They are not new undefined manuscript references. Logs are `main.log` and
+`supplementary.log`.
 
-Fig. 2 now depicts the manuscript mechanism with descriptor matrices, sampling grids,
-tiled mutual Top-K matching, sparse anchors, RANSAC and dual-axis support, gap splitting,
-finite tubes, a local DP path, repeated extraction, and paired output intervals. A dashed
-connection shows reuse of full-resolution normalized descriptors and masks for in-tube
-similarity. All coordinates and matrices are schematic. The zero-floored DP follows the
-proposed method, not the current prototype.
+## Template and page budget
 
-At the user's request, a second row adds the proposed JEV extension under the exact name
-`seltive model`: candidate intervals and matched indices, together with original A/B frame
-context, feed evidence selection, visual verification, and result fusion. Unselected,
-uncertain, or failed cases retain the core prediction. Frame mapping, selection policy,
-model backend, and fusion policy still need to be established. The caption distinguishes
-this extension from the core formulation and evaluated results; it does not assert that
-the historical anchor-level JEV implementation follows this candidate-level path.
+The local package is the **CVPR 2026 author kit**, with `confYear=2027` for the draft label.
+It is not certified as the official final 2027 kit. On 2026-10-18, the
+[official kit README](https://github.com/cvpr-org/author-kit) still records a CVPR 2026 update;
+the 2027 AuthorGuidelines URL returned 404. The
+[2027 CFP](https://cvpr.thecvf.com/Conferences/2027/CallForPapers) is available, but its LLM
+policy details are still pending. Recheck the official kit and policies before submission.
 
-The figure and its caption were replaced in the method section. An offline cached build
-completed with exit 0; the larger framework and caption bring the main PDF to 14 pages.
-Figure 2 is on page 5, whose rendering was visually checked. No overfull
-or underfull boxes or undefined citations/references were reported; pre-existing package,
-font-substitution, and PDF-version warnings remain.
+The main body reaches **page 8**, within the fallback template's 8-page body target; references
+begin on page 9. Do not call this compliant with the final 2027 rules or ready to submit.
+Further reduction should not shrink the framework figure or hide the pending-result markers.
+
+## Files and regeneration
+
+- Paper: `main.tex`, `preamble.tex`, `main.bib`, `sec/*.tex`.
+- Supplement: `supplementary.tex` (separate entry point). It now holds the sampling
+  derivations, the teaser/anchor/trade-off figures, the efficiency and ablation matrices and
+  the audit details.
+- Fig. 2 source: `scripts/generate_framework.py`; outputs SVG/PDF/PNG. It is the only figure
+  compiled into the main text.
+- All figures: `scripts/generate_paper_placeholders.py`, which delegates Fig. 2 to the
+  dedicated generator. No experimental values are generated.
+- Evidence and audit: `evidence/round3_review.md`, `evidence/spec_code_contract.md`,
+  `evidence/diagnostic_protocol.md`, `evidence/selective_model_spec.md`,
+  `evidence/implementation_status.md`, `evidence/claims_ledger.md`,
+  `evidence/missing_evidence.md`, `evidence/evaluator_parity.json`,
+  `evidence/contract_probes.json`, `evidence/prototype_tests_summary.md`.
+- Current handoff: `FastVCL_CVPR2027_第二轮审查与执行方案.md` and
+  `FastVCL_CVPR2027_第二轮Agent启动Prompt.md`. Old `fastvcl_cvpr2027*.md` files are historical
+  and point to these replacements.
+
+The prototype remains unchanged. Zero-floor recurrence, distinct segment support and zero
+output margin are proposed semantics requiring implementation alignment. The optional
+`seltive model` still lacks a finalized backend, selection and decisive-verdict fusion. No
+formal accuracy, speed, GPU or verifier benefit is established by this build.

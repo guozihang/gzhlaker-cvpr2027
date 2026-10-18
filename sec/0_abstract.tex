@@ -1,19 +1,18 @@
 \begin{abstract}
-Video copy localization asks for the temporal intervals that correspond across two
-untrimmed videos. Given fixed pretrained frame descriptors, dense frame-to-frame matching
-and learned interaction networks can localize copies accurately, but they evaluate a large
-part of the $M\times N$ temporal product. We ask whether sparse correspondence proposals can
-confine high-resolution alignment to a small number of locally consistent, time-supported
-regions without training any new downstream parameters. We formulate \emph{FastVCL}, a
-sparse-to-tube pipeline: mutual Top-$K$ anchors on sparse sampling grids, piecewise-linear
-track fitting with dual-axis support and gap splitting, and zero-floored local dynamic
-programming inside finite tubes. We do not assume that this cascade is faster or more
-accurate. Instead we state three falsifiable hypotheses---candidate coverage of short
-segments, boundary recovery inside tubes, and end-to-end benefit---and a protocol that
-compares the pipeline with classical zero-training baselines, learned localizers, and a
-deliberately strong simple sparse-to-band baseline under one frozen evaluation and timing
-boundary. This draft fixes the formulation and the protocol; every quantitative result cell
-is intentionally left pending. \TODO{EMPIRICAL RESULTS PENDING: insert frozen-protocol
-validation/test $\bar P,\bar R,\mathrm{F1}$, negative-pair FAR, boundary error and measured
-latency after the benchmark is complete.}
+Video copy localization identifies corresponding temporal intervals within a pair of
+untrimmed videos. With fixed pretrained frame descriptors, the cost of dense comparison
+grows with the temporal product, even when only a few intervals are copied. We formulate
+\emph{FastVCL}, a training-free downstream localizer that separates candidate discovery
+from boundary refinement. Sparse mutual Top-$K$ correspondences propose local temporal
+tracks; support checks and gap splitting define finite tubes; a zero-floored local dynamic
+program searches only within those tubes. The design exposes three questions: whether
+sparse proposals retain short copies, whether local alignment improves boundaries, and
+whether reduced alignment work translates into lower measured latency. We specify controls
+against a simple sparse-to-band baseline, distinguish executed arithmetic from memory
+savings, and define a common evaluation and timing protocol. A separate proposed visual
+verification branch, named \texttt{seltive model}, requires original frames and is not
+included in the fixed-feature comparison. The current prototype differs from the proposed
+restart rule, and no frozen benchmark comparison is available.
+\TODO{EMPIRICAL RESULTS PENDING: populate accuracy, negative-pair false alarms and measured
+latency only from completed runs under the finalized protocol.}
 \end{abstract}

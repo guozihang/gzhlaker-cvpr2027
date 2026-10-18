@@ -1,357 +1,142 @@
-# FastVCL Method Specification (v2.1 draft)
-
-Status: this file fixes the **proposed** mathematical specification used by
-`sec/3_method.tex`. Every item is marked `PROPOSED` unless a section explicitly says
-`IMPLEMENTED` and cites the prototype location. The paper text must not silently promote a
-`PROPOSED` definition to an implemented or validated one.
-
-Scope: given one video pair, fixed pre-extracted ISC descriptors, no new trainable
-downstream parameters. Pairwise localization only (no library retrieval).
-
----
-
-## 0. Symbol table
-
-| Symbol | Meaning | Domain |
-|---|---|---|
-| $A,B$ | query and reference video | labels, never batch size |
-| $M,N$ | number of feature rows | $\mathbb{Z}_{\ge 1}$ |
-| $d$ | descriptor dimension (ISC: 256) | fixed |
-| $F_A,F_B$ | raw descriptor matrices | $\mathbb{R}^{M\times d}$, $\mathbb{R}^{N\times d}$ |
-| $i,j$ | feature indices of $A$, $B$ | $0\le i<M$, $0\le j<N$ |
-| $m_i^A,m_j^B$ | valid-row indicators | $\{0,1\}$ |
-| $\bar f_i^A,\bar f_j^B$ | unit-normalised valid rows | $\mathbb{R}^d$, $\mathbf 0$ when invalid |
-| $S_{ij}$ | cosine similarity (or $-\infty$) | $\mathbb{R}\cup\{-\infty\}$ |
-| $\mathcal G$ | set of sampling plans | finite |
-| $s_A^g,s_B^g$ | strides of plan $g$ | $\mathbb{Z}_{\ge1}$ |
-| $p_A^g,p_B^g$ | phases of plan $g$ | $0\le p_A^g<s_A^g$, $0\le p_B^g<s_B^g$ |
-| $I_A^g,I_B^g$ | valid sampled indices | subsets of $[0,M)$, $[0,N)$ |
-| $K,\tau$ | Top-$K$ width, anchor cosine threshold | $\mathbb{Z}_{\ge1}$, $\mathbb{R}$ |
-| $C_{\max}$ | anchor cap after merging | $\mathbb{Z}_{\ge1}$ |
-| $\mathcal A$ | merged, de-duplicated anchor set | set of $(i,j,S_{ij})$ |
-| $\alpha_r,\beta_r$ | slope/intercept of track $r$ | $\alpha_r\in[\alpha_{\min},\alpha_{\max}]$ |
-| $\epsilon_B$ | inlier residual bound (index units) | $\mathbb{R}_{\ge0}$ |
-| $h_A,h_B$ | minimum independent support per axis | $\mathbb{Z}_{\ge1}$ |
-| $g_A,g_B$ | maximum intra-track gap per axis | $\mathbb{Z}_{\ge0}$ |
-| $e_A$ | A-axis tube extension | $\mathbb{Z}_{\ge0}$ |
-| $w_r,W_r$ | B-axis half-width, band width $2w_r+1$ | $\mathbb{Z}_{\ge0}$, $\mathbb{Z}_{\ge1}$ |
-| $c_r(i)$ | rounded band centre | $\mathbb{Z}$ |
-| $\mathcal T_r$ | finite tube (legal cell set) | set of $(i,j)$ |
-| $\tau_{\mathrm{align}}$ | reward offset in the local DP | $\mathbb{R}$ |
-| $\lambda_{\mathrm{gap}}$ | gap penalty per skipped step | $\mathbb{R}_{\ge0}$ |
-| $\mathcal S$ | DP step set | $\{(1,1),(1,2),(2,1)\}$ |
-| $H_{ij}$ | local alignment score | $\mathbb{R}_{\ge0}$ (proposed) |
-| $q$ | uncalibrated segment confidence | $\mathbb{R}$ |
-
-**Half-open convention.** A predicted copy is $(a_s,b_s,a_e,b_e,q)$ with
-$0\le a_s<a_e\le M$, $0\le b_s<b_e\le N$. Lengths are $a_e-a_s$ and $b_e-b_s$.
-Coordinates are **feature indices**, never seconds and never source-video frame numbers.
-A conversion to seconds requires a separately verified timestamp map; the current protocol
-does not use one.
-
----
-
-## 1. Input normalisation and validity mask (`PROPOSED`, implemented in `fastvcl/sparse.py`)
-
-For each row $F_{A,i}$ define
-$m_i^A=1$ iff all entries are finite, the row is non-empty and
-$\lVert F_{A,i}\rVert_2>\varepsilon$ (default $\varepsilon=10^{-12}$); then
-$\bar f_i^A=F_{A,i}/\lVert F_{A,i}\rVert_2$, else $m_i^A=0$, $\bar f_i^A=\mathbf 0$.
-The same rule defines $m_j^B,\bar f_j^B$. Then
-
-$$
-S_{ij}=
-\begin{cases}
-\langle \bar f_i^A,\bar f_j^B\rangle, & m_i^A=m_j^B=1,\\
--\infty, & \text{otherwise}.
-\end{cases}
-$$
-
-Normalisation is performed on an in-memory copy; the feature files are never modified.
-Invalid rows are never match nodes: they cannot start, continue or terminate a path, and
-they contribute no evidence to the confidence score.
-
----
-
-## 2. Sparse proposals (`PROPOSED`)
-
-A sampling plan is $g=(s_A^g,s_B^g,p_A^g,p_B^g)$. The valid sampled sets are
-
-$$
-I_A^g=\{p_A^g+k s_A^g:k\in\mathbb Z_{\ge0}\}\cap\{i:m_i^A=1\},\qquad
-I_B^g=\{p_B^g+k s_B^g:k\in\mathbb Z_{\ge0}\}\cap\{j:m_j^B=1\}.
-$$
-
-For a fixed $g$, define the deterministic Top-$K$ set
-$\operatorname{TopK}_{B,g}^{(K)}(i)\subseteq I_B^g$ by the total order
-$(i,j')\succ(i,j)$ iff $S_{ij'}>S_{ij}$, or $S_{ij'}=S_{ij}$ and $j'<j$; then
-$j\in\operatorname{TopK}_{B,g}^{(K)}(i)$ iff fewer than $K$ elements of $I_B^g$ precede
-$j$ in this order. Ties are therefore broken by the smaller original index, and the rule is
-identical in both directions.
-
-The plan-level anchor set and the merged set are
-
-$$
-\mathcal A_g=\{(i,j)\in I_A^g\times I_B^g:\;
-j\in\operatorname{TopK}_{B,g}^{(K)}(i),\;
-i\in\operatorname{TopK}_{A,g}^{(K)}(j),\;
-S_{ij}\ge\tau\},
-$$
-
-$$
-\mathcal A=\operatorname{Cap}_{C_{\max}}\Big(\operatorname{Dedup}_{(i,j)}
-\bigcup_{g\in\mathcal G}\mathcal A_g\Big),
-$$
-
-where $\operatorname{Dedup}_{(i,j)}$ keeps exactly one entry per **original coordinate**
-pair with the largest cosine (ties: smallest source-grid id), and
-$\operatorname{Cap}_{C_{\max}}$ keeps the $C_{\max}$ entries with the largest cosine
-(ties: smallest $i$, then smallest $j$).
-
-**Facts that the paper must state (and that experiments must expose).**
-
-1. If $p_A^g=p_B^g=0$ for all plans, then $s=8$ samples are a subset of $s=4$, which are a
-   subset of $s=2$: $I^8\subset I^4\subset I^2$. Adding a coarser grid samples **no new
-   coordinate**; it only changes the local Top-$K$ competition set of each row. Any
-   "multi-scale gain" must therefore be explained by the changed competition, not by new
-   coverage, and must be compared against a single fine grid at equal dot-product budget.
-2. Merging without coordinate de-duplication would let the same $(i,j)$ support RANSAC
-   more than once. The prototype merges with a dictionary keyed by $(i,j)$ and records
-   `cross_scale_duplicates`; this is the required behaviour, not an optional one.
-3. Independent phases $(p_A,p_B)\in\{0,\dots,s-1\}^2$ tile the full index product. A
-   synchronous phase $(p,p)$ covers only displacements with $p_B-p_A\equiv0\pmod s$ and is
-   strictly weaker. Multi-scale and independent phases are mutually exclusive in the
-   current prototype (`$multi_scale_with_phases_refused`), so no experiment may claim the
-   combination until it is implemented.
-4. **Short-segment sampling bound.** With one grid of stride $s$, a track that contains
-   $h$ anchors at distinct $A$ times occupies at least $(h-1)s+1$ feature frames, i.e.,
-   $i_{\max}-i_{\min}\ge(h-1)s$. This is a
-   necessary condition for the *track*, not a sufficient condition for recall: the anchors
-   must also be mutual, above $\tau$, and survive RANSAC. Segments shorter than
-   $(h_{\min}-1)s+1$ frames can never be proposed by that grid.
-5. **Top-$K$ is not independent evidence.** The $K$ partners of one $A$ frame share the
-   same query time. Support must be counted on distinct projected times
-   $|\pi_A(\mathcal I_r)|$ and $|\pi_B(\mathcal I_r)|$, not on the number of anchor pairs.
-
----
-
-## 3. Multi-track fitting and dual-axis validation (`PROPOSED`)
-
-Each track is a local affine map $j\approx\alpha_r i+\beta_r$ with
-$\alpha_r\in[\alpha_{\min},\alpha_{\max}]\subset(0,\infty)$. The slope is an
-index-step ratio, not a playback-speed ratio, unless both videos share a verified constant
-sampling rate.
-
-**Hypothesis generation.** RANSAC draws an anchor pair $\{(i_1,j_1),(i_2,j_2)\}$ from the
-remaining anchors, requires $|i_2-i_1|\ge\Delta_{\min}$, computes
-$(\alpha,\beta)$, and scores the hypothesis by its inlier count. The draw is deterministic
-given a per-pair seed derived from a cryptographic hash of the structured pair id (never
-Python's randomised `hash()`).
-
-**Inlier criterion.** An anchor is an inlier iff
-$|j-(\alpha i+\beta)|\le\epsilon_B$. Because $\alpha\ge\alpha_{\min}>0$, this also bounds
-the A-axis residual by $\epsilon_B/\alpha_{\min}$; the prototype uses this single-sided
-criterion. A symmetric criterion that adds
-$|i-(j-\beta)/\alpha|\le\epsilon_A$ is a **design option**, not an implemented fact.
-
-**Refit and re-validation.** After a weighted or unweighted least-squares refit, a run is
-accepted only if all of the following hold:
-
-$$
-\alpha_{\min}\le\alpha_r\le\alpha_{\max},\qquad
-\max_{(i,j)\in\mathcal I_r}|j-(\alpha_r i+\beta_r)|\le 1.5\,\epsilon_B,
-$$
-
-$$
-|\pi_A(\mathcal I_r)|\ge h_A,\qquad |\pi_B(\mathcal I_r)|\ge h_B,
-$$
-
-$$
-\max\pi_A(\mathcal I_r)-\min\pi_A(\mathcal I_r)\ge L_{\min}^A,\qquad
-\max\pi_B(\mathcal I_r)-\min\pi_B(\mathcal I_r)\ge L_{\min}^B .
-$$
-
-The prototype sets $h_A=h_B=h_{\min}$ and checks
-$\min(|\pi_A|,|\pi_B|)\ge h_{\min}$, which is the stricter of the two independent
-requirements; the paper should state the implemented form and treat separate $h_A,h_B$ as a
-design option.
-
-**Gap splitting (same track, long silence).** Sort the inliers by $i$. Split between
-consecutive inliers $(i_{(t)},j_{(t)}),(i_{(t+1)},j_{(t+1)})$ whenever
-
-$$
-i_{(t+1)}-i_{(t)}>g_A,\quad\text{or}\quad
-j_{(t+1)}-j_{(t)}>g_B,\quad\text{or}\quad
-j_{(t+1)}-j_{(t)}<-g_{\mathrm{back}} .
-$$
-
-Each resulting run is re-validated independently. This prevents two copies separated by a
-long non-copy interval from being merged into a single giant coarse box. Multi-copy
-retention is explicit: removing the inliers of one track must not remove the same query
-interval at a different reference location; this is handled by the $\min(\mathrm{IoU}_A,
-\mathrm{IoU}_B)$ rule in §6.
-
-**Known limits.** Fixed positive slope range $[\alpha_{\min},\alpha_{\max}]$ excludes
-reversal ($\alpha<0$) and extreme speed changes; continuous non-linear speed changes are
-approximated only by several local lines. Minimum support makes segments shorter than the
-sampling bound unreachable.
-
----
-
-## 4. Finite tube (`PROPOSED`)
-
-For an accepted track $r$ with inlier support interval
-$[i_{\min}^r,i_{\max}^r]$,
-
-$$
-\ell_r=\max(0,i_{\min}^r-e_A),\qquad
-u_r=\min(M,i_{\max}^r+1+e_A),\qquad
-L_r=u_r-\ell_r .
-$$
-
-With $c_r(i)=\operatorname{round}(\alpha_r i+\beta_r)$ and half-width $w_r$, the tube is
-
-$$
-\mathcal T_r=\{(i,j):\ell_r\le i<u_r,\; j=c_r(i)+\delta,\; -w_r\le\delta\le w_r,\;0\le j<N\}.
-$$
-
-$e_A$ extends the search along the trajectory to recover boundaries that the sparse grid
-did not hit; $w_r$ absorbs rate jitter and small local speed changes. The prototype uses
-fixed constants; calling this an "uncertainty-guided adaptive band" would be false.
-
-**Coverage limitation.** Refinement can only act inside $\bigcup_r\mathcal T_r$. A true
-copy not covered by any tube cannot be recovered by the DP. No ground-truth boundary may be
-used to construct a tube at inference; a GT-induced tube is an `Oracle-Tube Diagnostic` and
-must never enter a main comparison table.
-
----
-
-## 5. Local alignment (`PROPOSED`) and the prototype's alternative semantics
-
-Let $r_{ij}=S_{ij}-\tau_{\mathrm{align}}$, with $r_{ij}=-\infty$ when either row is
-invalid, and let $\mathcal P_r(i,j)=\{(i-\Delta i,j-\Delta j)\in\mathcal T_r:
-(\Delta i,\Delta j)\in\mathcal S\}$ with
-$\mathcal S=\{(1,1),(1,2),(2,1)\}$. The **proposed** recurrence is
-
-$$
-H_{ij}=\max\Big(0,\;r_{ij},\;
-\max_{(u,v)\in\mathcal P_r(i,j),\,H_{uv}>0}
-\big[H_{uv}+r_{ij}-\lambda_{\mathrm{gap}}\,g(i-u,j-v)\big]\Big),
-$$
-
-with $g(\Delta i,\Delta j)=\Delta i+\Delta j-2$. The zero term is a **restart**: a cell may
-always abandon a bad prefix. A weak frame ($r_{ij}<0$) does not force a restart; it only
-lowers the accumulated score, so a short weak stretch is bridged as long as the accumulated
-score remains positive. This is the precise sense in which the zero floor is not "restart at
-every weak frame".
-
-Backtrace starts at $(i^\star,j^\star)=\arg\max_{(i,j)\in\mathcal T_r}H_{ij}$, provided
-$H_{i^\star j^\star}>0$, and follows the predecessor that attained the maximum until a cell
-whose score equals its own reward (a restart) or has no legal predecessor. The matched node
-sequence is converted to half-open intervals by
-$[i_{\text{first}},i_{\text{last}}+1)\times[j_{\text{first}},j_{\text{last}}+1)$.
-
-**The prototype differs.** `fastvcl/tube.py::local_dp` initialises a cell without a legal
-predecessor at $\max(0,r_{ij})$, but a cell **with** a legal predecessor is assigned the
-continuation value unconditionally, even when negative and even when $\max(0,r_{ij})$ is
-larger. Its docstring states this reading deliberately ("weak evidence, not absence of
-evidence"). The two semantics are not equivalent:
-
-| Regime | Proposed zero-floor | Prototype unconditional continuation |
-|---|---|---|
-| Long weak prefix before a true copy | prefix score reaches 0; copy restarts and is recoverable | prefix debt is carried; copy may never become positive |
-| One weak frame inside a copy | bridged if accumulated score $>\lvert r\rvert$ | bridged unconditionally |
-| Two copies separated by a long weak gap | second copy restarts | second copy inherits negative debt and may be lost |
-
-A deterministic hand-constructed band (15 rows, one column, cosine 0.0 for rows 0–9 and
-0.95 for rows 10–14, $\tau_{\mathrm{align}}=0.6$) gives prototype `best=0.0`,
-`reachable=False`, and zero predictions, while the zero-floor recurrence gives
-$H=1.75>0$ on the same input. The mirror case (positive copy, long weak gap, second
-positive copy) makes the second copy's score negative under the prototype. These are
-unit-level semantics diagnostics, not benchmark results; the exact commands are recorded in
-`evidence/implementation_status.md`.
-
-The proposed specification is a standard Smith-Waterman recurrence; its contribution here
-is the *finite-tube domain* and the interaction between restart semantics and tube
-extension, not the invention of local alignment. E3 must compare both semantics on identical
-candidate tubes before any claim is made.
-
----
-
-## 6. Multi-segment output and de-duplication (`PROPOSED`)
-
-Two interval pairs $Y_1,Y_2$ are near-duplicates iff
-
-$$
-\min\big(\mathrm{IoU}_1([a_{s,1},a_{e,1}),[a_{s,2},a_{e,2})),\;
-\mathrm{IoU}_1([b_{s,1},b_{e,1}),[b_{s,2},b_{e,2}))\big)\ge\theta_{\mathrm{dedup}} .
-$$
-
-$\min(\mathrm{IoU}_A,\mathrm{IoU}_B)$ is chosen over a single-axis IoU or a two-dimensional
-area IoU because the same query interval copied twice to different reference times has
-$\mathrm{IoU}_A=1$ but $\mathrm{IoU}_B=0$; the minimum keeps both, whereas an A-only rule
-would delete a legal one-to-many copy. This is a **deduplication** rule; the official
-evaluation metric is a different quantity (§5.2 of the paper).
-
-**Status separation.** An empty prediction list is a legal output (`EMPTY`) for a negative
-or low-confidence pair. A missing file, exception, timeout or OOM is `ERROR`/`SKIPPED` and
-must never be converted to `[]`.
-
-**Confidence.** The prototype score is
-$q=0.7\cdot\mathrm{clip}(\bar s,0,1)+0.3\cdot\min(1,|\mathcal I_r^{\mathrm{seg}}|/
-\max(1,L_A/\bar\Delta_A))$, where $\bar s$ is the mean smoothed path cosine and
-$\bar\Delta_A$ is the median anchor spacing. It is uncalibrated and is **not** the
-TransVCL/SPD objectness; thresholds are therefore selected per method, never shared as a
-numerical constant.
-
----
-
-## 7. Complexity
-
-**Coarse stage.** For fixed strides,
-$Q^{\mathrm{grid}}_{\mathrm{coarse}}=\sum_g|I_A^g||I_B^g|\approx MN\sum_g
-1/(s_A^g s_B^g)$, which is $\Theta(MN)$ in the video lengths; fixed strides only reduce the
-constant. Saving memory by streaming/tiling does not change the arithmetic order. The
-prototype performs **two directional scans** (forward and backward Top-$K$) and a tie
-re-scan, so the dot-product count actually executed is
-$Q^{\mathrm{actual}}_{\mathrm{coarse}}\approx2MN\sum_g 1/(s_A^g s_B^g)$ plus tie work;
-the paper must quote $Q^{\mathrm{actual}}$, not the idealized one-pass count.
-
-**Tube stage.** With $L_r$ rows and $W_r=2w_r+1$ columns, the band similarity costs
-$O(d\sum_r L_rW_r)$ if computed once per tube. Under direct offset addressing, a predecessor
-with step $(\Delta i,\Delta j)$ is at
-$\delta_u=(j-\Delta j)-c_r(i-\Delta i)$, so each transition is $O(1)$ and one DP is
-$O(L_rW_r|\mathcal S|)=O(L_rW_r)$; with $P_r$ multi-path attempts,
-$O(P_rL_rW_r)$. The prototype's `_step_predecessors` scans **all** $W_r$ columns of the
-predecessor row for the non-diagonal steps, which is $O(W_r)$ per cell and
-$O(P_rL_rW_r^2)$ per tube. The paper reports both the ideal and the implementation cost.
-
-**Memory.** Input features $O((M+N)d)$; one band $O(L_rW_r)$; the DP tables
-$O(L_rW_r)$; sequential tubes peak at $\max_r(L_rW_r)$ for numeric workspaces, but Python
-objects, cached debug payloads and highly overlapping tubes can dominate in practice.
-
----
-
-## 8. Default hyperparameters (prototype `configs/isc_only.yaml`)
-
-These are development initial values, not tuned results.
-
-| Group | Values |
-|---|---|
-| sampling | stride 4, Top-$K$ 1, $\tau=0.7$, mutual on, multi-scale off, independent phases off, cap 20,000, chunk 64 MB / 512 rows |
-| RANSAC | $\epsilon_B=4.0$, $h_{\min}=5$, max tracks 8, $g_A=g_B=24$, $g_{\mathrm{back}}=1.0$, $L^A_{\min}=4$, $L^B_{\min}=8$, slope $[0.5,2.0]$, 2,000 iterations, confidence 0.99, unweighted LSQ |
-| tube | $w=12$, $e_A=16$ (+2 boundary margin), $L^A_{\min}=3$, $L^B_{\min}=4$, min anchors 2, $\tau_{\mathrm{align}}=0.6$, $\lambda_{\mathrm{gap}}=0.1$, smooth 3, max 4 paths, low-quality gap 2, $\theta_{\mathrm{dedup}}=0.8$, max 64 segments |
-| runtime | CPU/NumPy, float32 similarity / float64 DP, profiling disabled for timing |
-
----
-
-## 9. Open design branches (must not be presented as settled)
-
-1. Zero-floor DP vs. the prototype's unconditional continuation (§5). Decided by E3.
-2. Multi-scale nesting vs. a single fine grid at equal budget (§2). Decided by E2.
-3. Independent phases vs. synchronous phase; the combination with multi-scale is not
-   implemented.
-4. Separate $h_A,h_B$ vs. $\min(h_A,h_B)$; symmetric A-residual vs. B-residual only.
-5. Adaptive $w_r,e_A$ from local residual statistics; currently fixed constants.
-6. Whether the dual-axis gap-splitting and min-IoU rule produce a measurable increment over
-   the simple sparse-to-band baseline. If not, `NOVELTY_GAP` must be reported.
+# FastVCL method specification — round 2, 2026-10-18
+
+Status: **PROPOSED**, not a claim that the prototype implements this specification.
+Normative equations and algorithm: `sec/3_method.tex`. The prototype remains read-only;
+its HEAD on this audit is `fdc3362b2418b316e16d6dfd68435e40c1b1afb8`.
+The round-two report records corrections to the previous version.
+
+## 1. Scope and inputs
+
+Core input: fixed pre-extracted ISC matrices $F_A\in R^{M\times256}$ and
+$F_B\in R^{N\times256}$. Output: half-open feature-index intervals
+$(a_s,b_s,a_e,b_e,q)$, with valid nonempty intervals on both axes. No conversion to
+seconds or source-video frames is implied. No new downstream parameters are trained in
+this core; descriptor pretraining and validation-based tuning are disclosed.
+
+A row is valid iff every component is finite and its safely accumulated L2 norm exceeds
+$10^{-8}$. Feature files are checked finite at load; the finite term is a precondition for
+direct callers. The prototype uses the same $10^{-8}$ constant in the loader, search, tube and
+segment stages. Normalize valid rows, keep an explicit validity mask, and assign invalid
+similarities $-\infty$. Invalid or blocked cells cannot be match nodes or endpoints.
+
+## 2. Sparse candidates
+
+A plan $g=(s_A,s_B,p_A,p_B)$ chooses original indices $p_A+ks_A$, $p_B+ks_B$ within
+bounds and masks. Tiled cosine comparisons retain mutual Top-$K$ at $S_{ij}\ge\tau$;
+use at most the available number of valid partners. Break score ties by original index.
+Merge by original $(i,j)$, retain maximal cosine, then cap by decreasing score and $(i,j)$.
+The default is a **single zero-phase stride-4 grid, Top-1**, not multi-scale or multi-phase.
+
+Zero-phase grids 8/4/2 are nested. Adding a coarser plan changes Top-K competition but adds
+no new sampled coordinate beyond the fine grid; it still adds arithmetic. For 64-by-64
+inputs, stride 2 has 1,024 one-direction pairs; {2,4,8} has 1,344. These are not equal
+budgets. Independent phase pairs differ from synchronous phases; the prototype refuses
+multi-scale plus non-default independent phases.
+
+For one stride-$s$ grid, $h$ distinct A anchor times span at least $(h-1)s+1$ indices.
+A shorter copy cannot supply $h$ anchor times wholly within itself. This **does not prove
+that all such copies are undetectable**: outside anchors, tube extension and merged phases
+change that reasoning. Top-K partners at one time are not independent temporal support.
+
+## 3. Tracks and tubes
+
+Fit $j\simeq\alpha_r i+\beta_r$ by seeded RANSAC with positive bounded slopes and
+B-residual threshold. Sample distinct A positions. Refitted runs must pass slope,
+residual, distinct A/B support and span checks. Split on large A gaps, large positive B
+gaps or backward B steps, and re-validate each run. Accepted track count can **increase or
+decrease** after splitting; no monotonicity is claimed.
+
+The tube has A support $[\ell_r,u_r)$ extended by $e_A$ and clipped to $[0,M)$, and B
+center $c_r(i)=\mathrm{round}(\alpha_ri+\beta_r)$ with integer offsets $[-w_r,w_r]$
+clipped to $[0,N)$. $L_r=u_r-\ell_r$, $W_r=2w_r+1$. The prototype uses NumPy `rint` (ties-to-even); this was verified by a probe. No adaptive width or extension is currently specified.
+
+## 4. Alignment and extraction
+
+Let $r_{ij}=S_{ij}-\tau_{align}$ and steps $\{(1,1),(1,2),(2,1)\}$. On usable cells,
+$$H_{ij}=\max(0,r_{ij},\max_{(u,v)\in Pred(i,j),H_{uv}>0}
+ [H_{uv}+r_{ij}-\lambda((i-u)+(j-v)-2)]).$$
+
+This is **Smith–Waterman-style**, not the canonical insertion/deletion recurrence. The
+prototype never restarts at a cell with a legal predecessor: it keeps the continuation even
+when negative, and a negative cell may still serve as a predecessor. It clears the
+backpointer of a negative cell, so such a cell cannot start a traceback, but a later strong
+cell inherits the deficit. The proposed rule restarts at the current cell and accepts only
+predecessors with $H>0$. Proposed tie policy: smallest terminal $(i,j)$; at a cell, restart
+before tied predecessor choices, then the listed step order. The prototype chooses the
+smallest step index and has no restart candidate when a predecessor exists. Backtrace uses
+stored choices. For each positive path, extract segments then block only its match cells;
+rerun at most $P_r$ attempts, including rejected paths. Check for a positive score **before**
+tracing. Append each extracted set into the global candidate collection. Greedy extraction
+does not optimize a global multi-path objective.
+
+Clamp negative cosines to zero before centered, edge-padded smoothing over at most three
+matched nodes. Strong means smoothed similarity $\ge\tau_{seg}$. Split strong-node runs
+when $i_{t+1}-i_t-1>g_{low}$; this counts intervening original indices. Trim to strong
+endpoints and emit $[i_{first},i_{last}+1)$ and $[j_{first},j_{last}+1)$. Proposed output
+margin is zero, independent of tube search extension. The prototype expands by
+`boundary_margin` **matched path rows** (default 2) before taking endpoints; this is not a
+feature-index margin and also changes the score because the mean covers the expanded rows.
+
+Apply minimum durations and distinct anchor support. Define $n_A^{seg}$ as the number of
+distinct A times of track anchors whose A and B coordinates both lie inside the segment
+intervals. The prototype counts stored A-anchor entries over the A interval only; duplicates
+from Top-$K>1$ are not removed. With $\bar\Delta_A$ the
+median positive gap between distinct track A times (fallback 4),
+$$q=0.7\operatorname{clip}(\bar s,0,1)+0.3\min(1,n_A^{seg}/\max(1,L_A/\bar\Delta_A)).$$
+
+Greedy de-duplication visits decreasing score with endpoint tie breaks, suppressing pairs
+whose minimum A/B interval IoU reaches the configured threshold. Apply output cap; the confidence threshold is declared at evaluation, not in the core
+pipeline. Disjoint reference copies survive this rule **and area-IoU**; that example only
+contrasts with A-only suppression. Distinct support/zero margin are proposed clarifications,
+not assertions about current code. Ties in de-duplication are by start coordinates, then
+collection order; the paper no longer claims an end-coordinate tie-break.
+
+## 5. Cost accounting
+
+Coarse grid count is $Q=\sum_g|I_A^g||I_B^g|$; with valid rows and fixed strides this is
+$\Theta(MN)$. Actual forward/backward/tie-rescan dot products must be logged. Top-K selection,
+normalization, RANSAC (up to $O(RI|A|)$ hypothesis scoring), sorting, refits and output
+suppression are additional costs. Direct band offsets use $(j-\Delta j)-c_r(i-\Delta i)$;
+array column adds $w_r$. DP costs $O(P_rL_rW_r)$ with direct lookup, versus the prototype's
+row-scanning bound $O(P_rL_rW_r^2)$. Band cosines cost $O(dL_rW_r)$ when computed once.
+
+Separate executed similarity dot products, DP cell visits and unique covered coordinates.
+Workspace includes coarse tiles, Top-K retention, anchors/candidates, and one tube's DP
+arrays; do not report only the tube term as total memory. Overlap duplicates work even if
+bands are processed sequentially. Log process RSS and actual allocations as well as bounds.
+
+## 6. seltive model (JEV) — proposed optional extension
+
+The exact user-requested name is **seltive model**. Preserve it in the framework figure
+(main Fig. 1) and the Method.
+Input: selected core candidates/matched indices plus original A/B frame context, requiring
+verified index-to-frame mapping. Output: COPY / NOT_COPY / UNCERTAIN. Unselected,
+uncertain and failed cases retain the core prediction. Selection, backend and decisive
+verdict fusion remain **OPEN**; no arbitrary score weight or hard deletion is established.
+
+No claim that the historical anchor-level router implements the proposed candidate-level
+branch. No extra training or model capability is inferred from the name. Core H1–H3 timing
+and fixed-feature rows exclude it. E6 uses a fixed candidate pool and matched verification
+budget, measures whole-set utility, recall loss and added end-to-end cost including frames,
+model calls and retries. It cannot recover never-proposed copies.
+
+## 7. Implementation differences still to resolve
+
+1. Prototype continuation vs proposed zero floor, including exact traceback/ties. The
+   prototype keeps a negative continuation and has no restart candidate when a predecessor
+   exists; the proposed rule restarts and accepts only $H>0$ predecessors.
+2. Scanned vs direct predecessor indexing; semantic parity first, speed measurement second.
+3. Prototype output boundary margin 2 vs proposed zero margin; the prototype unit is
+   **matched path rows**, not feature indices, and the margin also changes the score.
+4. Prototype counts stored A anchor entries and uses A-only membership/tolerance; proposed
+   score uses distinct times within both intervals. Top-K > 1 can expose this difference.
+5. Finite-check helper, RANSAC draw separation, output-threshold location and the
+   \(e_A=0\) A-range fallback; band rounding, smoothing and gap off-by-one are verified.
+6. seltive model is an interface/design extension; no backend or complete candidate-level
+   fusion implementation was verified.
+
+The item-by-item line-level audit is `evidence/spec_code_contract.md`; executable probes are
+`evidence/contract_probes.json`, and the 211-case evaluator parity result is
+`evidence/evaluator_parity.json`. A writing agent must not mark these fixed because this
+specification compiles. The next implementation agent must supply source changes and semantic
+checks, then fresh experiments.

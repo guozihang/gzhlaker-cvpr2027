@@ -21,8 +21,9 @@ selected on val; test run executed once; Table 1 lower block filled from these f
 ### B2. The Simple Sparse-to-Band baseline does not exist as a runnable method (`MISSING`)
 
 *What is missing:* a separate entry point implementing exactly one grid + mutual Top-$K$ +
-standard RANSAC + fixed-width band + standard zero-floored Smith-Waterman, with no dual-axis
-gap splitting, no multi-path and no min-IoU-specific post-processing (same threshold sweep).
+standard RANSAC + fixed-width band + the shared restricted-step zero-floored DP, with no extra dual-axis support/span checks,
+no gap splitting and one path; use the same scoring, min-IoU and threshold protocol as the
+core. E4 tests dedup changes independently. This round-two design supersedes the old baseline.
 *Required artifact:* its own config, run id, predictions and metrics on the same pairs.
 *Acceptance:* equal coarse dot-product budget and equal hardware; otherwise the novelty gate
 is invalid. Without it, no claim beyond "a pipeline exists" is admissible (`NOVELTY_GAP`).
@@ -89,3 +90,35 @@ ranking/bolding.
 4. Re-measure with `profiling.enabled=false`, warm-up, ≥3 rounds, thread pinning.
 5. Only then fill Tables 1–3 and Fig. 4, and rewrite Abstract/Conclusion with measured
    language. Until then, every result cell stays `\TODO{PENDING}`.
+
+## Round-two additional gaps (2026-10-18)
+
+| ID | Gap | Required evidence |
+|---|---|---|
+| R2-G1 | Proposed zero output margin / distinct-support score differ from code | explicit semantic decision, exact small cases, isolated controlled comparisons |
+| R2-G2 | No actual evaluator run in current shell | locked environment, source hashes, perfect/empty/false-alarm/undefined cases versus reference |
+| R2-G3 | Diagnostic box matching and common cohort not implemented | deterministic matching rules, valid-GT denominator, matched counts and recall |
+| R2-G4 | No shared-video dependence audit | split overlap report and defensible uncertainty unit; otherwise avoid significance language |
+| R2-G5 | seltive model only partially specified | index-to-frame manifest, backend, selector, decisive-verdict fusion, E6 and total added cost |
+| R2-G6 | No frozen budget-matching tolerance/operating-point set | development-only decision log, actual per-pair and aggregate dot counts |
+
+The round-two writing fixes do not close B1–B5. A CPU-only study does not need to wait for
+GPU access if it limits its claims appropriately. Main-paper table acceptance still requires
+complete real-data artifacts under the finalized protocol.
+
+## Round-three updates (2026-10-18)
+
+| ID | Previous gap | What changed | Remaining gap |
+|---|---|---|---|
+| R2-G1 | Proposed zero margin / distinct support differ from code | Paper now states `1e-8`, zero margin and distinct-both-axes support explicitly; probes document the code's row margin and stored-entry count | No code change; E4/E1 must still test the two rules on identical inputs |
+| R2-G2 | No evaluator execution | Function-level parity: 211 synthetic cases, 0 mismatch, macro/sentinels/denominators/`conf=0` and a 5-row status case | No file-level reference-vs-port run on real predictions/GT |
+| B3 | DP semantics unresolved, E3 not run | 646 unit tests pass; probes add the weak-prefix and blocked-second-copy cases with exact scores | No zero-floor implementation, no E3 on identical tubes, no new unit tests in the prototype |
+| R3-G1 | Validity threshold not audited | Paper aligned to code `1e-8`; the loader rejects non-finite files | Helper-level `isfinite` gap remains; boundary test missing |
+| R3-G2 | RANSAC draw description | Paper no longer claims a minimum draw separation | If a minimum separation is desired, it is a new constraint and needs a test |
+| R3-G3 | \(e_A=0\) fallback | Documented: the code pads by `half_width + margin` when no explicit range | E4 must pass an explicit range; no code change |
+| R3-G4 | Threshold location | Paper now says threshold is evaluator-side | Core-side threshold is not implemented and should not be claimed |
+| R3-G5 | F1/de-dup wording | Paper now shows the `+1e-6` F1 guard and start-coordinate tie-break | No code change needed; parity check covers the guard |
+
+The paper corrections do not close B1, B2, B4 or B5. A CPU-only controlled study is still
+possible without GPU access, but it requires the STB baseline, a frozen protocol and complete
+real-data runs.

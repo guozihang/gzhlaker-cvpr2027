@@ -1,0 +1,24 @@
+{
+  "kind": "deterministic_scalar_manuscript_checks",
+  "benchmark_result": false,
+  "prototype_executed": false,
+  "checks_passed": 7,
+  "perfect_nonempty_precision_recall": 0.9999998500000175,
+  "four_case_macro_denominators": [
+    2,
+    2
+  ],
+  "weak_prefix_best": {
+    "zero_floor": 1.75,
+    "continuation": 0.0
+  },
+  "second_copy_after_blocking_first_best": {
+    "zero_floor": 1.75,
+    "continuation": 0.0
+  },
+  "one_direction_grid_products_64x64": {
+    "stride2": 1024,
+    "strides248": 1344
+  },
+  "scope": "Formula-level diagnostics only; no dataset, model, or benchmark was run."
+}

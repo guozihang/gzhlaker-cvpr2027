@@ -1,0 +1,52 @@
+{
+  "kind": "evaluator_function_parity",
+  "benchmark_result": false,
+  "dataset_executed": false,
+  "prototype_executed": true,
+  "scope": "Synthetic evaluator-function parity only. No VCSL features, model or benchmark prediction file was read.",
+  "prototype_head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+  "cases": 211,
+  "random_cases": 200,
+  "max_abs_per_pair_diff": 0.0,
+  "mismatches": [],
+  "macro_ok": true,
+  "macro_reference": {
+    "recall": 0.25,
+    "precision": 0.25
+  },
+  "macro_port": {
+    "recall": 0.25,
+    "precision": 0.25,
+    "meta": {
+      "n_pairs": 3,
+      "n_recall_denominator": 1,
+      "n_precision_denominator": 2,
+      "excluded_precision_eq_1": 1,
+      "excluded_recall_eq_1": 2,
+      "empty_denominator": false
+    }
+  },
+  "end_to_end_accounting_ok": true,
+  "end_to_end_metrics": {
+    "n_pairs": 4,
+    "n_excluded_failed": 1,
+    "denominators": {
+      "n_pairs": 4,
+      "n_recall_denominator": 2,
+      "n_precision_denominator": 2,
+      "excluded_precision_eq_1": 2,
+      "excluded_recall_eq_1": 2,
+      "empty_denominator": false
+    },
+    "pair_a_precision": 0.9999998500000175,
+    "pair_a_recall": 0.9999998500000175
+  },
+  "perfect_nonempty_retained": true,
+  "f1_zero_guard_value": 0.0,
+  "notes": [
+    "conf=0 in legacy mode applies neither score filtering nor integer truncation.",
+    "ERROR/SKIPPED rows are excluded from the metric, not counted as empty.",
+    "The reference malformed-prediction except-branch is intentionally not ported; the port refuses malformed input instead of converting it to []."
+  ],
+  "passed": true
+}

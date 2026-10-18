@@ -112,16 +112,15 @@ s.text(28,542,'Schematic only: no ground truth, inferred path, benchmark sample,
 s.save('fig_3_sparse_tracks')
 
 # Figure 4: empty plotting frame; there are intentionally no data points or numeric ticks.
-s=SVG(1120,600,'Results-pending placeholder for accuracy versus latency')
-s.banner('Accuracy versus localization cost','DRAFT PLACEHOLDER  /  RESULTS PENDING')
-x,y,w,h=142,128,920,355
+s=SVG(560,330,'Results-pending placeholder for accuracy versus latency')
+s.text(24,26,'RESULTS PENDING · NO MEASUREMENTS',18,C['muted'],600)
+s.text(24,58,'Accuracy versus localization cost',24,weight=700)
+x,y,w,h=76,112,448,146
 s.line(x,y+h,x+w,y+h,C['muted'],2,arrow=True)
 s.line(x,y+h,x,y,C['muted'],2,arrow=True)
-s.text(x,y-16,'VCSL F1 (%)',22,weight=600)
-s.text(x+w/2,y+h+39,'Localization latency (ms / pair)',23,anchor='middle')
-s.rect(350,226,500,143,C['bg'],C['line'])
-s.text(600,269,'RESULTS PENDING',28,C['muted'],700,'middle')
-s.text(600,307,'No data points or curves are plotted.',21,C['muted'],anchor='middle')
-s.text(600,337,'Axes and operating points will follow the frozen protocol.',17,C['muted'],anchor='middle')
-s.text(28,565,'Replace using verified results on identical pairs, features, evaluator, and timing boundaries.',19,C['muted'])
+s.text(x,y-16,'VCSL F1 (%)',20,weight=600)
+s.text(x+w/2,y+h+38,'Localization latency (ms / pair)',20,anchor='middle')
+s.rect(154,139,310,76,C['bg'],C['line'])
+s.text(309,170,'No points or fitted curves',20,C['muted'],600,'middle')
+s.text(309,200,'Awaiting verified runs',20,C['muted'],anchor='middle')
 s.save('fig_4_tradeoff')

@@ -1,131 +1,135 @@
-# Experiment Plan: Hypotheses, Falsification, and Priority
+# Experiment plan — round 2 (2026-10-18)
 
-This is an internal plan. It contains **expected observations**, not measured results.
-Every expectation below is falsifiable and none may be quoted as a finding.
+All comparisons are **PROPOSED / NOT RUN**. This file supersedes earlier E1 and budget
+rules. See the Chinese round-two execution plan for task order and deliverable names.
 
-## 1. Hypothesis-to-experiment map
+## Hypotheses and decisions
 
-| Hyp. | Statement | Primary experiment | Sufficient evidence to support | Observation that falsifies or narrows it |
-|---|---|---|---|---|
-| **H1** Candidate coverage | Sparse matching + track fitting still covers true copies at high recall while substantially reducing dot products | E2 (and the coverage column of E1) | Candidate recall vs. `actual_dot_products` curve dominates the baseline at several iso-budget points; short-segment bucket not disproportionately lost | Coarse stage misses many true copies, especially short ones; refinement cannot recover what no tube covers |
-| **H2** Boundary recovery | Zero-floored local DP inside finite tubes improves boundary accuracy beyond the coarse support box, at modest cost | E3 + E4 | Same candidate tubes: F1 and boundary MAE improve significantly; gain is not explained only by a wider band or more cells | No significant F1/boundary gain, or the gain requires near-full-matrix work |
-| **H3** Net system benefit | Reduced fine-alignment domain converts into measured wall-clock and memory benefit | E5 + Table 2 | On the same machine/protocol, `T_localize` and peak memory are lower at comparable F1 | Python loops, predecessor scans or transfers dominate; fastest method is a vectorised full-matrix baseline |
-
-## 2. Experiment matrix (E0–E5)
-
-### E0 — External baselines under one frozen protocol
-
-* Comparators: HV, TN, DP, DTW (zero-training, classical), SPD and TransVCL (learned
-  localizers, loaded pretrained, **no retraining in this work**), and optionally RTR /
-  FiGVCL **only if** their features and protocol can be aligned to the same ISC features.
-* Constants: same ISC features, same val/test CSVs, same GT, same evaluator, per-method val
-  threshold, single test run.
-* Report: $\bar P/\bar R/\mathrm{F1}$ (val, test), test negative FAR, completion rate,
-  `T_localize` Mean/P50/P95, peak memory.
-* Table 1: literature-reported values are separated from values measured here. Different
-  features/protocols are never mixed into a single ranking.
-
-### E1 — Novelty gate against the Simple Sparse-to-Band baseline
-
-Exact baseline: one grid (fixed stride $s$) → mutual Top-$K$ → standard RANSAC straight-line
-fit → **fixed half-width** band → standard Smith-Waterman (zero floor) local alignment →
-threshold + dedupe. No dual-axis gap splitting, no multi-path, no min-IoU-specific
-post-processing beyond the same threshold sweep.
-
-* Match the coarse dot-product budget, the hardware backend and the candidate budget.
-* Add exactly one proposed mechanism at a time; the headline comparison adds the whole set.
-* **Gate:** if FastVCL does not beat this baseline on F1, short-segment recall or boundary
-  MAE at equal budget, mark `NOVELTY_GAP` and reframe. Do not add modules to hide it.
-* **Precedent note:** the baseline is deliberately close to published challenge recipes that
-  fit a temporal line with RANSAC after a learned (SAM) or heuristic (VSC track) match
-  proposal. The comparison is therefore against a realistic strong recipe, not a straw man.
-
-### E2 — Sampling and phase (H1)
-
-Variants: single stride 4; single stride 2; nested multi-scale {2,4,8} with and without
-coordinate de-duplication; independent phase pairs; equal-budget single fine grid.
-Sampling-interval efficiency has been studied before (Chen & Satoh, MMM 2025: much longer
-intervals than 1 fps can preserve or slightly improve accuracy with large speed-ups). That
-work motivates the curve but does not measure candidate coverage at an iso-budget operating
-point, which is what E2 adds.
-Record `actual_dot_products`, $|\mathcal A|$, `cross_scale_duplicates`, candidate recall and
-latency by segment-length bucket ($<15$, $[15,60)$, $\ge60$ frames).
-
-Decision rules:
-* If {2,4,8} ≈ stride 2 at equal budget → the multi-scale story is dead; report it as a
-  negative result and remove any claim of a multi-scale contribution.
-* If de-duplication materially changes RANSAC inlier counts → the earlier naive merge was
-  inflating support; report the corrected number only.
-* If independent phases add coverage only at $s^2\times$ cost → report the trade-off curve,
-  not a single point.
-
-### E3 — Tube refinement (H2)
-
-Variants on **identical candidate tracks**: (a) coarse support box; (b) global DTW over the
-tube without zero floor; (c) prototype unconditional-continuation DP; (d) proposed
-zero-floored DP. Also: (e) GT-induced tube as `Oracle-Tube Diagnostic` only, never in the
-main table.
-
-Metrics: final $\bar P/\bar R/\mathrm F1$, boundary MAE on matched segments, false-merge
-rate on the long-prefix and two-copy counterexamples, refinement latency.
-
-### E4 — Track constraints (single-factor)
-
-Base config; remove dual-axis support; remove gap splitting; remove min-IoU (use
-joint-envelope IoU); sweep $e_A$ and $w_r$. Change exactly one thing per row; fix the RANSAC
-seed. Report candidate count, $\sum_r L_rW_r$, spurious-track ratio under repeated texture,
-F1 and latency.
-
-### E5 — Implementation and cost decomposition (H3)
-
-* CPU: prototype predecessor scan vs. direct-offset $O(LW)$ implementation vs. a vectorised
-  full-matrix DP baseline.
-* GPU: only after real-hardware acceptance. Report separately and never infer GPU speed-up
-  from CPU profiling.
-* Report per-stage shares (normalise, coarse, RANSAC, band similarity, DP recurrences,
-  traceback, post), dot products, tube cells, peak RSS/GPU memory, and completion rate.
-
-## 3. Diagnostic metrics (custom, not official)
-
-| Metric | Definition | Caveat |
+| Hypothesis | Evidence needed | Failure interpretation |
 |---|---|---|
-| Candidate recall | fraction of GT segments with at least one candidate track/interval at $\min(\mathrm{IoU}_A,\mathrm{IoU}_B)\ge\theta$ | custom; $\theta$ and matching rule must be frozen |
-| Boundary MAE | mean absolute endpoint error in feature frames over matched segments | only defined for matched segments; report $n$ |
-| Negative-pair FAR | fraction of the 27,315 test negatives with ≥1 predicted segment | test only; val is `N/A` |
-| Tube cells evaluated | $\sum_r L_rW_r$ over all tubes, summed over multi-path attempts | counts work, not unique cells |
-| Candidate coverage curve | recall vs. `actual_dot_products` (and vs. coarse latency) | must use actual, not idealized, dot products |
+| H1 candidate coverage | candidate-envelope recall versus executed coarse work, by length | missing proposal coverage, particularly short copies |
+| H2 boundary recovery | identical tubes, endpoint MAE + matched count + recall + common cohort | MAE gain due only to selecting easier survivors is insufficient |
+| H3 system benefit | paired quality–cost points, full core wall time and memory | less DP work with greater total latency is no speed advantage |
+| E6 optional verification | fixed candidates, equal call/frame/token budget, whole-set utility | selected-case accuracy with recall loss or excessive added cost is insufficient |
 
-These are **not** the official copy-overlap F1 and must never be reported as such. VCSL
-provides interval boxes, not dense frame correspondence, so "frame-level correspondence
-recall" cannot be measured and must not be claimed.
+## E0–E6 and fixed controls
 
-## 4. Execution priority
+| ID | Comparison | Held fixed | What may change / mandatory report |
+|---|---|---|---|
+| E0 | HV/TN/DP/DTW and compatible pretrained SPD/TransVCL | files, evaluator, splits, timing definition | method and per-method validation threshold; verify weights/input compatibility |
+| E1 | Simple STB vs core, then one mechanism at a time | grid, matcher, trial budget, configured caps, hardware, post-processing | actual candidate count may change and must be reported |
+| E2 | stride, nested scales, independent phases | downstream fitting/alignment and declared caps | executed dots, duplicates, candidate recall, length buckets; no assumed equal-budget stride-2 control |
+| E3 | support box, band DTW, continuation, zero-floor | serialized tracks/tubes and common post-processing | alignment policy; both DP variants share steps/precision; distinguish matches lost/gained |
+| E4 | support checks, splitting, dedup, extension, width | all other settings and seeds | one factor per row; width and extension are separate sweeps |
+| E5a | scan vs direct addressing | same recurrence, inputs, steps, ties, outputs | indexing implementation only; require parity before timing |
+| E5b | full-matrix vs tube DP | features, recurrence, declared protocol | search domain; never claim this is indexing-only |
+| E6 | core / random selection / cheap selector / selective verifier | same core candidate pool, backend, fusion, call/frame/token budget | selection policy; whole-set F1/recall/FAR, failures and total added cost |
 
-1. **P0** — Fix/decide the local-DP semantics; add the four counterexample unit tests; create
-   the Simple Sparse-to-Band baseline as a real, runnable method.
-2. **P0** — Freeze a protocol (feature digest, CSVs, evaluator, thresholds) and produce a
-   zero-error complete val for the *current* default.
-3. **P1** — Run E1 and E3 on identical candidates; this decides whether the paper has a
-   mechanism contribution.
-4. **P1** — Run the single test evaluation after freezing; compute negative FAR.
-5. **P2** — E2/E4 sweeps and the iso-budget curves.
-6. **P2** — Direct-offset DP implementation and E5 timing.
-7. **P3** — Real-GPU acceptance (functional parity → controlled timing), then GPU E5.
+### Exact simple baseline (design, not implemented)
 
-## 5. Decision tree after the real experiments
+One zero-phase stride-4 grid, Top-1 mutual matching, shared cosine threshold/cap and seeded
+RANSAC. Same slope bounds, residual criterion, trial cap and minimum distinct A inliers;
+no extra B support/span checks and no gap splitting. Fixed finite width and A extension;
+same zero-floor steps, smoothing, scoring, output threshold and min-IoU suppression;
+one path per tube. Core adds dual-axis checks, gap splitting and bounded repeated paths.
+Multi-scale/phases are **not** core defaults. Dedup changes are isolated in E4, not hidden
+in the baseline. The proposed margin/support changes must be applied identically to both.
 
-* **Case A** (accuracy ≥ baseline and `T_localize` clearly lower, with a single-mechanism
-  ablation supporting the core): claim a quality–cost Pareto improvement under fixed
-  features. Still avoid "state of the art" unless all comparators are on the same protocol.
-* **Case B** (clearly faster but some accuracy loss vs. TransVCL/full DP): reposition as a
-  training-free accuracy–latency trade-off and failure analysis; quantify the loss source
-  (e.g., short-segment miss rate).
-* **Case C** (simple baseline or classical TN/DP matches both accuracy and speed, or the
-  mechanism gives no net benefit): narrow the claims to a systematic diagnostic/negative
-  result. Do not manufacture a novelty claim.
+Hold configured budgets/caps equal; do not discard candidates post hoc to force equal
+realized counts. For E3 reuse exact tube hashes. Headline full-system comparisons may alter
+several mechanisms; explicitly label them as such, not single-factor ablations.
 
-## 6. What would change the paper's title/framing
+### Budget matching
 
-If H1 fails, "Sparse-to-Tube" is misleading; if H2 fails, drop "refinement" from the
-contribution and present the tube as a candidate visualization only; if H3 fails, remove
-"Fast" from any performance sentence and keep it only as a project name in a footnote.
+Use executed coarse dots, including both directions and tie passes. {2,4,8} costs more
+than stride 2. A proposed matching tolerance (e.g. 5% of aggregate executed work) must be
+chosen before results; report per-pair mismatch too. If no discrete configuration matches,
+show realized cost curves without an equal-budget claim. Never add useless computations
+to pad budgets. Duplicate-anchor runs are corruption diagnostics only.
+
+## Diagnostics to freeze before running
+
+- Candidate recall: tube axis-aligned envelopes versus valid GT, any candidate at min axis
+  IoU >= 0.5; report valid-GT denominator and exclusions. Empty tube has no envelope.
+  This is box coverage, not legal-path or frame-correspondence recall.
+- Length buckets use min(A duration, B duration): <15, [15,60), >=60 feature indices.
+- Boundary MAE: four-endpoint mean absolute error after maximum-cardinality one-to-one
+  matching at min-IoU >= 0.5, then maximum total min-IoU, then deterministic id ties.
+  Report each method's matched count/recall and a common-GT cohort for paired differences.
+- Official metric keeps original GT; custom diagnostics may separately omit invalid boxes
+  only with frozen rules and counts. Never silently clean the official labels.
+- Log similarity dot products, executed DP visits, per-attempt work and unique covered
+  cells separately. Cache reuse is recorded, not presumed.
+- Repeat headline RANSAC fits over five predeclared seeds. This estimates seed variation,
+  not data uncertainty. For paired bootstrap, define the sampling unit and handle repeated
+  video identities/provenance; if unavailable, state the limitation and avoid significance claims.
+
+## Evaluation and tuning
+
+1. Finish implementation semantics and source-level tests before selecting settings.
+2. Audit development/validation/test video overlap; use official test only for final reporting.
+3. Freeze threshold grid, objective, tie rule, score mode and coordinate conversion.
+4. Select structure on development data and thresholds on validation. Validation is all
+   positive; its scores are selection-biased and cannot calibrate negative-pair FAR.
+5. Freeze all intended operating points/seeds, feature contents, CSV/GT/evaluator hashes,
+   code/config hashes and model/checkpoint manifests. A single final test campaign may
+   contain multiple **predeclared** configurations; no test-adaptive choice or redesign.
+6. Primary tables require zero errors/skips and all four macro/completion denominators.
+   Undefined macro metrics are null with reason, not zero. Ordinary nonempty perfect overlap
+   stays below 1 because of epsilon; equality sentinels are handled exactly as the evaluator.
+
+No FAR target can be promised from positive-only validation. A negative development set
+requires provenance and separation from test; otherwise FAR remains a held-out diagnostic.
+
+## Timing and quality–cost plane
+
+Core: CPU-resident raw features and initialized operators to in-memory predictions. Include
+normalization, transfers, all candidate stages, DP, traceback and post-processing. Separately
+record I/O, export, initialization and backbone extraction. TransVCL includes every chunk
+and pair assembly in actual pair wall time. Disable intrusive profiling, warm up, run at
+least three rounds, fix threads/precision and synchronize GPUs. Report mean/P50/P95,
+throughput with units, CPU RSS, GPU allocated/reserved peaks and stage residuals.
+
+Compare matched hardware; separate heterogeneous-system operating points from algorithmic
+speed claims. Scan/direct indexing must first agree on exact semantic outputs. GPU evidence
+requires actual hardware execution. Vary stride/width/path budgets to generate real cost
+points; a post-hoc confidence sweep alone does not reduce already-executed computation.
+
+E6 additionally includes frame acquisition/decoding, preprocessing, network/queue/model
+calls, retries and fusion. Distinguish cached from live acquisition and count failures.
+Never compare this combined cost to a baseline whose input costs are excluded without
+explicitly identifying the different timing scopes.
+
+## Priority and completion gates
+
+P0: resolve math/code discrepancies + implement strong STB baseline + freeze evaluator tests.
+P1: controlled development E1/E3; determine whether a useful mechanism increment exists.
+P1: fix diagnostic definitions, manifests, threshold protocol and data leakage audit.
+P2: development E2/E4/E5 and uncertainty; freeze configuration set, then final test campaign.
+P3: E6 only after backend, mappings, selection and fusion are specified and independently
+validated. CPU-only core study can complete without GPU; GPU and verifier claims stay pending.
+
+Lack of baseline gain is not cured by renaming modules. A gain establishes utility under
+its protocol, not novelty by itself. Revisit closest prior work and narrow claims as needed.
+
+## Round-three constraints on the planned runs (2026-10-18)
+
+1. **E1 must share the recurrence, margin, support and scoring rule** between the STB
+   baseline and the core. The named structural change is the only difference. Do not compare
+   a zero-floor core with a continuation baseline in E1; that is E3.
+2. **E3 is the recurrence comparison**, on identical serialized tracks/tubes with hashes. The
+   prototype uses negative continuation and never restarts when a predecessor exists; the
+   paper's zero-floor rule is still `PROPOSED`. Report exact paths, matches gained/lost and
+   the common cohort, not only F1.
+3. **E4 zero-extension row:** pass an explicit A range. With `extension_a=0` and no explicit
+   range, the code pads the A scan by `half_width + margin` and changes two factors.
+4. **Margin and support units:** the prototype margin is counted in matched path rows and
+   the support term uses stored A-anchor entries. If E4 tests the proposed zero margin or
+   distinct-both-axes support, apply the same rule to both sides of that row and document it.
+5. **Threshold:** the core pipeline writes scores; the evaluator applies `q>c` (legacy
+   `c=0` skips filter and cast). A threshold sweep is not an upstream-compute experiment.
+6. **Validity:** use the shared `1e-8` threshold; do not mix the old `1e-12` value into a run.
+7. **Evaluator:** function-level parity is checked (`evidence/evaluator_parity.json`), but a
+   file-level reference-vs-port run is still required before the first scored table.
+8. **No result yet:** every cell stays `PENDING`; the 646 prototype tests and 8 probes are
+   semantic checks, not benchmark evidence.

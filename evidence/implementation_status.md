@@ -206,3 +206,100 @@ silently followed.
 A literature search for training-free / zero-shot pairwise VCL in the 2023–2026 window found
 no direct precedent, but this is a search result (`PILOT_ONLY` as evidence), not a proof of
 absence. It must be re-run before submission and is not used as a performance claim.
+
+## 8. Round-two read-only audit (2026-10-18)
+
+Prototype HEAD remains `fdc3362b2418b316e16d6dfd68435e40c1b1afb8`; tracked work tree
+was clean when checked. This round edited paper sources only. Earlier artifact counts are
+historical audited observations, not newly rerun experiments. The current shell's default
+Python 3 has no NumPy; only standard-library scalar manuscript checks were run here.
+
+- **Metric correction:** `fastvcl/evaluate.py::precision_recall` and the reference
+  `metric/eval.py::precision_recall` both add `1e-6` to each axis denominator. Ordinary
+  nonempty perfect overlap is below 1 and retained; the previous manuscript's contrary
+  assertion was wrong. Exact value-1 sentinel filtering is preserved. Dtype and legacy
+  `conf=0` no-filter behavior still need execution-based parity acceptance.
+- **Segment gap:** code splits when strong A-index difference exceeds `g_low + 1`, not
+  `g_low`; paper now counts intervening indices.
+- **Margin:** `extract_segments` expands path-node bounds by `boundary_margin` (reference
+  config 2). The proposed strong-endpoint rule uses zero output margin. These must be
+  tested separately from A-axis tube extension.
+- **Support count:** `compute_band_similarity` passes stored A anchor entries; extraction
+  counts those entries in an A-only interval with endpoint tolerance. It does not guarantee
+  unique A/B evidence at Top-K > 1. Proposed distinct support within both intervals is
+  explicitly a specification change, not a claim about existing code.
+- **Score:** prototype clamps negative cosines before smoothing. The paper now states
+  this ordering; clipping only the final mean is not equivalent.
+- **JEV:** historical routing is anchor-level; the requested `seltive model` figure and
+  Method describe a proposed candidate-level branch. No backend or end-to-end candidate
+  fusion was verified. User instruction supersedes the older plan's blanket JEV ban.
+- **Pseudocode:** candidate collection and pre-traceback positive-score checks are fixed
+  in the paper. This is not evidence of an inference-code fix.
+
+Required next evidence: exact-path oracle checks for the selected recurrence, margin/support
+ablations, evaluator parity, STB baseline, protocol freeze and complete real runs. See the
+round-two execution plan and `round2_review.md`.
+
+## 9. Round-three read-only audit (2026-10-18)
+
+Prototype HEAD remains `fdc3362b2418b316e16d6dfd68435e40c1b1afb8`; the tracked work tree was
+clean before and after the checks. No prototype or reference file was modified. The DSH
+NumPy Python (3.12, NumPy 2.3.5) was located; the default shell Python still lacks NumPy. This
+round ran the prototype suite and read-only semantic probes, but **no dataset, no model and no
+GPU**.
+
+### 9.1 Executed checks
+
+| Check | Result | Artefact |
+|---|---|---|
+| Prototype unit suite, read-only | 646 tests, 0 failures, 10 CUDA skips | `evidence/prototype_tests_summary.md`; local log `evidence/prototype_tests.log` |
+| Evaluator function parity vs `metric/eval.py` | 211 synthetic cases, 0 per-pair mismatch; macro, sentinels, denominators, `conf=0` and a 5-row status case match | `evidence/evaluator_parity.json` |
+| Contract probes | 8 behaviours observed: weak prefix, strong–weak–strong, blocked second copy, invalid cell, A-range fallback, ties-to-even, margin 0/2, duplicate-vs-distinct support, gap 2-vs-3 | `evidence/contract_probes.json` |
+
+These are semantic and accounting checks. They do not certify an end-to-end evaluator file run,
+a VCSL prediction, a model checkpoint or a GPU kernel.
+
+### 9.2 New source-level findings
+
+1. **Validity threshold.** `sparse.MIN_ROW_NORM` and `io.valid_row_mask` use `1e-8`, not the
+   manuscript's old `1e-12`. The paper now uses `1e-8` and states the loader precondition.
+   `normalize_rows_with_mask` does not itself test `isfinite`; a direct `Inf` row becomes
+   `NaN` with `valid=True`. The pipeline loader rejects non-finite files first.
+2. **RANSAC draw.** `_ransac_once` rejects only equal A indices; there is no
+   `|i2-i1| >= Delta_min` draw constraint. The accepted run must satisfy the A span (4),
+   B span (8) and distinct support (5). The paper no longer claims the draw constraint.
+3. **Restart semantics.** The prototype keeps a negative continuation and never restarts when
+   a legal predecessor exists; it also lets a negative `H` cell be a predecessor. The
+   proposed zero-floor rule restarts and accepts only `H>0` predecessors. The hand cases are
+   now in the supplement with exact scores.
+4. **A-range fallback.** With `extension_a=0` and no explicit range, the code pads the A scan
+   by `half_width + margin`, not zero. E4 must pass an explicit A range for the zero-extension
+   row.
+5. **Margin unit.** `boundary_margin` expands the strong span by matched path rows, not
+   feature indices; it also changes the score because the mean covers the expanded rows.
+6. **Support count.** The score counts stored A-anchor entries over the A interval; duplicate
+   A times from Top-K>1 pass a support minimum that the proposed distinct-both-axes rule
+   would reject.
+7. **Threshold location.** The core pipeline writes all post-dedup segments; the evaluation
+   protocol applies `score > conf` (legacy `conf=0` skips both filtering and integer cast).
+   The paper now describes the threshold as evaluator-side.
+8. **F1 guard.** `evaluate.py` and the reference use `2PR/(P+R+1e-6)`; the paper's wrapper
+   equation now shows the `+epsilon` and its zero behavior.
+9. **De-duplication tie.** The code orders by `(-score, start_a, start_b)`; the paper now says
+   start coordinates then collection order, not end coordinates.
+
+### 9.3 Paper changes in this round
+
+The manuscript body was reduced from 9 pages to 8 pages (references on page 9) by moving the
+sampling-property derivations, the efficiency and ablation matrices, the teaser/anchor/tradeoff
+figures and Fig. 4 to the supplement, and by tightening prose. The framework figure stays in
+the main text and remains full width. The supplementary material is 8 pages. The title no
+longer contains a manual `\\` line break; the break caused a XeTeX font error at a later
+section in this toolchain.
+
+### 9.4 Still not done
+
+No zero-floor implementation, no distinct-support/zero-margin implementation, no core-side
+threshold, no Simple Sparse-to-Band entry point, no partial-margin fix, no evaluator file-level
+run, no frozen protocol, no complete validation/test run, no GPU execution, no seltive-model
+backend or E6. The next agent must not treat the paper corrections as code fixes.

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-18",
+  "scope": "read-only source snapshot, no prototype or benchmark execution",
+  "prototype_head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+  "files": {
+    "../FastVCL/fastvcl/evaluate.py": "24074415629221c39c1da0f34e43cc497b367e22974141813ce7c5352c30b6e4",
+    "../FastVCL/fastvcl/tube.py": "76dbb0d56bc88763d580fdb2ba77ccfc5086ed3776f89db969f7a4956f7bd747",
+    "../FastVCL/fastvcl/segments.py": "cd45cbf74fe741ddc5ddce21b3bc8ccc8a7111145f6e389da8dd5cb5e18b5573",
+    "../FastVCL/docs/METHOD_DECISIONS.md": "c50707ca7c96cfaea8435b8283aa8114595644f553540b92916612fbc800bdb6",
+    "../gzhlaker_transvcl/metric/eval.py": "941728afd4b67e44997b39b8dd56bc443b177d907fa78d5fce1e2d22086ef1e6"
+  }
+}

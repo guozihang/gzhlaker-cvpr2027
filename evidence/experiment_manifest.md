@@ -1,4 +1,4 @@
-# Experiment Manifest and Frozen-Protocol Record
+# Experiment Manifest and Proposed Protocol (not yet frozen)
 
 This manifest records the assets, hashes and conventions that any future run must reuse.
 Hashes were recomputed on 2026-10-17 from the local VCSL copy, not copied from an old log.
@@ -16,7 +16,7 @@ No experiment in this draft is `BENCHMARK_VERIFIED`.
 | Train pairs | 97,033 (`pair_file_train.csv`) |
 | Validation pairs | 41,798 (`pair_file_val.csv`) |
 | Test pairs | 54,630 (`pair_file_test.csv`) |
-| Test positive / negative | 27,315 / 27,315 (negatives = pairs with a missing GT key under the frozen local protocol) |
+| Test positive / negative | 27,315 / 27,315 (negatives = pairs with a missing GT key under the audited local loader convention) |
 | Val positive / negative | 41,798 / **0** |
 | Label keys | 166,146 (`label_file_uuid_total.json`) |
 | Feature length | min 3, median 190, P95 1062.7, max 12,590 (audit) |
@@ -74,8 +74,8 @@ reports `excluded_precision_eq_1` and `excluded_recall_eq_1`, which explain why
 
 1. Fix the structural configuration (sampling, tube, RANSAC) on a development subset; do not
    touch test.
-2. For **each method independently**, sweep its own confidence threshold on val and freeze
-   the best one. Scores are not calibrated across methods (TransVCL/SPD objectness vs. the
+2. For **each method independently**, use a predeclared threshold grid, objective and tie rule on val, then freeze
+   the selected value. Label validation scores as selection-biased. Scores are not calibrated across methods (TransVCL/SPD objectness vs. the
    local alignment score), so a shared numerical threshold is not a fair comparison.
 3. Record the frozen config SHA-256, the run id and the exact threshold.
 4. Run test once. No second test selection.
@@ -95,13 +95,13 @@ reports `excluded_precision_eq_1` and `excluded_recall_eq_1`, which explain why
   `torch.set_num_threads`), GPU model, precision, batch size, warm/cold cache; at least one
   warm-up round and ≥3 measured rounds; `profiling.enabled=false`; `torch.cuda.synchronize()`
   around GPU timing.
-* **TransVCL:** sum chunk-pair times back to a per-video-pair total before computing
-  Mean/P50/P95. Never report a single chunk-pair time as the video-pair time.
+* **TransVCL:** measure the entire video-pair wall boundary, including every chunk pair
+  and assembly. Summed forward times alone omit overhead. Never report one chunk as one pair.
 * **Speed-up definition:** state whether it is total-time ratio
   $\sum T^{\mathrm{base}}/\sum T^{\mathrm{ours}}$ or the per-pair mean ratio; report P50/P95;
   for RANSAC, report the standard deviation over ≥5 fixed seeds on a representative subset.
 
-## 6. Hardware and software fingerprint (current machine, CPU only)
+## 6. Historical environment fingerprint (2026-10-17 audit; recheck before runs)
 
 | Item | Value |
 |---|---|
@@ -138,3 +138,31 @@ material. A run is only admissible if the status file accounts for every selecte
 | Simple Sparse-to-Band baseline | not implemented as a separate runnable method yet |
 
 Conclusion: **every value in Tables 1–3 is pending.**
+
+## 9. Round-two corrections (2026-10-18)
+
+- No complete frozen protocol currently exists. Data metadata hashes do not freeze all
+  feature contents, method settings, thresholds or runtime dependencies.
+- Perfect nonempty overlap is generally slightly below 1 because each axis denominator
+  adds 1e-6; it is not automatically discarded. Keep equality semantics, source dtype and
+  direct denominator logging. Undefined macro means must be null with an explicit reason.
+- One final test campaign may include multiple predeclared configurations/seeds; the rule
+  forbids adaptive test-based selection, not every second method invocation. Record reruns
+  for genuine execution failures transparently, without selecting the best test score.
+- Audit shared video identities/provenance before uncertainty estimation. The positive-only
+  validation split cannot tune a false-alarm target; a separate negative development set
+  needs independent provenance, or FAR remains purely held out.
+- All feature-only core rows exclude the proposed seltive model. E6 needs a separate frame
+  manifest, backend/checkpoint/API/prompt version, candidate pool hash, selection budget and
+  fusion policy, plus full additional input/model/retry cost.
+- The current `python3` shell lacks NumPy; the historical environment table is not a claim
+  about today's default interpreter. Do not install packages into an unspecified environment.
+
+## 10. Round-three evaluator parity (2026-10-18)
+
+The port and the reference `metric/eval.py` were compared at function level on 211 synthetic
+box cases: 0 per-pair mismatch, identical macro/sentinel denominators, the `conf=0` legacy
+branch, and a five-row status case (4 scored, 1 ERROR excluded). This is recorded in
+`evidence/evaluator_parity.json`. It does **not** replace the required file-level run on the
+same predictions/GT: `metrics.json`, status accounting and the four denominators still need a
+direct reference-vs-port comparison on real run artifacts before any table is filled.
