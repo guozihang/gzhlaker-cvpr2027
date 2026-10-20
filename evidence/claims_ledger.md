@@ -113,3 +113,26 @@ file-level dataset run.
 No claim in this ledger becomes `BENCHMARK_VERIFIED` in this round. The paper fixes (C37,
 C38, C42, C43) are specification corrections, not code fixes. The code differences C39–C41
 remain unresolved.
+
+## Round-five execution (2026-10-20)
+
+Round five did not upgrade any empirical claim. It replaced the old second-rank margin with a
+strongest-competitor margin, fully specified the two intervention points and their budget and
+risk accounting, split the core and augmented tables, and recorded that the local snapshot has
+no source video, visual backend or GPU. C29's post-localization-only wording is superseded in
+scope by C46; the module name and the proposed status remain.
+
+| ID | Claim | Grade | Basis / limitation | What would refute it |
+|---|---|---|---|---|
+| C46 | One shared `seltive model` is inserted before fitting ($\Anch_0\to\Anch_1$) and after candidate extraction ($\mathcal C_0\to\mathcal Y$); off/shadow must match core item by item, on mode only promises per-item fallback | `PROPOSED` | Main Method §3.2, supplement §14, framework figure, `round5_math_checks.json` text checks | an implementation that changes unselected/failed items or a shadow mismatch |
+| C47 | The selector margin is the minimum of the A- and B-side differences to the strongest competitor after removing the current match; a missing side is neutral rank 1/2 | `PROPOSED` + scalar check | `eq:margin`, supplement `eq:s-margin`, `scripts/round5_reference.py`; top-1, second-rank, singleton, tie and cross-plan cases | a different competitor pool or a case where the rule is undefined |
+| C48 | First-version fusion uses disjoint C0 pairs, gap caps, boundary-map agreement, connector slope, grouped round-robin selection and a bounded Conn region/path; accepted merges consume members and do not propagate | `PROPOSED` + reference check | Main Method, supplement §14, five edge cases and Conn path cases in `round5_math_checks.json` | an executable variant that behaves differently or an experiment showing no useful opportunity |
+| C49 | Decision accounting is $B_A=\lfloor2B/3\rfloor$, 3 anchor frame pairs and 5 fusion frame pairs, cache hits count, retries are off by default and worst case is $B+R$, and connection cells are charged | `PROPOSED` | Main Method budget paragraph, supplement Table 6, `evidence_frame_pairs(12)=44` | a run that reports a different denominator or hides failed attempts |
+| C50 | Risk is reported as true-anchor deletion, deletion action error, wrong-fusion, coverage/abstention and final effect; zero-error 95% bound is $1-0.05^{1/n}$ and needs at least 299 effective trials for 1% | `PROPOSED` analytic | Main Experiments §4.4, supplement risk ledger, scalar check of 150/299/300 | correlated samples treated as independent, or a different denominator |
+| C51 | The revised main body is about 8.5 pages (10 pages total, references from page 9); the 8-page target is not met | `MISSING` (layout status) | `main.pdf`, `round5_source_snapshot.json` | a further cut that reaches 8 pages and is visually verified |
+| C52 | The local snapshot contains ISC features and labels but no source videos, no verified frame map, no visual weights and no CUDA GPU; no visual call was made | `MISSING` | `round5_assets.json`, filesystem scan, prototype environment record | a verified video/frame manifest and a runnable backend |
+| C53 | The prototype is unchanged and its 646-test suite passes; the new margin, fusion selector, Conn and zero-floor variants are not implemented there | `CONFLICT` / `MISSING` | `round5_prototype_tests.log`, prototype HEAD `fdc3362`, reference module only | a source change and a controlled comparison |
+| C54 | The E1 novelty gate and all benchmark cells remain open | `MISSING` → `NOVELTY_GAP` | No frozen core or augmented run; all table cells remain `\TODO{PENDING}` | a complete zero-error frozen campaign and E1 |
+
+The round-five reference checks are formula- and text-level only. The 646-test rerun shows no
+regression in the existing prototype; it does not validate the proposed rules.

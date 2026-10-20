@@ -46,7 +46,7 @@ E2/E4, not of the definition of the method.
 \toprule
 Group & Value \\
 \midrule
-Sampling & stride 4; Top-$K$ 1; $\tau=0.7$; mutual on \\
+Sampling & stride 4; Top-$K_{\rm nn}$ 1; $\tau=0.7$; mutual on \\
          & multi-scale off; independent phases off \\
          & anchor cap 20,000; chunk 64 MB / 512 rows \\
 RANSAC   & $\epsilon_B=4.0$; $h_{\min}=5$; max tracks 8 \\
@@ -60,6 +60,14 @@ Tube     & $w_r=12$; $e_A=16$; prototype margin 2 \\
          & smoothing window 3; max 4 paths per tube \\
          & low-quality gap $g_{\mathrm{low}}=2$; $\theta_{\mathrm{dedup}}=0.8$ \\
          & max 64 segments per pair \\
+Decisions & $B\in\{0,4,8,12\}$; $B_A=\lfloor2B/3\rfloor$ \\
+         & anchor: 3 frame pairs; fusion: 5 pairs \\
+         & $\tau_A,\tau_F\in\{0.90,0.95,0.98\}$ \\
+         & $\delta_A,\delta_F\in\{0.15,0.30\}$ \\
+         & $G_A=G_B=48$; $\kappa_A=\kappa_B=4$ \\
+         & $\eta_A=\eta_B=2$; $\beta_A=2$; $L_cW_c=4096$ \\
+         & $\kappa_{\mathrm{cov}}=0.6$; $g_c=8$; $\tau_{\mathrm{conn}}=0.6$ \\
+         & neighbor cap 8; selector group width 8 \\
 Runtime  & CPU/NumPy; float32 similarity; float64 DP \\
          & per-tile profiling disabled for timing \\
 \bottomrule
@@ -121,6 +129,27 @@ support; counts must use distinct projected times.
 The main paper specifies the method; this section records where the current reference
 implementation differs, so that a later reader does not mistake a prototype for the
 specification.
+
+\subsection{Notation, validity mask and output convention}
+\label{sec:s-notation}
+
+Rows are feature indices $i\in\{0,\dots,M-1\}$ and $j\in\{0,\dots,N-1\}$. A row is valid
+when it is non-empty, finite and has norm above $\varepsilon=10^{-8}$:
+\begin{equation}
+\begin{aligned}
+m_i^A&=\mathbf{1}[\operatorname{finite}(F_{A,i})\land\lVert F_{A,i}\rVert_2>\varepsilon],\\
+\fA{i}&=\begin{cases}F_{A,i}/\lVert F_{A,i}\rVert_2,&m_i^A=1,\\ \mathbf{0},&m_i^A=0,\end{cases}
+\end{aligned}
+\end{equation}
+with $m_j^B,\fB{j}$ analogous, and
+$\Sim_{ij}=\langle\fA{i},\fB{j}\rangle$ only when both rows are valid (otherwise
+$-\infty$). The norm is computed in a precision that avoids overflow; feature files are
+checked finite at load, and the sparse, tube and segment stages share the constant. An
+invalid row is never a match node, contributes no evidence and cannot start or end a
+prediction. The output is a set of half-open interval pairs
+$\mathcal{Y}=\{(a_s,b_s,a_e,b_e,q)\mid 0\le a_s<a_e\le M,\;0\le b_s<b_e\le N,\;q\in\mathbb{R}\}$;
+$q$ is uncalibrated and coordinates are feature indices. A verified timestamp map is required
+before calling an index a second or a source frame; this draft does not establish one.
 
 \subsection{Local DP restart semantics}
 \label{sec:s-dp}
@@ -300,6 +329,50 @@ prediction. It is not defined on the validation split, which has no negatives. T
 macro mean is not a substitute: a correctly rejected negative pair has $P=R=1$ and is dropped
 from both means, so correct rejections do not enter the reported F1 at all. This is why the
 paper reports FAR separately.
+
+\section{Diagnostics and the augmented-system table}
+\label{sec:s-diagnostics}
+
+\paragraph{Candidate recall.}
+A candidate is counted as covering a GT box when the axis-aligned tube envelope and the GT
+box have minimum axis IoU at least $0.5$. An empty tube has no envelope and cannot cover.
+Report the valid-GT denominator, exclusions, and the count by GT duration buckets
+$<15$, $[15,60)$ and $\ge60$ feature indices. This is a proposal-box diagnostic; it does not
+prove that a legal path exists or that a frame correspondence is correct.
+
+\paragraph{Boundary MAE.}
+Average the four endpoint errors after maximum-cardinality one-to-one matching at minimum
+axis IoU $0.5$, then maximum total min-IoU, then deterministic id ties. Report each method's
+matched count, its recall over the valid GT, and a common-GT cohort used for paired
+differences. A lower MAE obtained only by losing hard matches is not an improvement.
+
+\paragraph{Augmented-system reservation.}
+Table~\ref{tab:s-aug} is the supplementary counterpart of the main augmented table. The
+merged row is never added to a core row. ``Q'' is the shared question budget; per-question
+source limits are 6 frames for an anchor and 10 for a fusion edge. The four-cell position
+experiment fixes $A{=}8,F{=}4$; the same-total-budget experiment compares $A{=}12$,
+$F{=}12$ and $A{=}8{+}F{=}4$, reporting actual questions, frames, tokens and time. Equal
+question caps do not imply equal cost.
+
+\begin{table}[t]
+\centering
+\caption{Augmented-system reservation. FAR is test-only and appears in the main augmented table; all entries are \TODO{PENDING}.}
+\label{tab:s-aug}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}l c c c c@{}}
+\toprule
+Method & Q & Val P/R/F1 & Test P/R/F1 & $\Taug$ \\
+\midrule
+FastVCL-core (no extra input) & 0 & -- & -- & -- \\
+A-only visual filter          & 8 & -- & -- & -- \\
+F-only visual fusion          & 4 & -- & -- & -- \\
+A+F joint                     & 12 & -- & -- & -- \\
+A+F random selection          & 12 & -- & -- & -- \\
+A+F geometry / Conn only      & 12 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Evaluator parity check}
 \label{sec:s-parity}
@@ -544,18 +617,52 @@ This section records the specification summarized in the main Method. It is
 validated, and no result in this paper uses the layer. The core specification and its known
 deviations from the prototype are unchanged. The branch is one model with one question
 interface, inserted before geometric fitting (anchor filtering) and after segment extraction
-(fragment fusion).
+(fragment fusion). It is outside the fixed-feature core comparison.
+
+\begin{algorithm}[h]
+\caption{FastVCL with two optional decision hooks (one pair)}
+\label{alg:s-decisions}
+\begin{algorithmic}[1]
+\Require $F_A,F_B$; core configuration; mode $m\in\{\textsc{off},\textsc{shadow},\textsc{on}\}$; budget $B$
+\Ensure $\mathcal{Y}=\{(a_s,b_s,a_e,b_e,q)\}$
+\State compute valid rows and unit features
+\State $\Anch_0\gets$ mutual Top-$K_{\rm nn}$ anchors, de-duplicated and capped
+\State $\Anch_1\gets\Anch_0$
+\If{$m\ne\textsc{off}$}
+  \State $\Anch_1\gets$AnchorFilter$(\Anch_0,B_A)$ \Comment{log only in shadow}
+\EndIf
+\State $\mathcal{R}\gets$ multi-track RANSAC on $\Anch_1$; split and re-validate
+\State $\mathcal{C}_0\gets\emptyset$
+\ForAll{tracks $r$}
+  \State build finite tube; run local DP on unblocked valid cells
+  \For{$p=1$ \textbf{to} $P_r$}
+    \If{no positive score} \State \textbf{break} \EndIf
+    \State backtrace, trim and extract segments; add to $\mathcal{C}_0$; block matched cells
+  \EndFor
+\EndFor
+\State $\mathcal{C}_0\gets$ filter by duration/support; score by the core rule
+\State $\mathcal{C}\gets\mathcal{C}_0$
+\If{$m\ne\textsc{off}$}
+  \State $\mathcal{C}\gets$Fusion$(\mathcal{C}_0,B_F)$ \Comment{log only in shadow}
+\EndIf
+\State $\mathcal{Y}\gets$ score-ordered de-duplication; apply cap
+\State \Return $\mathcal{Y}$ \Comment{possibly empty}
+\end{algorithmic}
+\end{algorithm}
 
 \paragraph{Items, evidence boards and prompt.}
 An item is either an anchor $a=(i,j)$ or an ordered segment pair $(c_u,c_v)$. For an anchor,
 the board places up to three A images and three B images: the matched index and the nearest
 sampled neighbours on each side, ordered by time. Each tile header records video side,
 timestamp, feature index, cell id and question id. For a segment pair the board adds the two
-fragment interiors, both boundary sides and, when obtainable, frames inside the gap; a missing
-frame is marked missing rather than replaced by a neighbour from another time. Boards are
-built only from original frames through a verified index-to-frame map; if the map is missing,
-the stage returns \textsc{unavailable} and never fabricates an image. Sampling offsets, crop,
+fragment interiors, both boundary sides and, when obtainable, frames inside the gap; an
+anchor board uses at most 3 paired positions and a segment board at most 5, i.e.\ 6 and 10
+source frames respectively. Overlapping positions are de-duplicated and a missing frame is
+marked missing rather than replaced by a neighbour from another time. Boards are built only
+from original frames through a verified index-to-frame map; if the map is missing, the stage
+returns \textsc{unavailable} and never fabricates an image. Sampling offsets, crop,
 resolution, padding and missing-frame policy are frozen in the manifest.
+
 The anchor prompt asks whether the two sides show the same underlying footage, explicitly
 allowing crop, speed change, overlay and re-encoding and explicitly rejecting topical, person
 or action similarity. The segment prompt asks whether two fragments are parts of one
@@ -564,24 +671,43 @@ are fixed and ordered. Raw candidate logits or scores, option order, normalisati
 adapter/readout revision are stored; free-form JSON is a separate control. Generated
 rationales may be logged but are never parsed for automatic action.
 
-\paragraph{Anchor set and selector.}
+\paragraph{Anchor set, competitor margin and selector.}
 $\Anch_0$ is the anchor set after coordinate de-duplication and the original cap; no selector
-may pre-delete it. Cheap signals are the bidirectional margin of the main text, the
-normalised residual to a local pre-fit line, time coverage and distinct support. Anchors are
-grouped on a fixed two-dimensional grid of width twice the finest sampling stride, and groups
-are visited round-robin. Inside a group,
+may pre-delete it. Let $\mathcal C_B(i)$ be the B coordinates compared with A index $i$ in any
+executed plan, merged by original coordinate and de-duplicated, and let $\mathcal C_A(j)$ be
+analogous. For an anchor $(i,j)$,
+\begin{equation}
+\begin{aligned}
+\mu_B(i,j)&=\Sim_{ij}-\max_{j'\in\mathcal C_B(i)\setminus\{j\}}\Sim_{ij'},\\
+\mu_A(i,j)&=\Sim_{ij}-\max_{i'\in\mathcal C_A(j)\setminus\{i\}}\Sim_{i'j},
+\end{aligned}
+\label{eq:s-margin}
+\end{equation}
+with a side marked \emph{missing} when its competitor set is empty, and
+$\mu=\min(\mu_A,\mu_B)$ only when both sides exist. This compares the current match with its
+strongest competitor on each axis, rather than always subtracting the second-ranked partner.
+The competitor pool is the union of executed comparisons for the same coordinate across plans;
+no unrecorded full-resolution scan is added. A missing side is logged and the margin enters
+the selector as the neutral rank $1/2$. This is an initial rule, not a validated optimum.
+Top-$K_{\rm nn}=1/2/3$, score ties, a singleton partner pool and a coordinate repeated across
+plans therefore have explicit outputs.
+
+Anchors are grouped on a fixed two-dimensional grid of width twice the finest sampling stride,
+and groups are visited round-robin so one repeated-texture cluster cannot exhaust the budget.
+Inside a group,
 \begin{equation}
 \pi(a)=\tfrac12\operatorname{rank}(-\mu(a))+\tfrac12\operatorname{rank}(\rho(a)),
 \label{eq:s-selector}
 \end{equation}
-where both ranks are normalised to $[0,1]$ inside $\Anch_0$ and larger is preferred. The
-residual rank is $1/2$ when geometry is unavailable or the pool is a singleton; ties use
-$(i,j)$; random controls use a fixed seed. The selector is \textsc{selection-only}: an
-unselected, unqueried or failed anchor must be identical to its core state, which is checked
-item by item. Group width and ordering may be changed only on \texttt{dev\_design}.
+where both ranks are normalised to $[0,1]$ inside $\Anch_0$, $\rho(a)$ is the normalised
+residual to a local pre-fit line, and larger is preferred. A missing margin, missing geometry
+or singleton pool contributes the neutral value $1/2$; ties use $(i,j)$; random controls use a
+fixed seed. The selector is \textsc{selection-only}: an unselected, unqueried or failed anchor
+must be identical to its core state, checked item by item. Group width and ordering may be
+changed only on \texttt{dev\_design}.
 
-\paragraph{Action rule and thresholds.}
-The action is
+\paragraph{Action rule, thresholds and modes.}
+With queried set $\mathcal Q$ and scores $p^{\mathrm{anc}}_N,p^{\mathrm{anc}}_C,p^{\mathrm{anc}}_U$,
 \begin{equation}
 \begin{aligned}
 D(a)=&\,\mathbf{1}[a\in\mathcal Q]\mathbf{1}[\text{verified}]\\
@@ -590,31 +716,60 @@ D(a)=&\,\mathbf{1}[a\in\mathcal Q]\mathbf{1}[\text{verified}]\\
 \end{aligned}
 \label{eq:s-action-anchor}
 \end{equation}
-with $\mathcal Q$ the queried set and $\Anch_1=\Anch_0\setminus\{a:D(a)=1\}$.
-\texttt{COPY}, \texttt{UNCERTAIN}, unselected, over-budget and failed anchors keep their
-coordinates and weight. The prototype default that multiplies \texttt{COPY} weights by
-$1.25$ is not inherited. Filtering is preceded by a \textsc{shadow} mode whose output must
-equal the core output item by item. Development grids are
-$\tau_A\in\{0.90,0.95,0.98\}$ and $\delta_A\in\{0.15,0.30\}$; they are operating points, not
-calibrated probabilities, and are frozen before test. Tracks are refitted on $\Anch_1$ and
-dual-axis support/span are revalidated; the sequence
-$\Anch_0\to\Anch_1\to$ tracks $\to$ tubes and each deletion reason are logged.
+and $\Anch_1=\Anch_0\setminus\{a:D(a)=1\}$. \texttt{COPY}, \texttt{UNCERTAIN}, unselected,
+over-budget and failed anchors keep their coordinates and weight; the prototype rule that
+multiplies \texttt{COPY} weights by $1.25$ is not inherited. Tracks are refitted on
+$\Anch_1$ and dual-axis support/span are revalidated; the sequence
+$\Anch_0\to\Anch_1\to$ tracks $\to$ tubes and each deletion reason are logged. Development
+grids are $\tau_A\in\{0.90,0.95,0.98\}$, $\delta_A\in\{0.15,0.30\}$; they are operating
+points, not calibrated probabilities, frozen before test. The first mode is \textsc{shadow}:
+it logs decisions but returns $\Anch_1=\Anch_0$ and must match the core output item by item.
+\textsc{off} bypasses the branch. In \textsc{on} mode only $D(a)=1$ removes an anchor, and a
+single abstention or failure promises only that item's fallback, not global equality.
 
 \paragraph{Fusion edges.}
 $\mathcal C_0$ is the core candidate set after near-duplicate removal, retaining track ids,
 matched nodes, distinct support and scores. A legal directed edge $(c_u,c_v)$ requires:
-(i) consistent temporal order on both axes; (ii) A and B gaps within development-frozen caps,
-with raw and normalised gaps recorded; (iii) local slope compatibility and, more
-importantly, boundary-map compatibility -- for each map, evaluate the predicted B position at
-both boundaries of the other fragment and require agreement within tolerance, comparing
-mapped values rather than slopes or raw intercepts; (iv) a geometric bridge. The same A
-interval mapping to a different B position is a separate copy and is excluded; pairs without
-a bridge are excluded. Neighbours are generated deterministically with a per-fragment cap, and
-the number of edges and truncations is recorded.
+(i) consistent temporal order and disjointness in the first version,
+$a_e^u\le a_s^v$ and $b_e^u\le b_s^v$; (ii) A and B gaps within development-frozen caps
+$G_A,G_B$, with raw and normalised gaps recorded; (iii) boundary-map compatibility -- for
+the A-to-B map $m_u$ of $u$ and the inverse map of $v$, evaluate the predicted position at
+the other fragment's boundaries and require agreement within $\kappa_B,\kappa_A$, comparing
+mapped values rather than slopes or raw intercepts; (iv) a connector from
+$(a_e^u,b_e^u)$ to $(a_s^v,b_s^v)$ with slope in $[\alpha_{\min},\alpha_{\max}]$, where a
+zero-length gap is handled by the map checks alone. A missing map makes the edge unavailable.
+A pair with $\IoU_A\ge\theta_{\mathrm{dedup}}$ but $\IoU_B<\theta_{\mathrm{dedup}}$ is the
+same A interval at a different B position, hence a separate copy, and is excluded. Neighbours
+are generated deterministically with a per-fragment cap, and the number of edges and
+truncations is recorded.
 
-\paragraph{Visual relation and connection evidence.}
-The model returns \texttt{MERGE}, \texttt{KEEP\_SEPARATE} or \texttt{UNCERTAIN}. With
-geometric legality $G$ and connection check $\mathrm{Conn}$,
+The first-version selector groups edges by the earlier fragment's A position on a grid of
+width twice the finest stride and visits groups round-robin. Within a group it sorts by the
+normalized gap
+$\tilde g=\max(\mathrm{gap}_A/G_A,\mathrm{gap}_B/G_B)$, then by the maximum boundary-map
+error over the four comparisons, then by $(c_u.\mathrm{id},c_v.\mathrm{id})$, and selects at
+most $B_F$ edges; exhausted groups are skipped. No learned benefit predictor is introduced.
+The same-A/different-B exclusion, group tie rule and per-fragment cap are frozen in the
+configuration.
+
+\paragraph{Connection evidence.}
+The connection check $\mathrm{Conn}$ is fixed before the model call. Its region
+$R_e=[a_e^u-\eta_A,a_s^v+\eta_A)\times[b_e^u-\eta_B,b_s^v+\eta_B)$ is clipped to the video
+bounds; if its area exceeds $L_cW_c$, the edge is marked unavailable and the truncation is
+recorded rather than silently shrinking the region. Support nodes are the path nodes of $u$
+with A index in $[a_e^u-\beta_A,a_e^u)$ and of $v$ with A index in
+$[a_s^v,a_s^v+\beta_A)$; if either set is empty, $\mathrm{Conn}=0$. We reuse a verified path
+that touches both fragments and satisfies the same rules; otherwise a bounded DP with the
+steps of the main local recurrence, score $\Sim_{ij}-\tau_{\mathrm{conn}}$ and zero restart
+is run inside $R_e$ from the support nodes of $u$. $\mathrm{Conn}=1$ only if a cell adjacent
+to a support node of $v$ is reachable with positive score and the backtraced path has valid
+coverage at least $\kappa_{\mathrm{cov}}$ and no consecutive low-score run longer than
+$g_c$. Failure keeps the fragments separate; the region is never enlarged until a path
+appears. All attempted and failed cell visits are counted, and the work is charged to the
+connection term rather than reported as a model call.
+
+\paragraph{Action, merge scope and output.}
+With geometric legality $G$,
 \begin{equation}
 \begin{aligned}
 M(u,v)=&\,G(u,v)\land\mathrm{Conn}(u,v)\land[p^{\mathrm{fus}}_M\ge\tau_F]\\
@@ -622,21 +777,28 @@ M(u,v)=&\,G(u,v)\land\mathrm{Conn}(u,v)\land[p^{\mathrm{fus}}_M\ge\tau_F]\\
 \end{aligned}
 \label{eq:s-action-merge}
 \end{equation}
-and only $M=1$ merges. $\mathrm{Conn}$ computes ISC evidence along the proposed connection
-over a bounded region, checks valid coverage and the longest consecutive low-score gap, and
-optionally re-runs alignment in the merged finite tube, requiring one legal path that touches
-both fragments and satisfies the existing gap and support conditions. If continuity cannot be
-verified the fragments stay separate; the connection region cap and added DP work are frozen
-and counted, and the tube is never enlarged until a path appears. Endpoints are rebuilt from
-the supporting path and the core score is recomputed after de-duplicating retained nodes and
-anchors; the visual probability is not multiplied into $q$, and $\max(q_u,q_v)$ is not used as
-the merged score. Edges are processed in a stable priority order; after each acceptance the
-current set is re-verified against all its original members (mapping, connection domain,
-support) and any conflict stops expansion. One round is the default; consumed members are not
-reused; multi-round is a separate configuration. Final min-axis-IoU de-duplication and the
-output cap are applied last.
+and only $M=1$ merges. \texttt{KEEP\_SEPARATE}, \texttt{UNCERTAIN}, failure and budget
+exhaustion retain both fragments. The first version merges only original disjoint pairs of
+$\mathcal C_0$; an accepted merge consumes both members, creates no new edge and does not
+propagate to a third fragment. Edges are processed in the stable order above, and after each
+acceptance the current set is re-verified against all its original members; a conflict stops
+expansion. Endpoints are rebuilt from the merged path nodes and de-duplicated anchors, and
+support and the core score are recomputed by the main score rule; neither
+$\max(q_u,q_v)$ nor a product with the visual probability is used. Final min-axis-IoU
+de-duplication and the output cap are applied last. Development grids are
+$\tau_F\in\{0.90,0.95,0.98\}$, $\delta_F\in\{0.15,0.30\}$, selected separately from the
+anchor grid; if no pair meets the risk and recall targets, fusion stays in shadow.
 
-\paragraph{Non-transitivity and required failure cases.}
+\paragraph{Mechanism accounting and required failure cases.}
+The fusion experiment must report the number of correct fusion opportunities, the fraction
+covered by legal edges, the $\mathrm{Conn}$ pass rate, and the number of questions actually
+asked and actions executed. It must compare ``$\mathrm{Conn}$ only'' with
+``$\mathrm{Conn}$ + visual'' on the same $G$, the same $\mathrm{Conn}$ and a fixed selected
+edge set; otherwise edge-selection differences are misattributed to the model. If core
+evidence is too weak for any correct bridge to pass $\mathrm{Conn}$, the visual branch has no
+repair opportunity; if $\mathrm{Conn}$ already completes every safe merge, the model adds
+cost without demonstrated benefit.
+
 Coverage must include: same-source short gap; long real non-copy gap; similar scene from
 different footage; the same A interval copied at multiple B positions; dual-axis order
 conflict; speed change; a correct local decision followed by a wrong transitive merge; and
@@ -645,22 +807,43 @@ boundary MAE, MAE on the common-GT cohort and full-set recall/F1; reducing the n
 output segments is not a benefit by itself.
 
 \paragraph{Budget manager, cache and failure contract.}
-Both stages share one budget $K\in\{0,4,8,12\}$ with default $K=12$; $K_A=\lfloor 2K/3\rfloor$
-anchor questions and $K_F=K-K_A$ fusion questions. Unused anchor budget may move to fusion
-once; fusion budget is never borrowed in advance, and starting the second stage must not call
-a fresh pair initialisation. Budget units count decisions including cache hits; physical
-executions are recorded separately. A batch may contain several questions: log questions,
-frames per question, unique and repeated frames, processed visual tokens, input size,
-forward passes, visual encodings, cache hits, peak memory and elapsed time. Retries are at
-most one and charged against a predeclared retry budget; a failed call may not be retried
-until a success count is reached. An invalid option set, NaN/Inf score, mismatched item id or
-corrupt record is a failure and never reaches an action threshold.
-The cache key binds frame-content hashes, the index/time-map hash, question type, candidate
+Both stages share one budget $B\in\{0,4,8,12\}$ with default $B=12$;
+$B_A=\lfloor2B/3\rfloor$ anchor questions and $B_F=B-B_A$ fusion questions. Unused anchor
+budget may move to fusion once; fusion budget is never borrowed in advance, and starting the
+second stage must not call a fresh pair initialisation. Budget units count decisions including
+cache hits; physical executions are recorded separately. A batch may contain several
+questions: log questions, frames per question, unique and repeated frames, processed visual
+tokens, input size, forward passes, visual encodings, cache hits, peak memory and elapsed
+time. Retries are off by default; if enabled, at most one per question plus a predeclared
+per-pair cap $R$, and the worst case $B+R$ is reported. An invalid option set, NaN/Inf score,
+mismatched item id or corrupt record is a failure and never reaches an action threshold. The
+cache key binds frame-content hashes, the index/time-map hash, question type, candidate
 coordinates, layout and preprocessing, option order, prompt, and checkpoint/adapter/readout
 revision. Failures are never cached as \texttt{NOT\_COPY} or \texttt{MERGE}. Visual/KV prefix
 sharing is attempted only when frame sets, layout, resolution, prompt prefix and model
 revision are identical, and the shared fraction is recorded; the two stages are sequential
 and are not presented as one forward pass.
+
+\begin{table}[t]
+\centering
+\caption{Initial accounting for the two decision points. Values are the proposed starting
+specification, not tuned results. Every row counts even when a cache is hit.}
+\label{tab:s-budget}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Item & Initial definition & Accounting \\
+\midrule
+Anchor evidence & match + neighbours; at most 3 pairs / 6 source frames & source frames, boards, tokens separate \\
+Fusion evidence & interiors, boundaries, gap; at most 5 pairs / 10 source frames & overlaps de-duplicated; missing marked; no gap midpoint for overlap \\
+Question budget & $B\in\{0,4,8,12\}$, $B_A=\lfloor2B/3\rfloor$, $B_F=B-B_A$ & one logical question once; cache hit counts; unused A may move to F, never reverse \\
+Retry & default off; if enabled at most one per question plus cap $R$ & extra execution charged; report $B+R$ \\
+Connection & fixed region $R_e$, cap $L_cW_c$; reuse or bounded DP & all attempts and failed cell visits counted \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \paragraph{Decision records.}
 Each decision writes \texttt{pair\_id, stage, item\_id, anchor\_or\_segment\_ids,
@@ -669,71 +852,75 @@ decision, action, status, cache\_hit, budget\_before/after} and timings. The act
 empty in shadow mode. The evidence hash covers the actual frame-content hashes used, not only
 the indices.
 
-\paragraph{Action risk, labels and audit.}
+\paragraph{Action risk ledger.}
 Action labels require human review or traceable transform truth; model self-labels and
-``inside a GT rectangle'' are weak proxies and cannot justify a hard action. The engineering
-targets to freeze are: true-copy anchor deletion at most $1\%$, wrong fusion at most $1\%$
-and final recall within $0.5$ percentage points of core. These are project targets, not
-guarantees; they are read with confidence intervals and sample size, and zero errors on a
-small sample do not pass. If no threshold meets them on \texttt{dev\_calibration}, the
-actions stay in shadow and the smaller supported conclusion is reported. Development
-negatives must be independent of the final test list.
+``inside a GT rectangle'' are weak proxies and cannot justify a hard action. The five
+quantities below are frozen before the audit:
+\begin{table}[t]
+\centering
+\caption{Risk ledger template. Zero actions make the corresponding rate \texttt{N/A}, not
+zero. Report the sampling scope and inclusion probabilities for any annotated subset.}
+\label{tab:s-risk}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{2.1cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Quantity & Definition & Denominator / reporting \\
+\midrule
+True anchor deletion & deleted true anchors / audited true anchors & all $\Anch_0$ and queried true anchors, separately \\
+Deletion action error & wrongly deleted true anchors / all deletions & \texttt{N/A} if zero; action count \\
+Wrong-fusion rate & wrong accepted merges / all accepted merges & plus correct opportunities and missed merges \\
+Coverage / abstention & asked, verified, acted, abstained, failed & separate counts; zero-action rate \texttt{N/A} \\
+Final effect & P/R/F1/FAR, recall difference, boundary MAE & full set; common-GT cohort; paired uncertainty \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The engineering targets are a true-copy anchor-deletion rate of at most $1\%$, a
+wrong-fusion rate of at most $1\%$ and a final recall drop of at most $0.5$ percentage
+points. These are project targets to freeze, not guarantees. If $n$ independent Bernoulli
+trials yield zero errors, the one-sided $95\%$ exact upper bound is
+\begin{equation}
+p_{\mathrm{upper}}=1-0.05^{1/n}.
+\label{eq:s-binomial}
+\end{equation}
+For $n=150$ this is about $1.98\%$; for $n=299$ it is $0.997\%$; for $n=300$ it is $0.994\%$.
+At least 299 zero-error effective trials are needed for the bound to be no larger than $1\%$.
+The denominator must match the risk definition: 150 candidate edges do not usually produce
+150 accepted fusions. The calculation assumes independent, identically distributed trials;
+shared videos, fragments and source material violate this. Design/calibration/audit splits
+are assigned by source-video connected component. Thresholds are selected on calibration and
+frozen to an independent audit; the same data cannot both select and certify. Grouped
+intervals must be declared in advance; an ordinary bootstrap can degenerate to a zero-width
+interval under zero errors, so it cannot establish the target. When independent groups are
+too few, the result is ``insufficient evidence''.
+
+
 
 \begin{table*}[t]
 \centering
 \caption{\textbf{E6: planned experiments for the two decision points.}
 Each row fixes the correct upstream input; no row may borrow the gain of another. Budget
-comparisons report both per-stage resources and a same-total-budget comparison. All entries
-are \TODO{PENDING}.}
+comparisons report per-stage resources and a same-total-budget comparison. All entries are
+\TODO{PENDING}.}
 \label{tab:s-e6}
 \scriptsize
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.05}
-\begin{tabularx}{\textwidth}{@{}l p{3.1cm} p{4.4cm} X@{}}
+\begin{tabularx}{\textwidth}{@{}l p{3.0cm} p{4.3cm} X@{}}
 \toprule
 Exp. & Fixed & Contrast / intervention & Required results \\
 \midrule
-E6-A anchor filter & same serialized $\Anch_0$, core and model & no action; random; margin/geometry rule; time-spread selection; same input cap & action errors, downstream candidate coverage, full P/R/F1/FAR, tracks/tubes/DP work, total cost \\
-E6-F fragment fusion & same $\mathcal C_0$ and legal edge pool & no fusion; geometry+connection only; random visual; selective visual & wrong bridges, correct and missed merges, recall, MAE on common GT, cost \\
-E6-J joint pipeline & same pairs, frozen model and core & core; A only; F only; A+F & full quality, common/lost/new matches, full time, per-stage budget use \\
+E6-A anchor filter & same serialized $\Anch_0$, core and model & no action; random; margin/geometry rule; time-spread selection; same input cap & action errors, coverage, full P/R/F1/FAR, tracks/tubes/DP work, total cost \\
+E6-F fragment fusion & same $\mathcal C_0$ and legal edge pool & no fusion; geometry+Conn only; random visual; selective visual; fixed selected edges & wrong bridges, correct/missed merges, opportunity count, legal-edge coverage, Conn pass rate, asked/executed actions, cost \\
+E6-J joint pipeline & same pairs, frozen model and core & core; A only; F only; A+F & full quality, lost/new matches, full time, per-stage budget use \\
 E6-S shared execution & same weights, questions, layout, readout & independent serial; ordinary batch; shared-prefix batch & decision agreement, prefill/suffix time, peak memory, real sharing fraction \\
 E6-R readout and weights & same evidence pool & JSON vs candidate readout; original vs author-adapted weights & separate contributions of readout, post-training and call policy \\
 E6-V visual necessity & same questions and options & real, masked, mismatched frames; option permutations; temporal vs static & language prior, evidence leakage, option bias \\
 \bottomrule
 \end{tabularx}
 \end{table*}
-
-\begin{algorithm}[t]
-\caption{Two budgeted decision points (optional in the core algorithm)}
-\label{alg:s-decisions}
-\begin{algorithmic}[1]
-\Require $\Anch_0$, $\mathcal C_0$; budget $K$; mode $m\in\{\textsc{off},\textsc{shadow},\textsc{on}\}$
-\Ensure $\Anch_1$, $\mathcal C$, $\mathcal Y$
-\State $K_A\gets\lfloor 2K/3\rfloor$; $K_F\gets K-K_A$; open one pair budget
-\If{$m=\textsc{off}$} \State \Return core outputs \EndIf
-\State $\mathcal Q\gets$Selector$(\Anch_0,K_A)$
-\ForAll{$a\in\mathcal Q$}
-  \State build anchor evidence; query model; parse scores or record failure
-  \State $D(a)\gets$ \eqref{eq:s-action-anchor} \Comment{$0$ if uncertain, failed or over budget}
-\EndFor
-\If{$m=\textsc{on}$}
-  \State $\Anch_1\gets\Anch_0\setminus\{a:D(a)=1\}$
-\Else
-  \State $\Anch_1\gets\Anch_0$ \Comment{shadow: log decisions, change nothing}
-\EndIf
-\State refit tracks on $\Anch_1$; rebuild tubes and $\mathcal C_0$
-\State $\mathcal E\gets$ legal edges of $\mathcal C_0$ \Comment{$G$, gap caps, no cross-copy}
-\State $\mathcal Q_F\gets$Selector$(\mathcal E,K_F)$
-\ForAll{$(c_u,c_v)\in\mathcal Q_F$}
-  \State evaluate $\mathrm{Conn}(c_u,c_v)$; build segment evidence; query model
-  \If{$m=\textsc{on}$ and \eqref{eq:s-action-merge} holds}
-    \State merge; re-verify the current set and its support
-  \EndIf
-\EndFor
-\State recompute scores; de-duplicate; cap
-\State \Return $\Anch_1$, $\mathcal C$, $\mathcal Y$
-\end{algorithmic}
-\end{algorithm}
 
 \section{Round-two design corrections and optional E6}
 \label{sec:s-round2}
@@ -764,26 +951,31 @@ design inserts the model before fitting and after segment extraction and shares 
 Metrics on selected candidates alone remain insufficient, and an oracle verdict remains an
 analysis ceiling, never a deployed policy.
 
-\paragraph{Verification scope (round 3).}
-Three read-only checks were run. (i) The prototype's unit suite: 646 tests, 0 failures,
-10 CUDA tests skipped because no GPU executed. (ii) Evaluator parity: 211 synthetic cases,
-zero per-pair mismatch, identical macro and sentinel counts, and a five-row status/accounting
-case (Section~\ref{sec:s-parity}). (iii) Eight contract probes on hand-built bands: weak
-prefix, strong--weak--strong, two copies after blocking, invalid cells, A-range fallback,
-ties-to-even rounding, margin 0/2, duplicate-versus-distinct support and the segment gap
-boundary. These are semantics and accounting checks, not benchmark results. They do not
-execute a VCSL pair, a model checkpoint or a GPU kernel, and they do not certify an
-end-to-end evaluator file run. The proposed zero-floor recurrence, distinct support, zero
-margin and pipeline-side threshold remain unimplemented; the prototype continuation and the
-stored-entry support are the current behaviour.
+\paragraph{Verification scope (round 3, historical).}
+Three read-only checks were run in round 3. (i) The prototype's unit suite: 646 tests, 0
+failures, 10 CUDA tests skipped because no GPU executed. (ii) Evaluator parity: 211 synthetic
+cases, zero per-pair mismatch, identical macro and sentinel counts, and a five-row
+status/accounting case (Section~\ref{sec:s-parity}). (iii) Eight contract probes on
+hand-built bands: weak prefix, strong--weak--strong, two copies after blocking, invalid
+cells, A-range fallback, ties-to-even rounding, margin 0/2, duplicate-versus-distinct support
+and the segment gap boundary. These are semantics and accounting checks, not benchmark
+results. They do not execute a VCSL pair, a model checkpoint or a GPU kernel, and they do not
+certify an end-to-end evaluator file run. The proposed zero-floor recurrence, distinct
+support, zero margin, new competitor margin, fusion selector and connection check remain
+unimplemented in the prototype; the prototype continuation, stored-entry support and old
+post-hoc verification path are the current behaviour.
 
-
-\paragraph{Current manuscript update (2026-10-19).}
-This update revised the title, abstract, introduction, related work, Method, Experiments and
-Conclusion, regenerated the framework figure, and rebuilt both PDFs. It ran no prototype,
-dataset, model, GPU or paid call. The local data snapshot contains ISC features and labels but
-no source videos, and no visual backbone weights or API credentials were available, so the
-decision layer is specified only. The 646-test suite and the parity/probe results above are
-round-3 history and were not rerun here.
+\paragraph{Current manuscript update (2026-10-20, round 5).}
+This update revised the abstract, introduction, related work, Method, Experiments and
+Conclusion around three research questions; replaced the second-rank margin with a
+strongest-competitor margin; specified the fusion edge/selector/connection rules, the
+frame/budget/retry/connection accounting and the risk denominators; separated the core and
+augmented tables; moved the full algorithm and long derivations here; and rebuilt both PDFs.
+It ran no dataset inference, model, GPU or paid call. The existing 646-test prototype suite
+and the parity/probe checks were rerun read-only as regression checks; they do not validate the
+proposed rules. The local data snapshot contains ISC features and labels but no source videos,
+and no visual backbone weights or API credentials were available, so the decision layer is
+specified only. The round-5 semantics checks are deterministic scalar and text checks, not
+benchmark results.
 
 \end{document}

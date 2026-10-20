@@ -231,7 +231,7 @@ def build_framework():
     c.text(880,952,'COPY / NOT_COPY / UNCERTAIN',21,MUTED,600,'middle')
     c.text(880,982,'MERGE / KEEP_SEPARATE',21,MUTED,600,'middle')
     c.text(880,1014,'abstain · failure keeps evidence',21,MUTED,anchor='middle')
-    c.text(880,1044,'one budget K · cache · one revision',21,ORANGE,600,'middle')
+    c.text(880,1044,'one budget B · cache · one revision',21,ORANGE,600,'middle')
 
     # 3. Fusion decision after candidates: C0 -> Y.
     c.circle(1312,884,16,TEAL)

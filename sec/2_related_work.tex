@@ -6,41 +6,38 @@ VCSL scores segment overlap on both axes, but interval labels do not give dense 
 correspondence. VSC 2023 and FiGVCL use different settings or annotations, so their numbers
 cannot be merged~\cite{pizzi2024vsc,figvcl2025}. SPD learns a detector on similarity
 maps~\cite{spd2021}; TransVCL uses self-/cross-attention, correlation and a localization
-head~\cite{transvcl2023}. Its reference inference processes chunk pairs of at most 1,200 rows
-per axis; pair-level timing must include all chunks and assembly. RTR trains regional
-features and a detector with self-supervised pairs~\cite{rtr2024}; self-supervision does not
-make the localizer training-free. Recent variants include iESTA and
-VCSA~\cite{ding2025iesta,li2025vcsa}; feature requirements are reported rather than assumed
-compatible.
+head~\cite{transvcl2023}, processing long pairs in chunks that must all be timed. RTR trains
+regional features~\cite{rtr2024}; recent variants include iESTA and
+VCSA~\cite{ding2025iesta,li2025vcsa}. These systems change the matching or detection network;
+we hold fixed pretrained descriptors and ask what a small additional decision budget buys.
 
 \paragraph{Structured visual decisions with pretrained models.}
-Visual Jev~\cite{visualjev2026} treats several independent forced-choice questions about one
-image as a batch: the image and public context are encoded once, question suffixes execute
-separately, and candidate probabilities are read from the language-model head.
-Answer-supervised post-training improves accuracy on its benchmarks, and shared execution
-reduces warm amortized latency at the cost of higher peak memory. VideoJev~\cite{videojev2026}
-replaces autoregressive answer decoding with a shared head that scores temporal intervals and
-textual options against video evidence, and reuses visual computation through cached or joint
-inference for repeated queries. These designs motivate direct candidate scoring, explicit
-abstention and context reuse. They do not by themselves establish video-copy identity: Visual
-Jev answers single-image questions, VideoJev is evaluated on temporal grounding and
+Visual Jev~\cite{visualjev2026} batch-encodes one image and public context once, executes
+independent question suffixes separately, and reads candidate probabilities from the
+language-model head; answer-supervised post-training improves accuracy, and shared execution
+reduces warm amortized latency at higher peak memory. VideoJev~\cite{videojev2026} scores
+temporal intervals and textual options against video evidence with a shared head and reuses
+visual computation through cached or joint inference. These designs motivate direct candidate
+scoring, explicit abstention and context reuse. They do not establish video-copy identity:
+Visual Jev answers single-image questions, VideoJev is evaluated on temporal grounding and
 multiple-choice QA, and a paired A/B evidence board is our input adaptation, not an official
 two-video interface. Its authors report that predicted probabilities can overestimate
-correctness, so we treat scores as uncalibrated rankings. Published accuracy and speedups are
-not transferred to this setting, and visual-prefix reuse is attempted only when the frame set,
-layout and model revision are actually identical.
+correctness, so we treat scores as uncalibrated rankings and attempt prefix reuse only for
+identical frame sets, layout and model revision.
 
 \paragraph{Geometry, alignment and efficient search.}
 The VCSL comparison includes HV, TN, DP and DTW~\cite{vcsl2022,tan2009,chou2015}; temporal
 consistency and cascading search also appear in retrieval~\cite{douze2016,tian2013}, and SAM
-uses temporal line fitting in a matching pipeline~\cite{liu2023sam}. Our zero-floor principle
-follows local alignment~\cite{smith1981} with a restricted step set and tube domain; it is not
-a new dynamic-programming principle. Temporal-consistency re-ranking~\cite{tcsvt2024} and
-library-scale retrieval-plus-matching~\cite{wang2026mltdedup} are adjacent systems. Sampling
-efficiency has been studied~\cite{chen2025sampling}; reducing the sampling rate is not
+uses temporal line fitting~\cite{liu2023sam}. Our zero-floor principle follows local
+alignment~\cite{smith1981} with a restricted step set and tube domain; it is not a new
+dynamic-programming principle. Temporal-consistency re-ranking~\cite{tcsvt2024},
+library-scale retrieval-plus-matching~\cite{wang2026mltdedup} and sampling
+efficiency~\cite{chen2025sampling} are adjacent; reducing the sampling rate alone is not
 sufficient novelty.
 
 \paragraph{Comparison that matters.}
 The proposed distinction is the controlled relationship between sparse candidate support,
 finite refinement domains, and budgeted visual decisions against the same core and the same
-measured cost. No priority or performance advantage follows from this review.
+measured cost. The closest mechanism is a post-hoc verifier or a geometric fusion rule
+operating on the same candidates; those are the controls in E6. No priority or performance
+advantage follows from this review.

@@ -1,316 +1,232 @@
-# `seltive model`: selective visual verification specification (proposed)
+# `seltive model`: current two-stage specification (proposed)
 
-> **Superseded scope, 2026-10-19:** the user now requests JEV for pre-RANSAC anchor filtering and post-alignment segment fusion. The [round-four execution plan](../FastVCL_CVPR2027_第四轮审查与执行方案.md) defines the new two-stage design, actions, budget and experiments. The post-localization-only scope below is historical; implementation and real-model validation remain pending.
-
-Date: 2026-10-18. Status: **PROPOSED / NOT IMPLEMENTED / NOT EVALUATED**. This is the
-interface and experiment specification requested in the round-two plan. It does not claim a
-backend, a prompt, a selection policy or a measured benefit.
+Date: 2026-10-20. Status: **PROPOSED / NOT IMPLEMENTED / NOT EVALUATED**. This file is the
+current specification requested in round five. It supersedes the 2026-10-18 post-localization
+scope, which is retained only as a historical note at the end. It does not claim a backend, a
+prompt, a selection policy or a measured benefit.
 
 The user-requested name is exactly **`seltive model`**; it is kept verbatim in the figure,
-the manuscript and this file. “JEV” is the historical internal name for the same branch.
-The spelling is intentional and must not be “corrected” by a later editor.
+the manuscript and this file. “JEV” is the historical internal name for the same branch. The
+spelling is intentional and must not be “corrected” by a later editor.
 
 ## 1. What the branch is
 
-`seltive model` is an **optional post-localization verification branch**. It consumes a
-fixed candidate pool produced by the core FastVCL pipeline (candidate intervals plus matched
-indices) and original A/B frame context, and returns a three-way verdict per selected
-candidate. It is not a replacement for candidate discovery, not a new localizer, and not part
-of the fixed-feature H1–H3 comparison.
+`seltive model` is an optional branch that asks one pretrained/post-trained multimodal model a
+small number of questions about original A/B frames. It is inserted at two intervention
+points:
 
-The conservative default is:
+1. **Anchor filtering, before geometric fitting.** A decisive `NOT_COPY` may remove a
+   doubtful anchor from $\Anch_0$; the remaining anchors become $\Anch_1$.
+2. **Fragment fusion, after segment extraction.** A decisive `MERGE` may join two fragments
+   that are plausibly one continuous copy; the remaining set becomes $\mathcal Y$.
 
-- an **unselected** candidate keeps the core prediction;
-- an **UNCERTAIN** verdict keeps the core prediction;
-- a **failed** call (timeout, parse error, backend error) keeps the core prediction;
-- a **decisive** verdict (COPY / NOT_COPY) may change the output only under a frozen fusion
-  policy; that policy is `OPEN` and must be validated separately.
+The branch is **selection-only** at the anchor stage, **conservative** (only decisive
+verdicts act, and geometry or connection evidence can veto), **abstaining** per item, and
+outside the fixed-feature core comparison. It cannot recover an anchor absent from
+$\Anch_0$, a copy absent from $\mathcal C_0$, or a boundary unsupported by any path.
 
-The branch cannot recover a copy that never entered the candidate pool. Candidate recall and
-verification benefit are separate research questions and must be reported separately.
+The final output of the core is $\mathcal Y$; $\mathcal C_0$ is produced by the core and is
+never an input to the main flow. Fixed $\mathcal C_0$ is used only by the isolated E6-F
+experiment.
 
-## 2. Inputs and prerequisites
+## 2. Prerequisites
 
-### 2.1 Candidate records
+- A verified feature-index-to-frame map for each video (source frame count, exact sampling
+  rule, timestamps, rounding convention, boundary test on at least three videos).
+- Original A/B frames, not only ISC features.
+- A frozen model revision, adapter/readout, prompt, option order, image sampling, crop,
+  resolution and missing-frame policy.
+- A declared budget, cache policy and failure policy.
 
-For each core candidate \(c\):
+If the map is missing or ambiguous, the stage returns `UNAVAILABLE` and does not run. A
+feature index is not a source frame and not a second.
 
-| Field | Meaning | Required |
+## 3. Items and evidence boards
+
+An item is either an anchor $a=(i,j)$ or an ordered segment pair $(c_u,c_v)$.
+
+- **Anchor board:** the match and its immediate sampled neighbours on each side, at most 3
+  paired positions (6 source frames).
+- **Fusion board:** both fragment interiors, both boundary sides and, when available, the gap
+  interior, at most 5 paired positions (10 source frames). Overlapping positions are
+  de-duplicated; a missing frame is marked missing, never replaced from another time.
+
+Each tile records side, timestamp, feature index, cell id and question id. The anchor prompt
+asks whether the two sides show the same underlying footage, explicitly allowing crop, speed
+change, overlay and re-encoding, and explicitly rejecting topical, person or action
+similarity. The segment prompt asks whether the fragments are parts of one continuous copy and
+whether the proposed connection interval is covered. Options are fixed and ordered:
+`COPY / NOT_COPY / UNCERTAIN` and `MERGE / KEEP_SEPARATE / UNCERTAIN`. Raw candidate scores,
+option order and normalisation are stored; a free-form JSON answer is a control, not the main
+readout.
+
+## 4. Anchor filtering
+
+All selectors start from the same $\Anch_0$, the coordinate-deduplicated and capped anchor
+set. No selector may pre-delete an anchor. For an anchor $(i,j)$, let $\mathcal C_B(i)$ be
+the B coordinates compared with A index $i$ in any executed plan, merged by original
+coordinate and de-duplicated, and $\mathcal C_A(j)$ the analogous A set. Define
+
+\[
+\mu_B(i,j)=S_{ij}-\max_{j'\in\mathcal C_B(i)\setminus\{j\}}S_{ij'},\qquad
+\mu_A(i,j)=S_{ij}-\max_{i'\in\mathcal C_A(j)\setminus\{i\}}S_{i'j}.
+\]
+
+A side is **missing** when its competitor set is empty; $\mu=\min(\mu_A,\mu_B)$ only when
+both sides exist. This compares the current match with its strongest competitor on each axis,
+not always with the second-ranked partner. Cross-plan duplicates are removed by original
+coordinate; no unrecorded full-resolution scan is added. A missing side is logged and enters
+the selector as the neutral rank $1/2$.
+
+The default selector groups anchors on a two-dimensional grid of width twice the finest
+sampling stride and visits groups round-robin. Inside a group,
+
+\[
+\pi(a)=\tfrac12\operatorname{rank}(-\mu(a))+\tfrac12\operatorname{rank}(\rho(a)),
+\]
+
+where both ranks are normalised in $\Anch_0$, $\rho$ is the normalised residual to a local
+pre-fit line, and larger is preferred. Missing margin, missing geometry or a singleton pool
+gets $1/2$; ties use $(i,j)$; random controls use a fixed seed. Pre-fit geometry is charged to
+measured time.
+
+The action is
+
+\[
+D(a)=\mathbf 1[a\in\mathcal Q]\mathbf 1[\text{verified}]
+\mathbf 1[p^{\text{anc}}_N\ge\tau_A]
+\mathbf 1[p^{\text{anc}}_N-\max(p^{\text{anc}}_C,p^{\text{anc}}_U)\ge\delta_A],
+\]
+
+and only $D(a)=1$ removes $a$: $\Anch_1=\Anch_0\setminus\{a:D(a)=1\}$. `COPY`, `UNCERTAIN`,
+unselected, over-budget and failed anchors keep coordinates and weight. The old prototype
+rule that multiplies `COPY` weights by $1.25$ is not inherited. Tracks are refitted on
+$\Anch_1$ and dual-axis support/span are revalidated. Development grids are
+$\tau_A\in\{0.90,0.95,0.98\}$ and $\delta_A\in\{0.15,0.30\}$; they are operating points, not
+calibrated probabilities.
+
+Modes: `off` calls the core directly; `shadow` logs decisions but returns
+$\Anch_1=\Anch_0$ and must match core output item by item; `on` applies only $D(a)=1$. In
+`on` mode a single failure or abstention promises only that item's fallback, not global
+equality. `shadow` uses an independent random stream and must not perturb RANSAC.
+
+## 5. Fragment fusion
+
+From $\mathcal C_0$ after near-duplicate removal, a legal directed edge $(c_u,c_v)$ requires:
+
+1. consistent temporal order and disjointness in the first version,
+   $a_e^u\le a_s^v$ and $b_e^u\le b_s^v$;
+2. A and B gaps within frozen caps $G_A,G_B$, with raw and normalised gaps recorded;
+3. boundary-map agreement: for the A-to-B map $m_u$ of $u$,
+   $|m_u(a_s^v)-b_s^v|\le\kappa_B$ and $|m_u(a_e^v)-b_e^v|\le\kappa_B$; for the inverse map of
+   $v$, $|m_v^{-1}(b_s^u)-a_s^u|\le\kappa_A$ and $|m_v^{-1}(b_e^u)-a_e^u|\le\kappa_A$;
+4. a connector from $(a_e^u,b_e^u)$ to $(a_s^v,b_s^v)$ with slope in
+   $[\alpha_{\min},\alpha_{\max}]$, with a zero-length gap handled by the map checks alone.
+
+A missing map makes the edge unavailable. A pair with
+$\operatorname{IoU}_A\ge\theta_{\mathrm{dedup}}$ but
+$\operatorname{IoU}_B<\theta_{\mathrm{dedup}}$ is the same A interval at another B position,
+hence a separate copy, and is excluded. Neighbours use a deterministic per-fragment cap;
+edge and truncation counts are recorded.
+
+The first-version selector groups edges by the earlier fragment's A position on a grid of
+width twice the finest stride and visits groups round-robin. Within a group it sorts by
+$\tilde g=\max(\mathrm{gap}_A/G_A,\mathrm{gap}_B/G_B)$, then by the maximum boundary-map error
+over the four comparisons, then by $(c_u.\mathrm{id},c_v.\mathrm{id})$, and selects at most
+$B_F$ edges. No learned benefit predictor is used.
+
+The connection check `Conn` is fixed before the model call. Its region
+$R_e=[a_e^u-\eta_A,a_s^v+\eta_A)\times[b_e^u-\eta_B,b_s^v+\eta_B)$ is clipped to the video;
+if its area exceeds $L_cW_c$, the edge is unavailable and the truncation is recorded. Support
+nodes are path nodes of $u$ with A index in $[a_e^u-\beta_A,a_e^u)$ and of $v$ with A index in
+$[a_s^v,a_s^v+\beta_A)$; an empty set gives `Conn=0`. Reuse a verified path touching both
+fragments, or run a bounded DP with the core steps, score $S_{ij}-\tau_{\mathrm{conn}}$ and
+zero restart inside $R_e$. `Conn=1` only if a cell adjacent to a support node of $v$ is
+reachable and the backtraced path has valid coverage at least $\kappa_{\mathrm{cov}}$ and no
+low-score run longer than $g_c$. Failure keeps the fragments separate; the region is never
+enlarged until a path appears; all attempted and failed cell visits are counted.
+
+With geometric legality $G$,
+
+\[
+M(u,v)=G(u,v)\land\mathrm{Conn}(u,v)\land[p^{\mathrm{fus}}_M\ge\tau_F]
+\land[p^{\mathrm{fus}}_M-\max(p^{\mathrm{fus}}_S,p^{\mathrm{fus}}_U)\ge\delta_F],
+\]
+
+and only $M=1$ merges. `KEEP_SEPARATE`, `UNCERTAIN`, failure and budget exhaustion retain both
+fragments. The first version merges only original disjoint pairs of $\mathcal C_0$; an
+accepted merge consumes both members, creates no new edge and does not propagate. After each
+acceptance the set is re-verified against its original members; a conflict stops expansion.
+Endpoints are rebuilt from merged path nodes and de-duplicated anchors; support and $q$ are
+recomputed by the core score rule, never by $\max(q_u,q_v)$ or a product with the visual
+probability. Development grids are $\tau_F\in\{0.90,0.95,0.98\}$ and
+$\delta_F\in\{0.15,0.30\}$; if no pair meets the risk and recall targets, fusion stays in
+shadow.
+
+## 6. Budget, retries and cost
+
+| Item | Starting definition | Accounting |
 |---|---|---|
-| `candidate_id` | Stable hash of the four endpoints and the source track id | yes |
-| `a_s, b_s, a_e, b_e` | Half-open feature-index interval, core output | yes |
-| `q_core` | Core score, uncalibrated | yes |
-| `track_id` | Track/tube that produced the candidate | yes |
-| `matched_nodes` | Core path nodes `(i,j)` used for the interval, if retained | recommended |
-| `support` | Core anchor support and distinct A/B times | recommended |
-| `core_action` | `keep` for every candidate at the start of verification | yes |
+| Anchor evidence | match + neighbours; at most 3 pairs / 6 source frames | source frames, boards, tokens separate |
+| Fusion evidence | interiors, boundaries, gap; at most 5 pairs / 10 source frames | overlaps de-duplicated; missing marked; no gap midpoint for overlap |
+| Question budget | $B\in\{0,4,8,12\}$, $B_A=\lfloor2B/3\rfloor$, $B_F=B-B_A$ | one logical question once; cache hit counts; unused A may move to F, never reverse |
+| Retry | default off; if enabled at most one per question plus cap $R$ | extra execution charged; report $B+R$ |
+| Connection | fixed $R_e$, cap $L_cW_c$; reuse or bounded DP | all attempts and failed cell visits counted |
 
-### 2.2 Original frames and the feature-index → frame map
+The two stages share one pair budget; starting fusion must not reopen the pair budget.
+Questions, frames, unique/repeated frames, tokens, forward passes, cache hits, memory and time
+are logged separately. The cache key binds frame-content and index-map hashes, question type,
+coordinates, layout, option order, prompt and checkpoint/adapter/readout revision. Failures
+are never cached as `NOT_COPY` or `MERGE`. Prefix sharing is attempted only for identical
+frame sets, layout, prompt prefix and revision; the two stages are not one forward pass.
 
-The branch requires original frames, not only ISC features. The map must be **verified per
-video**, not assumed:
+## 7. Risk and required evidence
 
-- `video_id`, source path, container/decoder version;
-- source frame count, nominal fps, variable-frame-rate flag;
-- the exact feature extraction rule (every frame, fixed stride, fixed fps, scene-cut
-  sampling, …) and its config hash;
-- `sample_times_sec` (strictly increasing, length equal to the feature count) **or** a
-  documented `feature_index -> source_frame` formula with an explicit offset and rounding
-  convention;
-- a boundary test on at least three videos (first/middle/last feature index) comparing the
-  mapped frame to a human-checked timestamp;
-- a hash of the frame list or timestamp table used by the run.
+Action labels require human review or traceable transform truth; model self-labels and
+“inside a GT rectangle” are weak proxies and cannot justify a hard action. Report separately:
 
-If the map is missing or ambiguous, the branch must refuse to run (`BLOCKED_MAPPING`), not
-guess. A feature index is not a source frame and not a second.
+- true-copy anchor deletion rate over all $\Anch_0$ and over queried true anchors;
+- deletion action error (wrongly deleted true anchors / all deletions, `N/A` if none);
+- wrong-fusion rate (wrong accepted merges / all accepted merges), plus correct opportunities
+  among legal edges and missed merges;
+- asked, verified, acted, abstained and failed counts;
+- full-set P/R/F1/FAR, paired recall difference and boundary MAE on a common-GT cohort.
 
-### 2.3 Frame context
+Targets are a 1% true-anchor deletion rate, a 1% wrong-fusion rate and a 0.5 percentage-point
+recall drop; they are operating targets, not certificates. With $n$ independent zero-error
+trials the one-sided 95% bound is $1-0.05^{1/n}$: 1.98% at $n=150$, 0.997% at $n=299$ and
+0.994% at $n=300$. At least 299 effective trials are needed for a bound no larger than 1%.
+Video-correlated observations violate independence; grouped intervals are predeclared;
+thresholds are selected on `dev_calibration` and frozen to `dev_audit`.
 
-The verifier may receive, per candidate:
+The fusion experiment must additionally report correct fusion opportunities, legal-edge
+coverage, `Conn` pass rate and questions asked versus actions executed. It must compare
+“`Conn` only” with “`Conn` + visual” on the same $G$, the same `Conn` and a fixed selected edge
+set. If core evidence cannot pass `Conn`, the visual branch has no repair opportunity; if
+`Conn` already completes every safe merge, the model adds cost without demonstrated benefit.
 
-- A and B frames at the two boundaries (`a_s`, `a_e-1`, `b_s`, `b_e-1`);
-- one or more interior matched pairs;
-- a small temporal neighbourhood around each boundary (before/after);
-- optional downscaled overview strips.
+## 8. Implementation status (2026-10-20)
 
-The exact set is `OPEN` (see §4). It must be declared per run and held fixed across the E6
-arms. Frame extraction must be deterministic and cached by `(video_id, frame_index,
-decode_config_hash)`.
+- The prototype at HEAD `fdc3362b2418b316e16d6dfd68435e40c1b1afb8` is unchanged and its 646
+  tests pass (10 CUDA tests skipped). It does not implement the zero-floor variant, the
+  strongest-competitor margin, the fusion selector, `Conn` or the shared pair budget described
+  here.
+- The old post-hoc anchor verifier remains the only visual path in the prototype. Its default
+  `NOT_COPY` deletion and `COPY ×1.25` rule are not inherited by this specification.
+- The local data snapshot has no source videos and no verified frame map; no model weights or
+  API credentials were available. No visual call was made.
+- `scripts/round5_reference.py` is a paper-side reference for margin, selector, fusion
+  geometry, `Conn`, risk bound and budget counting. It is not the prototype.
 
-## 3. Output schema
+## 9. Historical note
 
-The backend must return a machine-parseable object, not free text:
+The 2026-10-18 version of this file specified only post-localization candidate verification.
+That scope is superseded: it assumed a fixed candidate pool and a verifier-style
+accept/reject step, whereas the current design inserts the model before fitting and after
+segment extraction and shares one budget. The historical post-only material is not a current
+contract. The user-facing name and the “proposed, not evaluated” status are preserved.
 
-```json
-{
-  "candidate_id": "sha256:...",
-  "verdict": "COPY | NOT_COPY | UNCERTAIN",
-  "confidence": 0.0,
-  "evidence": ["short reason", "..."],
-  "model_version": "...",
-  "prompt_version": "..."
-}
-```
-
-Rules:
-
-- `verdict` is one of the three enum values; any other value is a parse failure, not a
-  fourth class.
-- `confidence` is optional and uncalibrated; it is not a probability unless calibrated on a
-  declared set. Do not use it in a formula without validation.
-- `evidence` is for audit and error analysis, not for automatic parsing of a decision.
-- A response that cannot be parsed, validated against the schema, or tied to the correct
-  `candidate_id` is `ERROR`/`UNCERTAIN` (depending on the declared failure policy), never
-  silently `COPY` or `NOT_COPY`.
-- The raw response, parsed response, latency, token counts, retries and cache status are
-  logged.
-
-## 4. Selection policy (`OPEN`)
-
-### 4.1 Budget units
-
-Declare one primary budget and report all:
-
-- verifier calls per pair;
-- frames sent per candidate and per pair;
-- input/output tokens per call and per pair;
-- wall-clock/queue time per pair;
-- monetary cost per 1,000 pairs (if a paid API is used).
-
-The budget is fixed **before** seeing test results. It is matched across E6 arms.
-
-### 4.2 Candidate selection signals
-
-Candidate signals available without new labels:
-
-- `q_core` (score), rank within the pair;
-- anchor support, distinct A/B times, path length;
-- core path density, gap count, boundary strength;
-- disagreement/uncertainty signals if a validated model exists;
-- candidate length and position (A/B);
-- random selection as a control.
-
-The proposed selector is `OPEN`. A cheap deterministic baseline (e.g. top-$k$ by `q_core`)
-and uniform random selection are required controls. A learned selector trained on
-verification outcomes is a separate method and must not be presented as the same branch.
-
-### 4.3 Determinism and de-duplication
-
-- Selection must be deterministic given the pair, candidate pool, budget and seed.
-- Candidates already covered by a decisive verdict for the same physical copy should not be
-  re-verified; the de-duplication rule is `OPEN` but must be declared.
-- Every candidate gets a disposition: `selected`, `unselected_budget`, `selected_and_kept`,
-  `selected_and_changed`, `uncertain`, `failed`. Counts must sum to the candidate pool.
-
-### 4.4 No ground truth at inference
-
-GT boxes, GT key presence, split membership or test labels must never influence selection,
-prompting, fusion or retry. A verifier-oracle analysis is allowed only as a separately
-labelled ceiling, never as a deployed policy.
-
-## 5. Sampling and prompt (`OPEN` but constrained)
-
-The following must be fixed in a run manifest:
-
-- frame layout: separate A/B images, side-by-side, or a labelled grid;
-- resolution and JPEG/PNG encoding quality;
-- number of frames per candidate and how they are chosen (boundaries, interior,
-  uniform, neighbourhood);
-- whether frames are sampled at native source fps or at feature-index positions;
-- prompt text/version, system message and output schema;
-- image ordering and labels (`A`, `B`, timestamps/indices) so the model cannot confuse axes;
-- maximum tokens, temperature/decoding parameters and seed if the backend allows;
-- language of the prompt (English for the draft);
-- content-safety handling.
-
-The prompt must ask for the schema in §3 and must not ask the model to compare against GT.
-The exact prompt is not fixed in this document because no backend has been selected.
-
-## 6. Backend (`OPEN`)
-
-No backend is selected. Candidate classes:
-
-1. a hosted multimodal API (paid; requires explicit user authorization and a data-upload
-   decision);
-2. a local open-weight multimodal model (hardware and license review required);
-3. a small trained verifier on frame pairs (this would introduce training and is a different
-   method, not the training-free core).
-
-For any backend, record:
-
-- provider/model identifier and immutable version or checkpoint hash;
-- API endpoint/region and data-retention terms;
-- image preprocessing and tokenizer version;
-- deterministic/non-deterministic flags, seed support and temperature;
-- timeout, rate limit, retry policy;
-- cost per call and per 1,000 pairs;
-- hardware (for local models: GPU model, memory, precision).
-
-The name `seltive model` does not imply a particular model, training source or capability.
-Do not infer a backbone from the name.
-
-## 7. Failure handling, retries and caching
-
-- Per-call timeout and a maximum retry count are declared before the run.
-- Retries use bounded exponential backoff; the same candidate/frame set is retried, not a
-  re-selected candidate.
-- Failure classes: `timeout`, `rate_limit`, `network`, `auth`, `invalid_response`,
-  `schema_error`, `content_blocked`, `out_of_memory`, `backend_error`.
-- A failure never becomes an empty prediction. The candidate keeps the core result and is
-  counted in the E6 failure table.
-- A cache key includes candidate hash, frame hashes, model version, prompt version,
-  preprocessing config and decoding parameters. Cache hits are reported separately from live
-  calls; cached and live costs are not mixed.
-- Retries count toward the call budget or are reported separately; they cannot be hidden.
-
-## 8. Fusion policy (`OPEN`)
-
-The only default that is currently defensible is **retain the core result unless a frozen
-policy says otherwise**. Options that require separate validation:
-
-| Option | Action | Required evidence |
-|---|---|---|
-| Conservative | COPY confirms; NOT_COPY deletes only if precision is high enough on a declared calibration set; UNCERTAIN keeps | precision/recall of NOT_COPY, false-deletion rate, full-set F1 |
-| Score update | multiply or add a calibrated factor to `q_core` | calibration data, monotonicity, threshold re-selection |
-| Re-rank only | use verdict to reorder; output set unchanged | re-ranking utility at fixed set size |
-| Hard delete | remove NOT_COPY candidates | false-deletion audit on true copies; recall loss |
-| Hard add | add candidates not in the core pool | forbidden: the branch cannot discover unseen copies |
-
-No arbitrary weight (e.g. “+0.2 for COPY”) may be introduced without a calibration set and a
-declared fusion equation. Fusion must be applied identically across E6 arms that use the
-same backend, except for the arm that intentionally varies selection.
-
-## 9. E6 experiment design (proposed, not run)
-
-### 9.1 Fixed factors
-
-- Same core candidate pool (hash), same pair list, same GT, same evaluator.
-- Same backend/model version, prompt, frame budget, call budget and fusion rule.
-- Same hardware and cache policy (or cache disabled for all arms).
-- Same threshold-selection protocol; no test tuning.
-
-### 9.2 Arms
-
-1. **Core only**: no verification.
-2. **Random selection**: uniform random candidates at the same budget.
-3. **Cheap rule**: e.g. top-$k$ by `q_core` or lowest support, declared before the run.
-4. **Proposed selective rule**: the selector under test.
-5. Optional **oracle selection** (analysis ceiling only; never deployed).
-
-### 9.3 Metrics
-
-Whole-set (not selected-subset only):
-
-- official P/R/F1 with the four denominators;
-- candidate recall before and after verification;
-- true candidates deleted (false deletions), false candidates corrected;
-- unchanged/uncertain/failed counts;
-- test negative-pair FAR (if the backend can run on negatives);
-- full-set recall loss vs core-only;
-- added latency and cost: frame acquisition/decoding, preprocessing, queue/network, model
-  inference, retries, fusion, cache hit rate;
-- per-candidate verdict confusion against a human-audited subset, if available (this is a
-  diagnostic, not the official metric).
-
-### 9.4 Statistics
-
-- Pair is the default unit; if videos repeat across pairs, use the video-cluster unit or
-  report the dependence limitation.
-- Report paired differences on the same pairs and a confidence interval; five seeds of the
-  selector/backend (if stochastic) are not data significance.
-- Predeclare the primary metric and the decision rule. Do not select the best arm on test.
-
-### 9.5 Acceptance
-
-E6 is reportable only when:
-
-1. the frame map is verified and frozen;
-2. the backend/version/prompt is frozen and its cost is measured;
-3. the candidate pool is identical across arms and hashed;
-4. the full-set metrics and failure counts are complete;
-5. the fusion policy is frozen before test;
-6. the added cost is measured end-to-end, not only model latency.
-
-Until then, the branch is an interface and a figure, not a result.
-
-## 10. Privacy, security and cost
-
-- Original frames may contain identifiable people, logos or sensitive content. Do not upload
-  them to an external service without explicit permission and a data-handling decision.
-- Prefer local/offline backends for development; record any external transfer.
-- Store only what is needed: frame hashes, derived images, responses and costs; avoid
-  retaining full videos in the repository.
-- A paid API must not be called during paper-writing or CI; it requires explicit
-  authorization and a budget.
-- The verifier must not be used to circumvent content licenses or to reconstruct videos.
-
-## 11. Open decisions
-
-| ID | Decision | Status | Blocking |
-|---|---|---|---|
-| S1 | Feature-index → source-frame map and extraction rule | `OPEN` | E6 cannot start |
-| S2 | Backend/model/version and provider | `OPEN` | E6 cannot start |
-| S3 | Frame sampling/layout/resolution | `OPEN` | E6 comparability |
-| S4 | Prompt and output schema final text | `OPEN` | parsing/fusion |
-| S5 | Selection signal and budget allocation | `OPEN` | E6 arms |
-| S6 | Fusion policy for decisive verdicts | `OPEN` | any output change |
-| S7 | Failure/retry/caching policy | `OPEN` | cost accounting |
-| S8 | Negative calibration data for NOT_COPY precision | `MISSING` | hard-delete option |
-| S9 | Human-audited verdict subset | `MISSING` | verifier accuracy diagnostic |
-| S10 | Privacy/data-upload approval | `OPEN` | external backend |
-
-## 12. Current status
-
-- The branch appears in the framework figure (main Fig. 1) and the Method as a proposed extension; it is excluded from
-  the core algorithm, core tables and H1–H3 timing.
-- No backend, frame map, prompt, selector or fusion policy is implemented.
-- No verifier accuracy, cost or benefit is measured. No paid API was called.
-- The historical JEV router is anchor-level and is **not** the candidate-level branch
-  specified here; do not cite it as an implementation.
-- The branch cannot recover copies absent from the candidate pool, and it adds visual input
-  and cost beyond the fixed-feature comparison.
-
-The next step is not to “turn on” a model. It is to freeze S1–S4 on a small development
-subset, build the frame map and schema tests, then run E6 with the controls in §9. Until
-then, the manuscript must keep the branch labelled as proposed and must not report a
-verification benefit.
+Primary external references used for the design boundary (not for FastVCL results):
+[Visual Jev](https://arxiv.org/abs/2609.25845), [VideoJev](https://arxiv.org/abs/2610.18615).
+These papers do not establish two-video copy identity; that transfer remains our untested
+hypothesis.

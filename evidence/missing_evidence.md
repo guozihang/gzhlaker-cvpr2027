@@ -122,3 +122,22 @@ complete real-data artifacts under the finalized protocol.
 The paper corrections do not close B1, B2, B4 or B5. A CPU-only controlled study is still
 possible without GPU access, but it requires the STB baseline, a frozen protocol and complete
 real-data runs.
+
+## Round-five asset verification (2026-10-20)
+
+The round-five scan closed the ambiguity about *why* the decision layer has not run. The
+features and labels are present; the visual inputs and backend are not.
+
+| ID | Finding | Evidence | Consequence |
+|---|---|---|---|
+| R5-A1 | VCSL feature/label snapshot exists: 12,254 features, 4,418,396,160 bytes, 41,798 val and 54,630 test pairs | `evidence/round5_assets.json`; metadata hashes match the audit | core CPU work is possible; no dataset-level blocker for E1/E3 |
+| R5-A2 | **No source videos** under the data root: 0 files with `.mp4/.mkv/.avi/.webm/.mov` | filesystem scan in `round5_assets.json` | no original-frame evidence board; no verified feature-index-to-frame map |
+| R5-A3 | No validated Visual Jev/VideoJev weights or API credential; Hugging Face cache is 22 MB / 13 files; primary runtime has no torch | `round5_assets.json` | no visual call; do not treat `fastvcl/visual_jev.py` as a backend |
+| R5-A4 | Apple M2 arm64; no CUDA GPU; 10 CUDA tests skip | prototype test log + hardware record | no GPU speed claim; CPU-only diagnostics remain possible |
+| R5-A5 | Prototype unchanged; 646 tests pass; new margin/fusion/Conn/zero-floor rules are not implemented | `round5_prototype_tests.log`, `round5_source_snapshot.json` | paper rules and code still differ; E1/E3 and E6 require implementation work |
+| R5-A6 | Main body is about 8.5 pages, target 8; no result cell is filled | `main.pdf`, `round5_source_snapshot.json` | page target not met; no empirical claim |
+
+These findings trigger the round-five stop conditions: keep the visual branch proposed, do
+not guess frames, do not certify a 1% risk from a shadow diagnostic, and do not report a
+partial or ERROR run as a benchmark. The next agent should first obtain a verified frame
+manifest and a runnable backend, or explicitly narrow the paper to the core CPU study.

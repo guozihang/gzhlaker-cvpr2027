@@ -474,7 +474,7 @@
 <text x="880" y="952" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" font-style="normal" fill="#526477" text-anchor="middle">COPY / NOT_COPY / UNCERTAIN</text>
 <text x="880" y="982" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" font-style="normal" fill="#526477" text-anchor="middle">MERGE / KEEP_SEPARATE</text>
 <text x="880" y="1014" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">abstain · failure keeps evidence</text>
-<text x="880" y="1044" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" font-style="normal" fill="#C37827" text-anchor="middle">one budget K · cache · one revision</text>
+<text x="880" y="1044" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" font-style="normal" fill="#C37827" text-anchor="middle">one budget B · cache · one revision</text>
 <circle cx="1312" cy="884" r="16" fill="#16847A" stroke="none" stroke-width="1.5"/>
 <text x="1312" y="891" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" font-style="normal" fill="#FFFFFF" text-anchor="middle">2</text>
 <text x="1336" y="891" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" font-style="normal" fill="#17283C" text-anchor="start">Fusion decision</text>

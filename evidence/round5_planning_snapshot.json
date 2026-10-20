@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-20",
+  "scope": "Round 5 planning only: current manuscript review, read-only source identity check, PDF text/page inspection, framework PNG visual inspection, primary web source check, scalar calculations; no implementation or benchmark execution",
+  "paper_head": "26d459597d359cb77184250c18fee4c66188a7d1",
+  "initial_untracked_files": [
+    "README.md",
+    "rebuttal.tex"
+  ],
+  "prototype_head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+  "prototype_status_porcelain": "",
+  "prototype_files_sha256": {
+    "../FastVCL/fastvcl/evaluate.py": "24074415629221c39c1da0f34e43cc497b367e22974141813ce7c5352c30b6e4",
+    "../FastVCL/fastvcl/tube.py": "76dbb0d56bc88763d580fdb2ba77ccfc5086ed3776f89db969f7a4956f7bd747",
+    "../FastVCL/fastvcl/segments.py": "cd45cbf74fe741ddc5ddce21b3bc8ccc8a7111145f6e389da8dd5cb5e18b5573",
+    "../FastVCL/docs/METHOD_DECISIONS.md": "c50707ca7c96cfaea8435b8283aa8114595644f553540b92916612fbc800bdb6",
+    "../FastVCL/fastvcl/pipeline.py": "69a1eb5b40099599c70ed97ec4214ff90cb97099f4d5cca97d62c0caa3c6497a",
+    "../FastVCL/fastvcl/router.py": "d8520c2f86b6cd48cf1bc34ab5a1722dbe93137e72534557b777b974670f5613",
+    "../FastVCL/fastvcl/visual_jev.py": "e3afd02bb8eacfbab07299676469d94fb95dee92005f2a829f2c1fec211fa042"
+  },
+  "prototype_files_unchanged_from_round4": true,
+  "reviewed_paper_and_evidence_sha256": {
+    "main.tex": "49c2d4eabbf76476fd8a8a6b6555bf0357433a7a0e4f795d4d6ae49360e835b0",
+    "supplementary.tex": "555c4e5b4d2560b7d775f0867332daa09088f6963acf942edfa1428e43a9d279",
+    "main.bib": "d398ef888f3eeb9f09e0e9d927784dbe0b01b64f2c70531a1c66e544bacf4df8",
+    "main.pdf": "050ec13bd0ff7ea82f2e20441c56111af2ec516afef48b9cf6d35111b12d6a1f",
+    "supplementary.pdf": "7c4f3c96100b6b929ed22bf1c0f9b3c960cfd52c311a9a975cc0e48cdd8baeff",
+    "README_BUILD.md": "08130e010bb8f98c36ad24c30ea3991038a4e0e9a16db8f6d2ac6a6b505e1e13",
+    "scripts/generate_framework.py": "084f7704e7bd449c65cc54c6093a8d76540dac18385229181c2971324fa1ec0b",
+    "figures/fig_2_framework.png": "8d45052385e0ceadb64f61707c8fbd0ab05457453c549cdd874103b052e9effc",
+    "sec/0_abstract.tex": "9b3b37400924efd4ba2053ce649c1a0680369f86592f53ede796232d245ec2f4",
+    "sec/1_intro.tex": "35b3eb2e9e4baaaa2c9ded71f335caea2951f5286340e17dd20d967adbf2c8f9",
+    "sec/2_related_work.tex": "30f314e10b2cfbbfa8c595d47533cf05f2a3bc37406995192a2badcb4dfcc2ad",
+    "sec/3_method.tex": "4786cb70ba6cb7cf41c113883673c8ab59d41bd43c18b740145aba4917607001",
+    "sec/4_experiments.tex": "551f8ca56341275caf79d72aa3f8ef9c958d3be2b6419da871b035abfe9c88da",
+    "sec/5_conclusion.tex": "dc464fd535ec141f2326012251946fd53ae31da555c2f2e54dd44a7db3927f89",
+    "evidence/claims_ledger.md": "982266f0ac85d4f2c076dc007365a4d500d8af49a40b1fc30d6d04a48b3bc35d",
+    "evidence/experiment_manifest.md": "52fd716be723b1146ae562dceefd82c11d5840d0e8dfc065d1ac99157d93dc64",
+    "evidence/selective_model_spec.md": "f052a36b4d8b4d17ad330c3d2673a8e1168822f3cda0f93db55cd8c5fc673c2a",
+    "evidence/implementation_status.md": "59a8ade9a29687e1014bdb765685639d89a74775d07e852ab8660ed7fe43c298",
+    "evidence/missing_evidence.md": "a764d4b995a987cd3aa50be573625ba17953bff5f85f401605349f6347055ed0"
+  },
+  "pdf_inspection": {
+    "tool": "macOS PDFKit via Swift; read-only page counts and text markers",
+    "main_pages": 12,
+    "main_conclusion_page": 10,
+    "main_references_start_page": 11,
+    "supplementary_pages": 10,
+    "full_pdf_visual_review_performed": false,
+    "framework_png_visually_reviewed": true,
+    "latex_rebuilt": false
+  },
+  "scalar_calculations": {
+    "zero_error_one_sided_95_percent_binomial_upper": {
+      "150": 0.019773438164508494,
+      "299": 0.009969146792899286,
+      "300": 0.00993608194445772
+    },
+    "formula": "p_upper = 1 - 0.05 ** (1/n)",
+    "minimum_zero_error_iid_trials_for_upper_at_most_one_percent": 299,
+    "assumptions": "fixed policy, correct risk denominator, independent identically distributed Bernoulli trials; not a certification for video-correlated observations",
+    "question_budget_upper_bounds_per_augmented_configuration": {
+      "pair_count_source": "historical local experiment_manifest.md; not a new dataset scan",
+      "questions_per_pair": 12,
+      "validation_pairs": 41798,
+      "test_pairs": 54630,
+      "validation_questions": 501576,
+      "test_questions": 655560,
+      "combined_questions": 1157136,
+      "measured_calls_or_gpu_hours": false
+    },
+    "margin_example": {
+      "one_axis_scores": [
+        0.95,
+        0.8,
+        0.75
+      ],
+      "current_second_rank_reference": [
+        0.15,
+        0.0,
+        -0.05
+      ],
+      "proposed_best_other_reference": [
+        0.15,
+        -0.15,
+        -0.2
+      ],
+      "scope": "one-axis scalar illustration only; not prototype execution or empirical quality evidence"
+    },
+    "proposed_body_page_budget": [
+      1.25,
+      0.5,
+      3.0,
+      2.9,
+      0.35
+    ],
+    "proposed_body_page_budget_total": 8.0
+  },
+  "web_sources_checked": [
+    {
+      "url": "https://cvpr.thecvf.com/Conferences/2027/CallForPapers",
+      "status": "retrieved",
+      "supported_facts": [
+        "enrollment 2026-11-10 AOE",
+        "submission 2026-11-16 AOE",
+        "supplement 2026-11-23 AOE"
+      ]
+    },
+    {
+      "url": "https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines",
+      "status": "web fetch returned 404"
+    },
+    {
+      "url": "https://arxiv.org/abs/2609.25845",
+      "status": "retrieved abstract and metadata",
+      "title": "Visual Jev: Accurate and Efficient Decisions from Shared Visual Context"
+    },
+    {
+      "url": "https://arxiv.org/abs/2610.18615",
+      "status": "retrieved abstract and metadata",
+      "title": "VideoJev: System One Model for Video Understanding and Interaction"
+    }
+  ],
+  "not_executed": [
+    "prototype unit suite",
+    "prior semantic or evaluator probe reruns",
+    "new dataset inventory",
+    "dataset experiments",
+    "model inference",
+    "GPU workload",
+    "paid calls",
+    "TeX or prototype edits"
+  ],
+  "plan_file": "FastVCL_CVPR2027_第五轮论文优化方案.md",
+  "plan_sha256": "63632bb6d523e7efe111e7b48ebea3db891b5e6fd2ede923470f5543d3209d31",
+  "document_validation": {
+    "local_links_exist": true,
+    "no_trailing_whitespace": true,
+    "json_parseable": true,
+    "display_math_delimiters_balanced": true
+  }
+}

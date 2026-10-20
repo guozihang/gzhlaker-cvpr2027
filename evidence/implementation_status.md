@@ -303,3 +303,32 @@ No zero-floor implementation, no distinct-support/zero-margin implementation, no
 threshold, no Simple Sparse-to-Band entry point, no partial-margin fix, no evaluator file-level
 run, no frozen protocol, no complete validation/test run, no GPU execution, no seltive-model
 backend or E6. The next agent must not treat the paper corrections as code fixes.
+
+## Round-five status (2026-10-20)
+
+Round five changed the manuscript and specifications, not the prototype. HEAD remains
+`fdc3362b2418b316e16d6dfd68435e40c1b1afb8` with a clean worktree. A read-only rerun of the
+unit suite passed 646 tests (10 CUDA tests skipped, 45.369 s); the log is
+`evidence/round5_prototype_tests.log`. Passing tests establish no regression, not support for
+the new rules.
+
+| Item | State after round five |
+|---|---|
+| Zero-floor local DP variant | Still not implemented; the prototype continuation and `CONFLICT` C39 remain |
+| Distinct-both-axis support, zero output margin | Still not implemented; stored-entry support and row margin remain |
+| Strongest-competitor margin | Specified in paper/supplement and `scripts/round5_reference.py`; not in the prototype |
+| Fusion selector, legal-edge construction, `Conn` | Specified and reference-checked; not implemented in the prototype |
+| Shared pair budget and cache contract | Specified; the prototype's old verifier still uses its historical routing policy |
+| Visual backend / original frames / GPU | Missing: no source videos, no validated weights, Apple M2 CPU only |
+| Core or augmented benchmark result | Missing; all table cells remain `\TODO{PENDING}` |
+
+The only executable round-five additions are paper-side reference checks:
+
+- `scripts/round5_reference.py`: margin, selector, fusion geometry, bounded `Conn`, risk bound
+  and frame-pair accounting.
+- `scripts/check_round5_semantics.py`: 18 deterministic checks, all passed
+  (`evidence/round5_math_checks.json`).
+
+These do not execute a VCSL pair or a model. The core and augmented results remain blocked by
+the assets, not by a missing paper claim. See `evidence/round5_assets.json` and
+`evidence/round5_review.md`.

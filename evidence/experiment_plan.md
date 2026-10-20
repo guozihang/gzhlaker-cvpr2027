@@ -133,3 +133,36 @@ its protocol, not novelty by itself. Revisit closest prior work and narrow claim
    file-level reference-vs-port run is still required before the first scored table.
 8. **No result yet:** every cell stays `PENDING`; the 646 prototype tests and 8 probes are
    semantic checks, not benchmark evidence.
+
+## Round-five execution order (2026-10-20)
+
+Round five did not run an experiment. It fixed the order and the denominators that a later
+run must use; no result cell was filled.
+
+| Order | Experiment | Fixed / changed | Primary decision |
+|---|---|---|---|
+| 1 | Core consistency + E1/E3 | fix zero-floor, support and margin; E3 freezes tubes; E1 shares recurrence/scoring/post-processing | does core beat simple sparse-to-band at equal executed coarse work? |
+| 2 | E6-A / E6-F shadow | same `A0` or `C0`; no action; real frames and traceable labels | is there enough discriminative information and a valid action opportunity? |
+| 3 | E6-A / E6-F action controls | same model, board, thresholds, input pool, fixed selected edges | does the visual action beat random and cheap geometric rules without a severe recall loss? |
+| 4 | E6-J four-cell + same-total-budget | core, A-only, F-only, A+F full reruns | is there a two-stage increment and a real budget effect? |
+| 5 | Full quality--cost curve | predeclared B and core compute settings; same-machine timing | does extra budget buy a meaningful gain? |
+| 6 | E0 external baselines and robustness | alignable classical/learned baselines; length/edit/negative buckets | is there external empirical value and a clear scope? |
+
+The four-cell position experiment uses fixed `A=8`, `F=4`; the same-total-budget experiment
+compares `A=12`, `F=12` and `A=8+F=4`. They are separate. Both report actual questions,
+frames, tokens and time; matching question caps is not matching cost.
+
+The fusion row must report correct opportunities, legal-edge coverage, `Conn` pass rate and
+asked-versus-executed actions, and must compare `Conn`-only with `Conn`+visual on a fixed edge
+set. Without these counts, selector differences are misattributed to the model.
+
+The risk ledger separates true-anchor deletion (all `A0` and queried true anchors), deletion
+action error, wrong-fusion, coverage/abstention and final full-set effect. The zero-error
+one-sided 95% bound is `1 - 0.05^(1/n)`; 299 effective zero-error trials are needed for 1%.
+Candidate edges are not accepted fusions, and video-correlated groups are not independent.
+Thresholds are selected on `dev_calibration` and frozen to `dev_audit`.
+
+Round-five stop conditions remain in force: no verified frame map -> no visual experiment;
+no labels/audit -> shadow only; no fusion opportunity -> stop large visual spend; no
+same-budget gain -> narrow the claim; insufficient resources -> shrink the predeclared set,
+never report a partial run as complete.

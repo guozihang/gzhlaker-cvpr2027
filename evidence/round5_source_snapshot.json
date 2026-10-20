@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-20",
+  "scope": "Round 5 execution: manuscript/supplement revision, reference-semantics checks, read-only prototype test rerun, asset verification; no dataset inference, model call or GPU workload",
+  "paper_files_sha256": {
+    "main.tex": "49c2d4eabbf76476fd8a8a6b6555bf0357433a7a0e4f795d4d6ae49360e835b0",
+    "preamble.tex": "c7250c7a3320da787cf42caf3dc0a7d1520fbed964251984f8742e58746f2774",
+    "main.bib": "d398ef888f3eeb9f09e0e9d927784dbe0b01b64f2c70531a1c66e544bacf4df8",
+    "supplementary.tex": "846c33f30535a7d838f86902f24d2782bb7156ca95683febfd62c5e17a17856b",
+    "README_BUILD.md": "3d79d7501ea85d67b0f01a3665c7dc585779ff1ab1e8ef0761892bcd58791d6f",
+    "sec/0_abstract.tex": "309bc60a450f5a91f4f70a427c402a18756b3d665361ce1101dc3c1880f2c862",
+    "sec/1_intro.tex": "dcefe78b37558cc687599239ddc947936119a66ff4de31076f54bdd224ac3bd3",
+    "sec/2_related_work.tex": "d2f982b8abba734ab488e9691625372af87f6f04660614ac4a824b66bfd1abfb",
+    "sec/3_method.tex": "e51f12c02d57952ecf01a23ab0a2e57771adbac3e72e8d75bd0ab207f1e10465",
+    "sec/4_experiments.tex": "cb81493144d60dcbd2596695546fc6589b97951d8bf74b224d454b0dc0446704",
+    "sec/5_conclusion.tex": "c9b0afc619fb732ac705467746141595ce892ed4d39f9f5ab6daa6d2a3789440",
+    "scripts/check_paper_semantics.py": "f36d95701e42944b4fabaaf28015c4e2d3891b3034a1e860f7353f01688d86d9",
+    "scripts/check_round5_semantics.py": "9e44a5d726a4bfd4c67be08a00795abb71df8ae1dd8e3a347400a1fe85558c0d",
+    "scripts/round5_reference.py": "7038b7b330281f315c45b744eae24b5c2b734167e2ddf26bd00f17e83cdd6be5",
+    "scripts/generate_framework.py": "7b1829f4a1ae993fdf2d66dc4f79436ae80c2eaf4eb1f277f782367615c2d40a",
+    "figures/fig_2_framework.pdf": "2a57f67c724158b44fbb13aeb5dc9aec5356b951dd093b629a9d71fce768c86b",
+    "figures/fig_2_framework.png": "3f3d54e21bdd4391d1aee8f6e5ead91a55dedf153c81e095e4610eccf5bcac5d",
+    "figures/README.md": "2fb6c8dd4149c35a9d58b4050089c31fcad03d811b4a0a293efd5f404cb87f6c",
+    "evidence/round5_math_checks.json": "3d2a26f4686c4e2e80e96c93e4141d184d8e142f0cff859a5516d2f3d1b9280e",
+    "evidence/round5_paper_math_checks.json": "e06752645ae1f9c0612cc52fa02d3792ea9da3c6e645d9771b9019722239bb7b",
+    "evidence/round5_evaluator_parity.json": "aa791b06682bc4b7fe1962a325c60ae213713859935f064479a42e40edb7c6c8",
+    "evidence/round5_contract_probes.json": "99d0ca711dbbf3bf2601b31cc06fece7a5699fd738303a4578d55543a1f43b61",
+    "evidence/round5_prototype_tests.log": "e80e3cfc4b90c76279414a95aec6ca5569d67e79e78b1a4a2777e96c12ba37f8",
+    "evidence/round5_assets.json": "8378b02756ecaf1d5347eb4cfd6701e273eb48f16b9a0a22215539f6505a85fd",
+    "evidence/round5_review.md": "c53e7cacd01237d0c5c511ffd060811cbfb74c8a81eee3220a75a6053450ec13",
+    "evidence/claims_ledger.md": "f6f66a4ada636f7975d0b1dcd525e627c3d9e4e162844c5511c886fba89770c2",
+    "evidence/selective_model_spec.md": "6dc68cfa454e8f758e8d8e6b8f25963b0c1ad7c744dd3df07a6b3681dafd44ac",
+    "evidence/implementation_status.md": "06e4d11531fdd68c3effbd89b4a15493c11b03faa06c7f0f683dffe322c08604",
+    "evidence/experiment_plan.md": "b562e07c9f1c8143e786615c63f72083ec0893921f8f76f4ed3326778d88fe24",
+    "evidence/missing_evidence.md": "a2faa865e5b9a2908ba8c66e3363fec9518697de30c40c9156b23a9f28b9b954",
+    "evidence/experiment_manifest.md": "9587f7f99a1a001e71f2be22ffe0dd11164b50b57cb6b6fe1aa07957cf904a1f"
+  },
+  "pdf": {
+    "main_pages": 10,
+    "main_conclusion_page": 9,
+    "main_references_start_page": 9,
+    "main_body_pages_estimate": 8.5,
+    "main_body_page_target": 8.0,
+    "main_body_target_met": false,
+    "supplementary_pages": 12,
+    "final_builds_exit_zero": true,
+    "overfull_or_undefined_warnings": 0,
+    "visual_review": [
+      "main p8-p9",
+      "supplement p8, p10, p12"
+    ]
+  },
+  "prototype": {
+    "head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+    "worktree_clean": true,
+    "unit_tests": {
+      "ran": 646,
+      "ok": true,
+      "skipped": 10,
+      "seconds": 45.369,
+      "log": "evidence/round5_prototype_tests.log"
+    },
+    "new_core_variants_implemented": false
+  },
+  "assets": {
+    "vcs115_root": "/Users/gzhlaker/Downloads/VCSL",
+    "feature_files": 12254,
+    "feature_bytes": 4418396160,
+    "validation_pairs": 41798,
+    "test_pairs": 54630,
+    "source_video_files_found": 0,
+    "visual_model_weights_found": false,
+    "huggingface_cache": "22 MB, no validated visual backbone",
+    "verified_index_to_frame_map": false,
+    "hardware": "Apple M2 arm64; no CUDA GPU"
+  },
+  "checks": {
+    "round5_semantics": {
+      "total": 18,
+      "passed": 18,
+      "path": "evidence/round5_math_checks.json"
+    },
+    "paper_scalar": "evidence/round5_paper_math_checks.json",
+    "evaluator_parity": {
+      "cases": 211,
+      "passed": true,
+      "path": "evidence/round5_evaluator_parity.json"
+    },
+    "contract_probes": {
+      "checks": 8,
+      "all_observed": true,
+      "path": "evidence/round5_contract_probes.json"
+    }
+  },
+  "not_executed": [
+    "dataset inference",
+    "visual model inference",
+    "GPU workload",
+    "paid API calls",
+    "E1/E3/E6 runs",
+    "independent action audit"
+  ]
+}

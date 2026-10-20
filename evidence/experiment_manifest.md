@@ -61,7 +61,7 @@ feature content digest and freeze it. The current pipeline can write
 | Per-pair precision | product of the two axis coverage ratios (intersection-over-prediction length per axis) |
 | Per-pair recall | product of the two axis coverage ratios (intersection-over-GT length per axis) |
 | Dataset aggregation | arithmetic mean over pairs whose per-pair value is **not exactly 1** (sentinel exclusion) |
-| Reported F1 | $2\bar P\bar R/(\bar P+\bar R)$ with the macro means above |
+| Reported F1 | $2\bar P\bar R/(\bar P+\bar R+\epsilon)$ with the macro means above and $\epsilon=10^{-6}$ |
 | Coordinates | integer truncation in legacy-compatible mode; `conf=0` uses the legacy no-filter branch |
 | Status handling | `ERROR`/`SKIPPED` never scored, never converted to `[]` |
 
@@ -166,3 +166,15 @@ branch, and a five-row status case (4 scored, 1 ERROR excluded). This is recorde
 `evidence/evaluator_parity.json`. It does **not** replace the required file-level run on the
 same predictions/GT: `metrics.json`, status accounting and the four denominators still need a
 direct reference-vs-port comparison on real run artifacts before any table is filled.
+
+## Round-five table and denominator sync (2026-10-20)
+
+- The main paper now has two tables: a fixed-feature core comparison and an augmented-system
+  table. Augmented rows are never ranked with core rows and report `T_aug` plus the question
+  budget, not only `T_loc`.
+- The F1 expression above now includes the `+1e-6` guard, matching the evaluator and the
+  main-text equation.
+- The decision layer adds separate denominators: true-anchor deletion (all `A0` and queried
+  true anchors), deletion action error, wrong-fusion, coverage/abstention and full-set effect.
+  Candidate edges are not accepted fusions, and val remains positive-only.
+- No manifest entry is filled by a new run in this round.

@@ -1,0 +1,219 @@
+{
+  "kind": "deterministic_round5_semantics_and_notation_checks",
+  "benchmark_result": false,
+  "prototype_executed": false,
+  "model_executed": false,
+  "checks_passed": 18,
+  "checks_total": 18,
+  "all_passed": true,
+  "results": [
+    {
+      "name": "margin_uses_strongest_competitor",
+      "passed": true,
+      "detail": {
+        "top1": {
+          "anchor": [
+            0,
+            0
+          ],
+          "score": 0.95,
+          "margin_a": 0.1499999999999999,
+          "margin_b": 0.1499999999999999,
+          "margin": 0.1499999999999999,
+          "missing": []
+        },
+        "second": {
+          "anchor": [
+            0,
+            1
+          ],
+          "score": 0.8,
+          "margin_a": 0.10000000000000009,
+          "margin_b": -0.1499999999999999,
+          "margin": -0.1499999999999999,
+          "missing": []
+        },
+        "old_second_rank": 0.050000000000000044
+      }
+    },
+    {
+      "name": "margin_missing_single_partner",
+      "passed": true,
+      "detail": {
+        "anchor": [
+          0,
+          0
+        ],
+        "score": 0.9,
+        "margin_a": null,
+        "margin_b": null,
+        "margin": null,
+        "missing": [
+          "A",
+          "B"
+        ]
+      }
+    },
+    {
+      "name": "margin_tie_is_zero",
+      "passed": true,
+      "detail": {
+        "anchor": [
+          0,
+          0
+        ],
+        "score": 0.9,
+        "margin_a": 0.0,
+        "margin_b": 0.0,
+        "margin": 0.0,
+        "missing": []
+      }
+    },
+    {
+      "name": "selector_round_robin_and_missing_neutral",
+      "passed": true,
+      "detail": {
+        "selected": [
+          [
+            2,
+            0
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "visits": {
+          "(0, 0)": 2,
+          "(1, 1)": 1
+        }
+      }
+    },
+    {
+      "name": "fusion_legal_disjoint_pair",
+      "passed": true,
+      "detail": {
+        "reasons": [],
+        "measures": {
+          "gap_a": 5,
+          "gap_b": 5,
+          "iou_a": 0.0,
+          "iou_b": 0.0,
+          "max_map_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "fusion_rejects_order_overlap",
+      "passed": true,
+      "detail": [
+        "order/overlap",
+        "negative gap"
+      ]
+    },
+    {
+      "name": "fusion_rejects_gap_cap",
+      "passed": true,
+      "detail": [
+        "gap cap"
+      ]
+    },
+    {
+      "name": "fusion_rejects_boundary_map",
+      "passed": true,
+      "detail": [
+        "boundary map",
+        "connector slope"
+      ]
+    },
+    {
+      "name": "fusion_missing_map_unavailable",
+      "passed": true,
+      "detail": [
+        "missing map"
+      ]
+    },
+    {
+      "name": "conn_accepts_clean_path",
+      "passed": true,
+      "detail": {
+        "reason": "ok",
+        "cells": 5,
+        "worst_low_run": 0,
+        "coverage": 1.0
+      }
+    },
+    {
+      "name": "conn_rejects_low_score_run",
+      "passed": true,
+      "detail": {
+        "reason": "low-run/coverage",
+        "cells": 5,
+        "worst_low_run": 1,
+        "coverage": 1.0
+      }
+    },
+    {
+      "name": "conn_rejects_no_path",
+      "passed": true,
+      "detail": {
+        "reason": "no path",
+        "cells": 0
+      }
+    },
+    {
+      "name": "risk_bound_matches_planning_values",
+      "passed": true,
+      "detail": {
+        "150": 0.019773438164508494,
+        "299": 0.009969146792899286,
+        "300": 0.00993608194445772
+      }
+    },
+    {
+      "name": "budget_accounting",
+      "passed": true,
+      "detail": {
+        "B": 12,
+        "B_A": 8,
+        "B_F": 4,
+        "anchor_pairs": 24,
+        "fusion_pairs": 20,
+        "total_pairs": 44
+      }
+    },
+    {
+      "name": "manuscript_margin_rule",
+      "passed": true,
+      "detail": {
+        "method_has_competitor_sets": true
+      }
+    },
+    {
+      "name": "manuscript_notation_and_shadow",
+      "passed": true,
+      "detail": {
+        "abstract_has_Knn": true
+      }
+    },
+    {
+      "name": "manuscript_risk_denominators",
+      "passed": true,
+      "detail": {
+        "risk_denominators_present": true
+      }
+    },
+    {
+      "name": "supplement_contract_present",
+      "passed": true,
+      "detail": {
+        "supplement_contract_present": true
+      }
+    }
+  ],
+  "scope": "Formula- and text-level checks only; no VCSL pair, prototype, model, GPU or benchmark was run."
+}

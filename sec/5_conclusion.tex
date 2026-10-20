@@ -3,26 +3,21 @@
 FastVCL separates sparse discovery from local refinement via finite tubes, making explicit
 where matching is evaluated and how restart semantics affect weak prefixes and separated
 copies. Fixed-stride coarse matching remains quadratic, and lower memory or fewer refinement
-cells do not establish a runtime advantage. The proposed experiments must test the
-quality--cost trade-off against a simple sparse-to-band baseline.
+cells do not establish a runtime advantage; RQ1 must still test the quality--cost trade-off
+against a simple sparse-to-band baseline at equal executed coarse work.
 
-We also specify two budgeted visual decision points: filtering anchors before fitting and
-deciding whether adjacent fragments belong to one continuous copy after alignment. Both are
-selective, conservative, share one pair budget and cache, and abstain; a geometric or
-connection check can veto a visual verdict. They target two errors that fixed descriptors
-cannot resolve, namely pseudo-anchors from repeated content and over-segmentation of a single
-copy. The branch is not free: it needs an external pretrained model, original frames and a
-verified index-to-frame map. It cannot recover an anchor or a copy that the core never
-proposed, and it can delete true anchors or bridge real non-copy gaps.
+The two budgeted visual interventions filter anchors before fitting and decide whether
+adjacent fragments belong to one continuous copy after alignment. Both are selective,
+conservative, share one pair budget and cache, and abstain per item; a geometric or
+connection check can veto a visual verdict. Abstention is not a global inverse: only the
+affected item keeps its core state, so \textsc{on} mode can still change the final output. The
+branch needs an external model, original frames and a verified index-to-frame map; it cannot
+recover an anchor or copy the core never proposed, and it can delete true anchors or bridge
+real non-copy gaps.
 
-The sampling bound limits support inside a short copy, not every detection; positive slopes
-exclude reversed alignment and only locally approximate nonlinear changes. Repeated content
+The sampling bound limits support inside a short copy, not every detection; repeated content
 may create spurious tracks, overlapping tubes may erase the saving, and interval GT cannot
-validate dense correspondence, so boundary error must be read with recall. Visual scores are
-uncalibrated and can be overconfident; the action thresholds are operating points, not
-probabilities. Distribution shift in frames or model revision invalidates a frozen threshold
-and requires re-calibration on development data.
-
-No benchmark advantage is established, for the core or for the augmented system. The protocol
-and controlled evidence remain future work; until complete full-set metrics and full-cost
-timings exist, neither accuracy nor speed may be claimed.
+validate dense correspondence, so boundary error is read with recall. Visual scores are
+uncalibrated and the $1\%$ risk targets are not certified by small or correlated samples. No
+benchmark advantage is established; until complete full-set metrics, independent action risk
+and full-cost timings exist, neither accuracy nor speed may be claimed.

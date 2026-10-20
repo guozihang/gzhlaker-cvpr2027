@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-20",
+  "scope": "Round-5 W5-0 asset verification. Read-only checks of the local VCSL snapshot, prototype repository, interpreter, model cache and hardware; no dataset inference, model call or GPU workload.",
+  "dataset": {
+    "root": "/Users/gzhlaker/Downloads/VCSL",
+    "exists": true,
+    "feature_dir": "eff256d",
+    "feature_files": 12254,
+    "feature_bytes": 4418396160,
+    "validation_pairs": 41798,
+    "test_pairs": 54630,
+    "test_key_missing_pairs": 27315,
+    "metadata_sha256": {
+      "pair_file_val.csv": "f7065467eb71340576c1f83ce6ada8810b02311d8d932c269069c414fa746f91",
+      "pair_file_test.csv": "b52c1b5fb394d117d7f02206493331e78ba26fdb7ee344fc4302aba0cf231880",
+      "label_file_uuid_total.json": "47d492e201741f10f970faedc6063feab06716dc604790fc5539af50b90a82ce",
+      "split_meta_pairs.json": "840a3011b93556100ea6811120716ac3729d53afd24c39b6215a77eafd6d5329",
+      "frames_all.csv": "e9971d4bd08a31b03bc73fdf44b2f9d15e59ed7043b14af5ca410f2606e180b6"
+    },
+    "source_video_files_found": 0,
+    "source_video_extensions_checked": [
+      ".mp4",
+      ".mkv",
+      ".avi",
+      ".webm",
+      ".mov"
+    ],
+    "verified_index_to_frame_map": false,
+    "feature_content_digest_complete": false
+  },
+  "visual_backend": {
+    "validated_checkpoint": false,
+    "visual_jev_or_videojev_weights_found": false,
+    "huggingface_cache_files": 13,
+    "huggingface_cache_bytes": 23349660,
+    "api_credentials_verified": false,
+    "torch_available_in_primary_runtime": false
+  },
+  "hardware": {
+    "machine": "Apple M2 arm64",
+    "cuda_gpu": false,
+    "nvidia_smi": false,
+    "primary_python": "/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3",
+    "numpy": "2.3.5"
+  },
+  "prototype": {
+    "head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+    "worktree_clean": true,
+    "unit_tests": {
+      "ran": 646,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 10,
+      "seconds": 45.369
+    },
+    "new_zero_floor_variant": false,
+    "new_competitor_margin": false,
+    "new_fusion_selector": false,
+    "new_connection_check": false,
+    "note": "The prototype is unchanged from the round-4 snapshot; the proposed rules are specified in the paper and exercised only by scripts/round5_reference.py."
+  },
+  "budget_upper_bounds": {
+    "questions_per_pair": 12,
+    "validation_questions": 501576,
+    "test_questions": 655560,
+    "combined_questions": 1157136,
+    "measured_calls_or_gpu_hours": false,
+    "note": "Arithmetic upper bound from historical pair counts at the maximum question budget; not an execution forecast."
+  },
+  "work_package_status": {
+    "W5-0": "completed: assets, hashes, hardware and backend limits recorded",
+    "W5-1": "partial: manuscript method/core definitions revised; prototype variants not implemented; real-data E1/E3 not run",
+    "W5-2": "blocked: no source frames, verified frame map or visual backend",
+    "W5-3": "blocked: depends on W5-2; no action labels or independent audit",
+    "W5-4": "blocked: no admissible core or augmented run to freeze",
+    "W5-5": "partial: main and supplement rebuilt and revised; main body about 8.5 pages, 8-page target not met; no result cells filled"
+  },
+  "triggered_stop_conditions": [
+    "No verified original-frame mapping: keep the two-stage description proposed; do not guess frames.",
+    "No sufficient action labels or independent audit: keep both actions in shadow and report diagnosis only, not a 1% risk certificate.",
+    "No visual backend or GPU: do not claim model accuracy, speed or augmented benefit."
+  ],
+  "not_executed": [
+    "dataset inference",
+    "visual model inference",
+    "GPU workload",
+    "paid API calls",
+    "E1/E3/E6 runs",
+    "independent action audit",
+    "full feature-content digest"
+  ]
+}
