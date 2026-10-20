@@ -27,7 +27,7 @@ class Canvas:
     def __init__(self):
         self.parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1220" viewBox="0 0 1760 1220">',
                       '<title>FastVCL: sparse-to-tube video copy localization framework</title>',
-                      '<desc>Proposed sparse-to-tube method with an additional selective visual verification branch named seltive model (JEV). Candidate intervals and original A/B frame context feed budgeted evidence selection and visual verification; verdict fusion produces final intervals, while unselected or uncertain candidates retain their core predictions. Matrices and trajectories are schematic, not empirical outputs. Selection and fusion policies remain to be specified.</desc>',
+                      '<desc>Proposed sparse-to-tube method with two budgeted insertions of one shared selective visual-decision model named seltive model: anchor filtering before RANSAC (A0 to A1) and fragment fusion after candidate extraction (C0 to Y). Both call sites share one pair budget, cache and model revision, and abstain on uncertainty or failure; unselected, uncertain and failed items keep their core evidence. Matrices and trajectories are schematic, not empirical outputs.</desc>',
                       '<defs>',
                       '<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#526477"/></marker>',
                       '<marker id="blueArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#2D69AD"/></marker>',
@@ -151,7 +151,6 @@ def build_framework():
     anchors(c,389,505,287,147,noise=True)
     c.text(538,695,'Deduplicate coordinates; cap',24,MUTED,anchor='middle')
     c.text(538,730,'Anchor set {(i, j, Sᵢⱼ)}',25,BLUE,600,'middle')
-    c.path([(740,722),(759,722),(759,201),(778,201)],MUTED,2.8,arrow=True)
 
     # 3. Geometric support and finite, split tube domains.
     c.text(998,201,'RANSAC: j ≈ αᵣ i + βᵣ',26,INK,600,'middle')
@@ -210,48 +209,59 @@ def build_framework():
         c.poly([(tx+lo*tw,647),(tx+hi*tw,647),(tx+(hi+.06)*tw,672),(tx+(lo+.06)*tw,672)],color,.10)
     c.text(1490,727,'Score q · min(IoU_A, IoU_B) dedup.',24,INK,600,'middle')
 
-    # Proposed post-localization verification branch. This is a figure-level design,
-    # not a claim that the historical anchor-level JEV pipeline implements this path.
-    c.path([(1490,748),(1490,791),(538,791),(538,845)],MUTED,2.6,arrow=True)
-    c.text(1014,781,'Candidate intervals + matched indices',25,INK,600,'middle')
-    c.text(20,826,'ADDITIONAL FRAME INPUT',22,MUTED,600)
-    c.text(1740,826,'PROPOSED VERIFICATION EXTENSION',22,ORANGE,600,'end')
-    for x,w in [(20,278),(336,404),(778,440),(1256,484)]:
+    # Two insertion points of one shared, budgeted visual-decision model. This is a
+    # figure-level design; it does not claim the historical prototype implements it.
+    c.text(880,826,'ONE SHARED MODEL · TWO CALL SITES',22,ORANGE,600,'middle')
+    for x,w in [(20,460),(540,680),(1280,460)]:
         c.rect(x,845,w,207,'#FFF9F1','#D6BC98',12)
 
-    c.text(159,884,'A/B frame context',26,INK,700,'middle')
-    for label,yy,color in [('A',921,BLUE),('B',962,PURPLE)]:
-        c.text(44,yy+7,label,23,color,600)
-        for k in range(5):
-            c.rect(76+k*37,yy-14,29,25,'#FFFFFF',color,2,1.5)
-            c.line(81+k*37,yy+5,98+k*37,yy-6,color,1.5)
-    c.text(159,1007,'Index → frame mapping',23,MUTED,anchor='middle')
-    c.text(159,1036,'Original video frames',23,MUTED,anchor='middle')
-    c.path([(298,950),(336,950)],MUTED,2.5,arrow=True)
+    # 1. Anchor decision before RANSAC: A0 -> A1.
+    c.circle(52,884,16,ORANGE)
+    c.text(52,891,'1',22,'#FFFFFF',700,'middle')
+    c.text(76,891,'Anchor decision',27,INK,700)
+    for yy,t,color,weight in [(928,'A0 → budgeted hard-sample selection',MUTED,400),
+                              (958,'NOT_COPY + margin → drop',MUTED,400),
+                              (988,'COPY / uncertain / fail → keep',MUTED,400),
+                              (1020,'A1 = A0 \\ D(a), then refit',INK,600)]:
+        c.text(250,yy,t,22,color,weight,'middle')
 
-    c.text(538,884,'Select evidence',27,INK,700,'middle')
-    c.text(538,924,'Matched frame pairs / snippets',24,INK,anchor='middle')
-    c.text(538,962,'Budgeted verification calls',24,MUTED,anchor='middle')
-    c.text(538,1007,'Selection policy: to be defined',23,MUTED,anchor='middle')
-    c.path([(740,950),(778,950)],MUTED,2.5,arrow=True)
+    # 2. One shared model, one budget and cache, two call sites.
+    c.text(880,887,'seltive model',33,INK,700,'middle')
+    c.text(880,918,'one shared external model',22,MUTED,anchor='middle')
+    c.text(880,952,'COPY / NOT_COPY / UNCERTAIN',21,MUTED,600,'middle')
+    c.text(880,982,'MERGE / KEEP_SEPARATE',21,MUTED,600,'middle')
+    c.text(880,1014,'abstain · failure keeps evidence',21,MUTED,anchor='middle')
+    c.text(880,1044,'one budget K · cache · one revision',21,ORANGE,600,'middle')
 
-    c.rect(778,845,440,7,ORANGE,radius=3)
-    c.circle(811,882,16,ORANGE)
-    c.text(811,889,'5',23,'#FFFFFF',700,'middle')
-    c.text(998,891,'seltive model',34,INK,700,'middle')
-    c.text(998,931,'Visual copy verification',26,INK,anchor='middle')
-    c.text(998,975,'COPY  /  NOT_COPY  /  UNCERTAIN',22,MUTED,600,'middle')
-    c.text(998,1020,'Model backend: to be specified',23,MUTED,anchor='middle')
-    c.path([(1218,950),(1256,950)],MUTED,2.5,arrow=True)
+    # 3. Fusion decision after candidates: C0 -> Y.
+    c.circle(1312,884,16,TEAL)
+    c.text(1312,891,'2',22,'#FFFFFF',700,'middle')
+    c.text(1336,891,'Fusion decision',27,INK,700)
+    for yy,t,color,weight in [(928,'C0 → legal edges (G, gaps)',MUTED,400),
+                              (958,'same copy? + Conn',MUTED,400),
+                              (988,'M = G ∧ Conn ∧ margin',MUTED,400),
+                              (1020,'merge / keep · one round',INK,600),
+                              (1046,'→ Y final intervals',INK,600)]:
+        c.text(1510,yy,t,22,color,weight,'middle')
 
-    c.text(1498,884,'Final copy intervals',27,INK,700,'middle')
-    c.text(1498,924,'Fuse verification evidence',25,INK,anchor='middle')
-    c.text(1498,962,'Uncertain / failed: retain core result',23,MUTED,anchor='middle')
-    c.text(1498,1007,'Y = {(a_s, b_s, a_e, b_e, q)}',25,INK,600,'middle')
-    c.text(1498,1036,'Fusion policy: to be defined',23,MUTED,anchor='middle')
-    c.path([(538,1052),(538,1080),(1498,1080),(1498,1056)],MUTED,2.1,'5 5',True)
-    c.rect(739,1063,552,35,'#FFFFFF',radius=0)
-    c.text(1015,1089,'Unselected candidates retain the core result',23,MUTED,anchor='middle')
+    # 4. Frames are the additional input of the shared model, not of one call site.
+    c.rect(20,1072,1720,40,'#FFF9F1','#D6BC98',10)
+    c.text(880,1098,'A/B original frames + verified index → frame map',22,INK,600,'middle')
+    c.path([(880,1072),(880,1052)],ORANGE,2.4,arrow=True)
+
+    # Directed inserts: A0 down into the anchor call site, A1 back into proposals.
+    c.path([(538,748),(538,810),(250,810),(250,845)],MUTED,2.5,arrow=True)
+    c.path([(430,845),(430,790),(790,790),(790,748)],MUTED,2.5,arrow=True)
+    # Questions to the shared model, verdicts back, for both call sites.
+    c.path([(480,930),(540,930)],ORANGE,2.4,arrow=True)
+    c.path([(540,962),(480,962)],ORANGE,2.4,arrow=True)
+    c.path([(1220,930),(1280,930)],ORANGE,2.4,arrow=True)
+    c.path([(1280,962),(1220,962)],ORANGE,2.4,arrow=True)
+    # Candidate intervals reach the fusion call site; Y leaves the last box.
+    c.path([(1498,748),(1498,845)],MUTED,2.5,arrow=True)
+    c.text(556,798,'A0',22,MUTED,600,'middle')
+    c.text(806,780,'A1',22,MUTED,600,'middle')
+    c.text(1518,812,'C0',22,MUTED,600,'end')
 
     # Reuse path: local similarities require full descriptors, not just sparse anchors.
     c.circle(159,704,4,BLUE)
@@ -266,7 +276,7 @@ def build_framework():
     c.text(342,1196,'tube',24,MUTED)
     c.line(438,1188,473,1188,BLUE,3,arrow=True)
     c.text(486,1196,'local path',24,MUTED)
-    c.text(1740,1196,'Core + proposed selective verification · feature-index coordinates',24,INK,anchor='end')
+    c.text(1740,1196,'Core + two budgeted visual decisions · feature-index coordinates',24,INK,anchor='end')
     c.save()
 
 

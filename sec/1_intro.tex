@@ -19,9 +19,30 @@ features are compared and aligned. Extension moves the search beyond the outer a
 does not guarantee that those boundaries are recoverable. Sparse proposals may miss a copy,
 and local alignment cannot create evidence outside its search domain.
 
-Mutual matching, RANSAC and local alignment are established tools~\cite{liu2023sam,smith1981};
-coarse-to-fine video matching also has precedents~\cite{tian2013,wang2026mltdedup}. The
-assembly alone is insufficient evidence of a new contribution. We test three hypotheses:
+\paragraph{Two errors that more arithmetic cannot fix.}
+The same separation exposes failure modes of the fixed descriptors. Repeated textures,
+static logos and similar shots can pass mutual matching and RANSAC, producing pseudo-tracks
+that consume refinement and become false intervals. Conversely, a genuine copy can be
+fragmented when a weak or edited middle section breaks anchor support, so the core reports
+several pieces where one continuous copy exists. Both errors are questions of source
+identity, not of alignment quality: additional ISC comparisons on the same descriptors do
+not decide whether two regions come from the same underlying footage.
+
+\paragraph{Two budgeted decision points.}
+A small number of visual decisions can address these errors, but their placement matters.
+Verifying only final candidates cannot remove a pseudo-anchor that already consumed a track,
+and cannot rejoin fragments that were emitted separately. We therefore query one shared
+model, named the \texttt{seltive model}, at two points: before fitting, where a decisive
+verdict may delete a doubtful anchor; and after alignment, where a decisive verdict may merge
+two fragments that are plausibly one continuous copy. Each decision is \emph{selective} (a
+small declared budget of questions per pair), \emph{conservative} (only a decisive
+\texttt{NOT\_COPY} or \texttt{MERGE} acts, and geometry or connection evidence can veto it),
+and \emph{reversible} (uncertainty, budget exhaustion or failure leaves the core evidence
+unchanged). The model is pretrained and post-trained by its authors on external data; we add
+no training on our benchmark, and we do not read its scores as calibrated probabilities.
+
+\paragraph{Hypotheses.}
+The core claims remain:
 \begin{itemize}
 \item \textbf{H1: candidate coverage.} Reducing coarse dot products retains useful candidate
 coverage, including on short segments.
@@ -30,22 +51,31 @@ endpoints without obtaining the apparent gain solely by dropping difficult segme
 \item \textbf{H3: system benefit.} Less alignment work improves measured quality--cost trade-offs
 on the same hardware after proposal, transfer and post-processing costs are included.
 \end{itemize}
-A strong simple sparse-to-band baseline and controlled changes are necessary to distinguish
-mechanism gains from larger budgets or different candidates.
+The two decision points add three falsifiable hypotheses. \textbf{H4-A:} selective anchor
+verification reduces pseudo-tracks and false intervals, or downstream work, within a
+predeclared recall-loss limit; deleting anchors is not success by itself. \textbf{H4-F:} a
+visual relation verdict plus a connection check repairs true over-segmentation and avoids
+bridging real non-copy gaps, relative to purely geometric fusion. \textbf{H4-B:} at the same
+measured end-to-end cost, the two-stage policy beats random selection, cheap geometric rules
+and an unfiltered core. A strong simple sparse-to-band baseline and controlled changes are
+necessary to distinguish mechanism gains from larger budgets, different candidates or simply
+having seen more pixels.
 
 \paragraph{Scope and current contributions.}
 This draft provides (i) a finite-tube specification and cost accounting that separates
-quadratic coarse arithmetic from bounded refinement, (ii) restart-semantics counterexamples
-and controls for candidate coverage and boundary recovery, and (iii) a proposed evaluation
-protocol with explicit completion, threshold and timing rules. These are methodological
-artifacts; empirical benefit and novelty relative to the baseline remain unresolved.
-``Training-free'' refers to the core: ISC is pretrained and validation labels select
-parameters. A proposed \texttt{seltive model} branch adds frame-based verification
-(Section~\ref{sec:method-selective}).
+quadratic coarse arithmetic from bounded refinement, (ii) two explicitly specified budgeted
+decision points with action rules, geometry and connection gates, abstention and fallback,
+and a shared budget and cache contract, (iii) a falsifiable experiment matrix that fixes the
+correct upstream input for each question, and (iv) an evaluation protocol with explicit
+completion, threshold, risk and timing rules. These are methodological artifacts; empirical
+benefit and novelty relative to the baseline remain unresolved. ``Training-free'' refers only
+to the core: ISC is pretrained and validation labels select parameters. The
+\texttt{seltive model} branch (Section~\ref{sec:method-decisions}) adds an external model,
+original frames and additional compute, and is reported separately.
 
 \paragraph{Evidence status.}
 The code is a preliminary prototype whose continuation rule differs from the DP specified
-here. No frozen benchmark or GPU timing supports the paper; tables retain visible
-placeholders, and development/synthetic checks are only in the supplement. ``Fast'' is a
-project name, not a speed claim. The supplement contrasts the dense and sparse domains
-conceptually.
+here and whose visual-verification path is anchor-level only. No frozen benchmark, model call
+or GPU timing supports the paper; the main tables retain visible placeholders, and
+development/synthetic checks are only in the supplement. ``Fast'' is a project name, not a
+speed claim. The supplement contrasts the dense and sparse domains conceptually.

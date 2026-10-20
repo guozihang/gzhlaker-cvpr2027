@@ -22,11 +22,13 @@
   and gap splitting to define finite tubes. The dashed blue connection reuses
   full-resolution descriptors for in-tube similarities. Proposed zero-floored
   local DP, backtrace, trimming, scoring and dual-axis de-duplication yield candidate
-  intervals. The proposed \texttt{seltive model} extension verifies selected evidence
-  using original A/B frame context. Selection, backend and verdict fusion are not yet
-  specified; unselected, uncertain or failed cases retain the core predictions.
-  The depicted path represents one tube; extraction repeats across
-  paths and tracks. Matrices and trajectories are schematic, not experimental outputs.}
+  intervals. One shared \texttt{seltive model} is queried at two budgeted insertion
+  points: before fitting, to remove doubtful anchors ($A_0\to A_1$), and after
+  extraction, to decide whether fragments are one continuous copy ($C_0\to Y$). Both
+  read original A/B frames through a verified index map and abstain on uncertainty or
+  failure; taking no action retains the core evidence. Backend, frame map and
+  thresholds are not yet validated. Matrices and trajectories are schematic, not
+  experimental outputs.}
   \label{fig:framework}
 \end{figure*}
 

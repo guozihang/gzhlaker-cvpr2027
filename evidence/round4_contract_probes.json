@@ -1,0 +1,228 @@
+{
+  "kind": "source_semantics_probes",
+  "prototype_executed": true,
+  "benchmark_result": false,
+  "dataset_read": false,
+  "scope": "Hand-built bands only; no VCSL feature, GT or prediction file. These probes document current code behaviour, not method quality.",
+  "prototype_head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+  "dp": {
+    "weak_prefix_then_copy": {
+      "prototype": {
+        "H": [
+          0.0,
+          -0.6,
+          -1.2,
+          -1.8,
+          -2.4,
+          -3.0,
+          -3.6,
+          -4.2,
+          -4.8,
+          -5.4,
+          -5.05,
+          -4.7,
+          -4.35,
+          -4.0,
+          -3.65
+        ],
+        "best": 0.0,
+        "reachable": false,
+        "path_rows": [],
+        "reason": "no cell has a positive score after subtracting reward_offset=0.6: the strongest local evidence is 0.000000"
+      },
+      "proposed_zero_floor": {
+        "H": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.35,
+          0.7,
+          1.05,
+          1.4,
+          1.75
+        ],
+        "best": 1.75
+      }
+    },
+    "strong_weak_strong": {
+      "prototype": {
+        "H": [
+          0.35,
+          -0.15,
+          0.2
+        ],
+        "best": 0.35,
+        "reachable": true,
+        "path_rows": [
+          0
+        ],
+        "reason": null
+      },
+      "proposed_zero_floor": {
+        "H": [
+          0.35,
+          0.0,
+          0.35
+        ],
+        "best": 0.35
+      }
+    },
+    "two_copies_after_blocking_first": {
+      "prototype": {
+        "H": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          -0.6,
+          -1.2,
+          -1.8,
+          -2.4,
+          -3.0,
+          -3.6,
+          -3.25,
+          -2.9,
+          -2.55,
+          -2.2,
+          -1.85
+        ],
+        "best": 0.0,
+        "reachable": false,
+        "path_rows": [],
+        "reason": "no cell has a positive score after subtracting reward_offset=0.6: the strongest local evidence is 0.000000"
+      },
+      "proposed_zero_floor": {
+        "H": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.35,
+          0.7,
+          1.05,
+          1.4,
+          1.75
+        ],
+        "note": "invalid rows stand in for blocked rows; the proposed rule has no blockers"
+      }
+    },
+    "invalid_row": {
+      "prototype": {
+        "H": [
+          0.35,
+          0.0,
+          0.35
+        ],
+        "best": 0.35,
+        "reachable": true,
+        "path_rows": [
+          0
+        ],
+        "reason": null
+      },
+      "proposed_zero_floor": {
+        "H": [
+          0.35,
+          0.0,
+          0.35
+        ]
+      }
+    }
+  },
+  "tube_a_range": {
+    "a_range_none_w12_margin2": [
+      0,
+      34
+    ],
+    "a_range_none_w12_margin0": [
+      0,
+      32
+    ],
+    "a_range_explicit_extension16": [
+      0,
+      36
+    ],
+    "np_rint_ties_to_even": [
+      0,
+      2,
+      2,
+      0
+    ]
+  },
+  "segment_margin_and_support": {
+    "same_path_margin0": [
+      [
+        9.0,
+        9.0,
+        12.0,
+        12.0,
+        0.9649999999999999
+      ]
+    ],
+    "same_path_margin2": [
+      [
+        8.0,
+        8.0,
+        14.0,
+        14.0,
+        0.6675
+      ]
+    ],
+    "duplicate_A_anchor_12_twice_min_support2": [
+      [
+        9.0,
+        9.0,
+        12.0,
+        12.0,
+        0.9649999999999999
+      ]
+    ],
+    "distinct_A_anchor_12_once_min_support2": []
+  },
+  "segment_gap": {
+    "intervening_two_kept": [
+      [
+        0.0,
+        8.0
+      ]
+    ],
+    "intervening_three_split": [
+      [
+        0.0,
+        3.0
+      ],
+      [
+        6.0,
+        9.0
+      ]
+    ]
+  },
+  "checks": {
+    "weak_prefix_prototype_unreachable": true,
+    "weak_prefix_proposed_reaches_1_75": true,
+    "strong_weak_strong_prototype_second_cell_negative": true,
+    "strong_weak_strong_proposed_second_cell_restarts": true,
+    "margin2_widens_endpoints_in_path_rows": true,
+    "duplicate_anchor_satisfies_support2": true,
+    "gap_two_kept_gap_three_split": true,
+    "a_range_e0_uses_halfwidth_plus_margin": true
+  },
+  "all_documented_behaviours_observed": true
+}

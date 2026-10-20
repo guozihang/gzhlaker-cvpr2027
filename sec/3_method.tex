@@ -48,10 +48,14 @@ current draft does not establish. We never call a feature index a second or a so
   \caption{\textbf{FastVCL framework (proposed method).}
   Normalized fixed features produce sparse mutual anchors, robust temporal tracks and finite
   tubes. Full-resolution descriptors (blue dashed connection) are reused for in-tube local
-  DP, segment extraction and de-duplication. The lower row adds proposed frame-based
-  verification, named \texttt{seltive model} (Section~\ref{sec:method-selective}); its policies
-  remain unspecified and no result includes it. Matrices, paths and intervals are schematic.
-  The zero-floored DP differs from the current prototype.}
+  DP, segment extraction and de-duplication. The lower row inserts one shared
+  \texttt{seltive model} at two directed locations: a budgeted anchor decision before RANSAC
+  ($\Anch_0\to\Anch_1$) and a budgeted fusion decision after candidate extraction
+  ($\mathcal C_0\to\mathcal Y$). Both read original frames through a verified index-to-frame
+  map, share one pair budget and cache, and abstain on uncertainty or failure. The interface
+  and action rules are specified in Section~\ref{sec:method-decisions}, but no backend or
+  threshold has been validated. Matrices, paths and intervals are schematic; the zero-floored
+  DP differs from the current prototype.}
   \label{fig:framework}
 \end{figure*}
 
@@ -97,15 +101,12 @@ Without coordinate de-duplication one physical correspondence could support seve
 inliers and inflate a track's evidence.
 
 \paragraph{Sampling facts that constrain the experiments.}
-Zero-phase grids are nested ($I^{8}\subset I^{4}\subset I^{2}$): a coarser grid adds no
-coordinate but changes each row's Top-$K$ competition, so a multi-scale run must be compared
-with a single fine grid at an equal executed budget. Independent phase pairs differ from
-synchronous shifts $(p,p)$ and tile the two-dimensional offset. For one stride-$s$ grid, $h$
-distinct A anchor times span at least $(h-1)s$ indices, so a shorter copy cannot supply them
-wholly within itself; outside anchors, tube extension or merged phases may still produce a
-candidate overlapping that copy, and this is not an impossibility theorem. Top-$K$ partners
-share a time and are not independent support. The supplement records the derivations and
-the 64$\times$64 budget counts.
+Zero-phase grids are nested, so a multi-scale run must be compared with a single fine grid at
+an equal executed budget; independent phase pairs differ from synchronous shifts and tile the
+offset; and $h$ distinct anchor times on one stride-$s$ grid span at least $(h-1)s$ indices,
+so a short copy cannot supply them wholly within itself, though outside anchors and extension
+may still overlap it. Top-$K$ partners share a time and are not independent support.
+Derivations and the $64\times64$ counts are in the supplement.
 
 \subsection{Robust temporal tracks with dual-axis validation}
 \label{sec:method-tracks}
@@ -232,13 +233,10 @@ $(i,j)$; for tied transitions prefer a restart, then the stated step order. This
 rule belongs to the proposed specification.
 
 \paragraph{Restart semantics and segment extraction.}
-The prototype instead keeps a legal continuation even when negative: a cell with a legal
-predecessor never restarts, so a negative cell cannot start a traceback but a later strong
-cell inherits its deficit. On a one-cell-wide band, a long weak prefix can then prevent a
-later copy from attaining a positive score; a second copy can inherit a preceding gap's
-negative score. These constructed cases and their exact scores are shown in the supplement.
-E3 compares both rules on identical tubes; neither a toy example nor the zero-floor
-principle establishes a benchmark improvement.
+The prototype instead keeps a legal negative continuation, so a weak prefix can suppress a
+later copy and a second copy can inherit a preceding deficit; the supplement gives the
+constructed scores, and E3 compares both rules on identical tubes. Neither the toy example nor
+the zero-floor principle establishes a benchmark improvement.
 
 For the proposed output rule, clamp path cosines below zero, then average over a centered
 window of up to three matched nodes with edge padding. Keep nodes at or above
@@ -296,71 +294,120 @@ An empty list is a legitimate prediction for a negative or low-confidence pair
 \textsc{error}/\textsc{skipped} and is never rewritten as an empty list; doing so would change
 the denominators in Section~\ref{sec:exp-metric}.
 
-\subsection{Proposed selective verification: \texttt{seltive model}}
-\label{sec:method-selective}
-Figure~\ref{fig:framework} includes an optional JEV visual-copy verification branch under
-its requested name, \texttt{seltive model}. It consumes selected candidate intervals and
-matched indices together with original A/B frame context. It therefore requires a verified
-feature-index-to-frame map and additional visual input beyond the fixed ISC descriptors.
-A proposed verifier returns \texttt{COPY}, \texttt{NOT\_COPY} or \texttt{UNCERTAIN}; an
-unselected candidate, uncertain verdict or failed call retains the core prediction.
-Selection, model backend and the action on decisive verdicts remain unspecified. We do not
-assign an unvalidated deletion or score-update rule.
+\subsection{Two budgeted visual decision points}
+\label{sec:method-decisions}
+The optional branch in Figure~\ref{fig:framework}, a selective visual-decision model we refer
+to as the \texttt{seltive model}, asks one pretrained multimodal model a few questions about
+original frames. It is inserted at two places: before geometric fitting, to filter anchors, and
+after segment extraction, to fuse fragments. It requires a verified feature-index-to-frame map,
+original A/B frames and additional compute, and is outside the core H1--H3 comparison.
 
-The extension cannot recover a copy absent from its candidate pool and is excluded from
-Algorithm~\ref{alg:fastvcl} and the core H1--H3 comparison. E6 must compare core-only,
-random selection and selective verification on the same pool and call budget, report recall
-loss and false alarms, and add frame acquisition, model calls, failures, retries and fusion
-to the cost. No backend, benefit or downstream training status is established.
+\paragraph{Shared interface.}
+An item is an anchor $a=(i,j)$ or an ordered segment pair $(c_u,c_v)$. Anchor evidence uses up
+to three paired frame positions, the match and its immediate neighbours, and segment evidence
+adds the two fragment interiors, both boundary sides and, when available, the gap interior.
+Every image is labelled with side, time, index and cell. The prompt is fixed, options are
+ordered \texttt{COPY}/\texttt{NOT\_COPY}/\texttt{UNCERTAIN} or
+\texttt{MERGE}/\texttt{KEEP\_SEPARATE}/\texttt{UNCERTAIN}, and the question asks for the same
+underlying footage under crop, speed change, overlay and re-encoding; topical, person or
+action similarity is explicitly insufficient. We store raw candidate scores, option order and
+normalisation; JSON generation is a control, not the main readout. Sampling, resolution,
+model revision, adapter, prompt hash and missing-frame policy are frozen in a manifest.
+
+\paragraph{Anchor filtering.}
+All selectors start from the same $\Anch_0$, the coordinate-deduplicated and capped anchor
+set. This path is selection-only: unlike the prototype router, it never pre-rejects an anchor
+before a visual verdict, and an unselected anchor keeps its original role.
+Cheap signals are the bidirectional Top-$K$ margin
+\begin{equation}
+\mu(i,j)=\min\big(\Sim_{ij}-\Sim_{i,j^{(2)}_B},\;\Sim_{ij}-\Sim_{i^{(2)}_A,j}\big),
+\label{eq:margin}
+\end{equation}
+where $j^{(2)}_B$ and $i^{(2)}_A$ are second-ranked partners. The remaining cheap signals are
+the normalised residual to a local pre-fit line, time coverage and distinct support; pre-fit
+geometry is charged to the measured time. The default selector groups anchors on a grid of
+width twice the finest
+stride, visits groups round-robin so one repeated-texture cluster cannot exhaust the budget,
+and within a group ranks by $0.5$ small-margin rank plus $0.5$ large-residual rank, with a
+neutral $1/2$ for missing geometry or a singleton pool and ties by $(i,j)$. It only chooses
+questions; unselected anchors stay. With queried set $\mathcal Q$ and scores
+$p^{\mathrm{anc}}_N,p^{\mathrm{anc}}_C,p^{\mathrm{anc}}_U$,
+\begin{equation}
+\begin{aligned}
+D(a)=&\,\mathbf{1}[a\in\mathcal Q]\mathbf{1}[\text{verified}]\\
+&\cdot\mathbf{1}[p^{\mathrm{anc}}_N\ge\tau_A]
+\mathbf{1}[p^{\mathrm{anc}}_N-\max(p^{\mathrm{anc}}_C,p^{\mathrm{anc}}_U)\ge\delta_A],
+\end{aligned}
+\label{eq:action-anchor}
+\end{equation}
+and only $D(a)=1$ removes $a$: $\Anch_1=\Anch_0\setminus\{a:D(a)=1\}$. \texttt{COPY},
+\texttt{UNCERTAIN}, unselected, over-budget and failed anchors keep their coordinates and
+weight; the prototype's rule of multiplying \texttt{COPY} weights by $1.25$ is not inherited.
+Tracks are refitted
+and dual-axis support revalidated on $\Anch_1$, logging
+$\Anch_0\to\Anch_1\to$ tracks $\to$ tubes. The first mode is \textsc{shadow}, whose output must
+equal the core output item by item; filtering is enabled only after that gate, with candidate
+$\tau_A\in\{0.90,0.95,0.98\}$ and $\delta_A\in\{0.15,0.30\}$ on development data, frozen
+before test.
+
+\paragraph{Fragment fusion.}
+Fusion decides whether fragments belong to one continuous copy and re-estimates the interval;
+it is not score averaging or NMS. From $\mathcal C_0$, after near-duplicate removal, a legal
+directed edge requires consistent temporal order on both axes, declared gap caps, boundary-map
+compatibility (compare mapped positions, not slopes or intercepts) and a geometric bridge.
+The same A interval at a different B position is a separate copy and is excluded; neighbours
+are generated with a per-fragment cap. Evidence covers both fragment interiors, both
+boundaries and the gap, so the model does not extrapolate from endpoints. With geometry $G$
+and connection check $\mathrm{Conn}$,
+\begin{equation}
+\begin{aligned}
+M(u,v)=&\,G(u,v)\land\mathrm{Conn}(u,v)\land[p^{\mathrm{fus}}_M\ge\tau_F]\\
+&\land[p^{\mathrm{fus}}_M-\max(p^{\mathrm{fus}}_S,p^{\mathrm{fus}}_U)\ge\delta_F].
+\end{aligned}
+\label{eq:action-merge}
+\end{equation}
+Only $M=1$ merges; \texttt{KEEP\_SEPARATE}, \texttt{UNCERTAIN}, failure and budget exhaustion
+retain both fragments. $\mathrm{Conn}$ checks ISC evidence along a bounded connection region
+(valid coverage and longest low-score gap) and optionally a re-run alignment path that touches
+both fragments and passes the existing gap and support rules; unverifiable continuity keeps
+them separate, and the tube is not enlarged until a path appears. Endpoints are rebuilt from
+the supporting path and the core score is recomputed; the visual probability is not multiplied
+into $q$. Edges are processed in a stable order, and after each acceptance the set is
+re-verified against all its original members; a conflict stops expansion. One round is the
+default with no member reuse, and final de-duplication and cap come last.
+
+\paragraph{Budget and failure contract.}
+The two stages share one budget $K\in\{0,4,8,12\}$ (default $12$), with
+$K_A=\lfloor2K/3\rfloor$ anchor questions and $K_F=K-K_A$ fusion questions; unused anchor
+budget may move to fusion, never the reverse, and starting fusion must not reopen the pair
+budget. Questions, frames, unique and repeated frames, tokens, forwards, cache hits, memory and
+time are logged separately: questions are not calls, and a warm cache must not buy decisions.
+Retries are at most one and charged. Invalid options, NaN/Inf scores, mismatched ids and
+corrupt records are failures and never act. The cache key binds frame-content and index-map
+hashes, question type, coordinates, layout, option order, prompt and
+checkpoint/adapter/readout revision; failures are never cached as a verdict. Prefix sharing is
+attempted only for identical frame sets, layout, prompt prefix and revision, and the two
+stages are not one forward pass. Record fields are listed in the supplement.
+
+The branch cannot recover an anchor absent from $\Anch_0$, a copy absent from $\mathcal C_0$,
+or a boundary unsupported by any path. Filtering can lose recall and fusion can erase a real
+boundary, so both risks are measured rather than assumed away.
 
 \subsection{Algorithm and complexity}
 \label{sec:method-complexity}
-
-Algorithm~\ref{alg:fastvcl} summarizes one pair. Complexity must be stated twice: for the
-arithmetic the design intends and for the scanning an implementation performs. Conflating them
-is how a memory saving is misreported as an algorithmic speed-up.
-
-\paragraph{Coarse stage.}
-The number of scored grid pairs is
-\begin{equation}
-Q^{\mathrm{grid}}_{\mathrm{coarse}}
-=\sum_{g\in\Grid}|I_A^g|\,|I_B^g|
-\approx MN\sum_{g\in\Grid}\frac{1}{s_A^g s_B^g}.
-\label{eq:qcoarse}
-\end{equation}
-With all rows valid and fixed strides this is $\Theta(MN)$ (an $O(MN)$ upper bound
-with masks): the constant shrinks, the order does not. Three
-properties must be kept apart: not storing the full $M\times N$ matrix (memory, via tiling
-and streaming); keeping few anchors (output sparsity, $|\Anch|\ll MN$); and performing
-sub-quadratic arithmetic (false for fixed strides). If forward and backward Top-$K$ scans are
-evaluated separately, the executed dot-product count is about $2Q^{\mathrm{grid}}_{\mathrm{coarse}}$
-plus tie work; efficiency comparisons report that executed count.
-
-\paragraph{Refinement stage.}
-With direct offset addressing, the predecessor under $(\Delta i,\Delta j)$ has band-relative
-column $\delta_u=(j-\Delta j)-c_r(i-\Delta i)$, computed in $O(1)$; one dynamic program costs
-\begin{equation}
-O\!\left(L_rW_r|\Step|\right)=O(L_rW_r)
-\label{eq:dpideal}
-\end{equation}
-per path, and $O(P_rL_rW_r)$ for $P_r$ attempts, plus $O(d\,L_rW_r)$ to compute the band once.
-If the implementation scans all $W_r$ columns of the predecessor row for non-diagonal steps,
-the per-cell cost is $O(W_r)$ and the per-tube cost becomes
-\begin{equation}
-O\!\left(P_rL_rW_r^{\,2}\right).
-\label{eq:dpscan}
-\end{equation}
-Both bounds are reported, and the measured one is named in the timing results.
-
-\paragraph{Whole-pipeline time and memory.}
-In addition to normalization and dot products, account for tiled Top-$K$ selection,
-$O(RI|\Anch|)$ RANSAC hypothesis scoring for at most $R$ rounds and $I$ trials per round,
-refits/sorting, traceback and worst-case $O(C^2)$ greedy de-duplication of $C$ segments.
-The DP bound alone is not the pipeline bound. Resident input is $O((M+N)d)$. Beyond it,
-coarse storage includes the tile ($B_A B_B$ cells), retained Top-$K$ lists
-($K(n_A+n_B)$ entries for sampled lengths $n_A,n_B$), and anchors; sequential refinement
-requires $O(\max_r L_rW_r)$ tables. Peak RSS must also include retained candidates and
-runtime objects. Overlapping tubes duplicate work even when processed sequentially.
+Algorithm~\ref{alg:fastvcl} summarizes one pair. For fixed strides the coarse stage scores
+$\Theta(MN)$ pairs; reducing stored tiles, retaining few anchors and performing sub-quadratic
+arithmetic are different claims, and the executed dot-product count must be reported (about
+$2Q^{\mathrm{grid}}_{\mathrm{coarse}}$ plus ties when both Top-$K$ directions are scanned).
+Refinement costs $O(L_rW_r)$ per path and $O(P_rL_rW_r)$ for $P_r$ attempts with direct offset
+addressing, or $O(P_rL_rW_r^{\,2})$ with a predecessor-row scan; neither is the pipeline bound,
+which also includes tiled selection, $O(RI|\Anch|)$ RANSAC scoring, refits, traceback and
+$O(C^2)$ de-duplication. Resident input is $O((M+N)d)$; refinement keeps
+$O(\max_rL_rW_r)$ tables plus retained candidates. The decision layer adds at most $K$
+questions of at most $F\le6$ frames, $O(KF)$ encodings and suffixes, and a bounded
+$O(L_cW_c)$ connection check; batching reduces forwards, not questions. Since $\Tloc$ does not
+bound system cost, the augmented system reports $\Taug$ with cold cache, initialisation and
+steady state separated. Derivations are in the supplement.
 
 \begin{algorithm}[t]
 \caption{FastVCL: one video pair}
@@ -374,7 +421,8 @@ runtime objects. Overlapping tubes duplicate work even when processed sequential
   \State score $I_A^g\times I_B^g$; keep mutual Top-$K$ with $\Sim_{ij}\ge\tau$
   \State $\Anch\gets\Anch\cup\Anch_g$ \Comment{original indices}
 \EndFor
-\State $\Anch\gets\AnchorCap_{C_{\max}}(\Dedup_{(i,j)}(\Anch))$
+\State $\Anch\gets\AnchorCap_{C_{\max}}(\Dedup_{(i,j)}(\Anch))$ \Comment{this is $\Anch_0$}
+\State \Comment{optional anchor filtering: see Section~\ref{sec:method-decisions}}
 \State $\mathcal{R}\gets$ multi-track RANSAC with \eqref{eq:line}--\eqref{eq:span}
 \State split every $r\in\mathcal{R}$ by \eqref{eq:gapsplit}; re-validate
 \State $\mathcal{C}\gets\emptyset$
@@ -389,6 +437,7 @@ runtime objects. Overlapping tubes duplicate work even when processed sequential
   \EndFor
 \EndFor
 \State $\mathcal{C}\gets$ filter by duration/support; score by \eqref{eq:score}
+\State \Comment{optional fragment fusion: see Section~\ref{sec:method-decisions}}
 \State $\mathcal{Y}\gets$ score-ordered de-duplication by \eqref{eq:miniou}
 \State apply segment cap; write scores \Comment{threshold is declared at evaluation}
 \State \Return $\mathcal{Y}$ \Comment{possibly empty}

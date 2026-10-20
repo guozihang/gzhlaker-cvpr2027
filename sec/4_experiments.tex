@@ -2,16 +2,18 @@
 \label{sec:exp}
 This section specifies planned comparisons, not measured performance. Every result is
 \TODO{PENDING}. The data snapshot has been audited, but the feature-content digest,
-method configurations and final protocol are not yet frozen. Table~\ref{tab:main} reserves
-the primary comparison; the efficiency matrix and the full E1--E5 matrix are in the
-supplement, outside the main text only to respect the fallback page budget.
+method configurations, visual backend and final protocol are not yet frozen.
+Table~\ref{tab:main} reserves the core comparison, the two decision
+points are specified below, and the efficiency and E0--E5 matrices are in the supplement,
+outside the main text only to respect the fallback page budget.
 
 \begin{table*}[t]
 \centering
 \caption{\textbf{Main comparison under the proposed VCSL protocol.}
 Planned reruns use the same ISC features, pair lists, GT and evaluator, with separate
-validation-selected thresholds. Learned means that the downstream localizer was trained,
-even when we only load a checkpoint. Compatibility and weights must be verified before a
+validation-selected thresholds. ``Learned loc.'' marks a trained downstream localizer,
+even when we only load a checkpoint; the augmented row uses an external pretrained/post-trained
+visual model but no trained localizer. Compatibility and weights must be verified before a
 learned row is run. \TODO{All measurements are pending.} FAR is test-only.}
 \label{tab:main}
 \scriptsize
@@ -28,7 +30,8 @@ DTW                   & No  & -- & -- & -- & -- \\
 TransVCL              & Yes & -- & -- & -- & -- \\
 SPD                   & Yes & -- & -- & -- & -- \\
 Simple Sparse-to-Band & No  & -- & -- & -- & -- \\
-\textbf{FastVCL (proposed)} & No & -- & -- & -- & -- \\
+FastVCL-core          & No  & -- & -- & -- & -- \\
+FastVCL + \texttt{seltive model} & No & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}
 \vspace{3pt}
@@ -36,7 +39,8 @@ Simple Sparse-to-Band & No  & -- & -- & -- & -- \\
 Classical baseline implementations: VCSL~\cite{vcsl2022}; learned baselines:
 SPD~\cite{spd2021}, TransVCL~\cite{transvcl2023}. Report the four denominators in
 Section~\ref{sec:exp-metric}. Published numbers using different inputs or protocols belong
-in a separate supplementary table, never in this ranking. The verifier extension is excluded.
+in a separate supplementary table, never in this ranking. The augmented row adds frames and
+model calls; it is not a fixed-feature comparison, and $\Tloc$ alone is not its cost.
 \end{table*}
 
 
@@ -59,11 +63,22 @@ sweep. Validation is selection-biased, and because it has no negatives it cannot
 test FAR; a separate negative set needs documented provenance, otherwise FAR is held out.
 Audit shared videos across splits before treating pairs as independent.
 
+\paragraph{Development splits for the decision layer.}
+Development data are grouped by shared videos into \texttt{dev\_design} (structure and
+selector), \texttt{dev\_calibration} (action thresholds) and \texttt{dev\_audit} (held-out
+check), with overlap to official splits reported. The first target is about 200 real
+development pairs covering short copies, strong edits, repeated shots, semantically similar
+non-copies and multi-segment copies, plus at least 300 anchor and 150 fusion-edge decisions.
+If fewer exist, the count is reported as-is; synthetic samples do not fill the gap. Action
+labels require human review or traceable transform truth; model self-labels and ``inside a GT
+rectangle'' are weak proxies only, and without reliable labels the actions stay in shadow.
+Development negatives never come from the final test list.
+
 \subsection{Metric and completion accounting}
 \label{sec:exp-metric}
-For predictions $P_k$ and GT boxes $G_l$, define $O_k^A$ as the union of A-axis projections
-of their positive-area intersections, and $O_k^B$ analogously. Let $Q_l^A,Q_l^B$ reverse
-the roles. For nonempty predictions and GT, the reference evaluator computes
+For predictions $P_k$ and GT boxes $G_l$, let $O_k^A$ be the union of A-axis projections of
+their positive-area intersections and $O_k^B$ the analogue; $Q_l^A,Q_l^B$ reverse the roles.
+The reference evaluator computes
 \begin{equation}
 \begin{aligned}
 P_p&=\frac{\sum_k\ell(O_k^A)}{\sum_k\ell(P_{k,A})+\epsilon}
@@ -73,41 +88,29 @@ R_p&=\frac{\sum_l\ell(Q_l^A)}{\sum_l\ell(G_{l,A})+\epsilon}
 \end{aligned}
 \label{eq:metric}
 \end{equation}
-where $\epsilon=10^{-6}$ and $\ell$ is interval length. These are products of axis coverage,
-not min-IoU or area IoU. Empty predictions with nonempty GT return $(P_p,R_p)=(1,0)$;
-nonempty predictions with empty GT return $(0,1)$; both empty return $(1,1)$.
-The evaluator excludes exactly-one values separately from each mean. Write
-$\mathcal D_P=\{p:P_p\ne1\}$ and $\mathcal D_R=\{p:R_p\ne1\}$; then
+with $\ell$ interval length and $\epsilon=10^{-6}$: products of axis coverage, not min-IoU or
+area IoU. Empty predictions return $(P_p,R_p)=(1,0)$ against nonempty GT, nonempty
+predictions $(0,1)$ against empty GT, and both empty $(1,1)$; exactly-one values are excluded
+from each mean, and the macro means and F1 follow
 \begin{equation}
 \bar P=\frac{\sum_{p\in\mathcal D_P}P_p}{|\mathcal D_P|},\quad
 \bar R=\frac{\sum_{p\in\mathcal D_R}R_p}{|\mathcal D_R|},\quad
-\mathrm{F1}=\frac{2\bar P\bar R}{\bar P+\bar R+\epsilon}.
+\mathrm{F1}=\frac{2\bar P\bar R}{\bar P+\bar R+\epsilon},
 \label{eq:macro}
 \end{equation}
-The additive $\epsilon$ means an ordinary nonempty perfect overlap scores slightly below 1
-and remains in the average; it must not be described as automatically excluded. The final
-$\epsilon$ in \eqref{eq:macro} is the evaluator's zero guard: it is negligible for positive
-means and makes F1 zero when both means are zero. Preserve source dtype and equality
-semantics. Report an empty macro denominator as undefined, not zero. Legacy confidence
-filtering uses $q>c$ except that $c=0$ takes the no-filter branch; record that mode and
-integer-coordinate conversion explicitly.
-
-Each run reports four denominators: \texttt{n\_expected}, \texttt{n\_processed}
-(\textsc{ok}+\textsc{empty}), $|\mathcal D_P|$ and $|\mathcal D_R|$, plus failures,
-skips and counts excluded by equality. Only complete zero-error runs enter the main table.
-An exception is never converted into an empty prediction. Correctly rejected negatives
-contribute to neither macro mean, so separately report test negative-pair FAR: the fraction
-of the 27,315 negatives producing at least one segment. Validation FAR is \texttt{N/A}.
+where $\mathcal D_P=\{p:P_p\ne1\}$ and $\mathcal D_R=\{p:R_p\ne1\}$. Report
+\texttt{n\_expected}, \texttt{n\_processed} (\textsc{ok}+\textsc{empty}), both macro
+denominators, failures, skips and equality exclusions; an empty macro denominator is
+undefined, not zero, and an exception is never an empty prediction. Correctly rejected
+negatives enter no macro mean, so test negative-pair FAR is reported separately; validation
+FAR is \texttt{N/A}. The supplement records the additive-epsilon consequence, the legacy
+confidence-filter branch and the exact sentinel handling.
 
 \paragraph{Diagnostics.}
-Candidate recall uses tube envelopes: the fraction of valid GT segments with minimum axis
-IoU $\ge0.5$ to any envelope. This is a proposal-box diagnostic, not proof of a legal path or
-true frame correspondences; freeze the threshold and report the valid-GT denominator while
-keeping official scoring unchanged. Boundary MAE averages four endpoint errors in
-feature-index units after maximum-cardinality one-to-one matching at the same threshold
-(maximize total min-IoU second; deterministic ties); report matched count, recall and a
-common-GT cohort to expose survivor bias. Log band dots, DP cell visits and unique covered
-cells separately; repeated attempts do not imply recomputed cosines.
+Candidate recall uses tube envelopes at minimum axis IoU $\ge0.5$ and is a proposal-box
+diagnostic, not proof of a legal path. Boundary MAE averages four endpoint errors after
+maximum-cardinality one-to-one matching at the same threshold; report matched count, recall
+and a common-GT cohort. Log band dots, DP cell visits and unique covered cells separately.
 
 \subsection{Baselines and controlled experiments}
 \label{sec:exp-baselines}
@@ -117,26 +120,50 @@ prerequisites, not established facts. Other methods remain literature context un
 inputs and protocol can be aligned.
 
 \paragraph{Simple Sparse-to-Band (E1).}
-One zero-phase grid, mutual Top-$K$, RANSAC, fixed-width bands, one path per band, and
-shared scoring, threshold selection and min-IoU post-processing. The baseline omits gap
-splitting and the extra dual-axis support/span checks; its fit still requires distinct A
-times. It must use the same recurrence, margin and support rule as the core configuration it
-is compared with, so that the named structural change is the only difference. Match
-configured coarse work and caps, and report realized candidate counts; only E3 freezes
-identical tubes. An improvement is evidence of utility, not proof of novelty.
+One zero-phase grid, mutual Top-$K$, RANSAC, fixed-width bands, one path per band, and shared
+scoring, threshold selection and min-IoU post-processing. It omits gap splitting and the extra
+dual-axis support/span checks, but its fit still requires distinct A times. It must use the
+same recurrence, margin and support rule as the core configuration it is compared with; only
+E3 freezes identical tubes.
 
 \paragraph{E0--E5.}
-E0 compares external baselines. E1 tests the simple baseline. E2 varies stride, nested
-scales and independent phases, reporting candidate recall by minimum GT-axis duration
-($<15$, $[15,60)$, $\ge60$ indices) against executed dots; nested $\{2,4,8\}$ is not
-equal-budget to stride 2, and unmatched points are reported without an iso-budget claim.
-E3 holds tracks and tubes fixed and compares support boxes, band DTW, prototype continuation
-and the proposed zero-floor recurrence with common post-processing. E4 varies support,
-splitting, de-duplication, $e_A$ and $w_r$ one at a time; the zero-extension row must pass an
-explicit A range. E5 compares scan and direct-offset after semantic parity; a full-matrix DP
-is a separate search-domain comparison. Five seeds measure fit variability, not data
-significance; paired uncertainty must respect shared videos or say that only seed variation
-is available.
+E0 compares external baselines; E1 tests the simple baseline; E2 varies stride, nested scales
+and independent phases, reporting candidate recall by GT-axis duration ($<15$, $[15,60)$,
+$\ge60$ indices) against executed dots; E3 holds tracks and tubes and compares support boxes,
+band DTW, prototype continuation and the zero-floor recurrence; E4 varies support, splitting,
+de-duplication, $e_A$ and $w_r$ one at a time; E5 compares scan and direct-offset after
+semantic parity, with full-matrix DP as a separate search-domain comparison. Five seeds
+measure fit variability, not data significance.
+
+\subsection{Two decision points (E6)}
+\label{sec:exp-e6}
+The decision layer is evaluated in six rows, each fixing the correct upstream input.
+\textbf{E6-A} (anchor filter) starts from the same serialized $\Anch_0$ and core, and compares
+no action, random selection, a margin/geometry rule and time-spread selection at the same
+input cap; it reports action errors, downstream candidate coverage, full P/R/F1/FAR,
+tracks/tubes/DP work and total cost. \textbf{E6-F} (fusion) starts from the same
+$\mathcal C_0$ and legal edge pool and compares no fusion, geometry plus connection only,
+random visual and selective visual; it reports wrong bridges, correct and missed merges,
+recall, MAE on common GT and cost. \textbf{E6-J} reruns core, A only, F only and A+F on the
+same pairs; gains are never added across rows. \textbf{E6-S} compares independent,
+ordinary-batch and shared-prefix execution for decision agreement, prefill/suffix time, peak
+memory and real sharing fraction. \textbf{E6-R} separates candidate readout from author
+post-training and call policy, and \textbf{E6-V} uses real, masked and mismatched frames plus
+option permutations to expose language priors and leakage. Budget comparisons report
+per-stage resources and a same-total-budget comparison; twelve questions do not cost the same
+on different backends. A cheap visual or local-correspondence control on the same frames rules
+out a gain from merely seeing more pixels. The full matrix, including fixed inputs and
+required denominators, is in the supplement.
+
+\paragraph{Action risk and stopping rules.}
+The engineering acceptance targets are a true-copy anchor-deletion rate of at most $1\%$, a
+wrong-fusion rate of at most $1\%$, and a final recall drop of at most $0.5$ percentage points
+relative to core. These are project targets to freeze, not guarantees; they are read with
+confidence intervals and sample size, and zero errors on a small sample do not pass. If no
+threshold meets them on \texttt{dev\_calibration}, the action remains in shadow and the
+smaller supported conclusion is reported. Filtering that only reduces anchors is not a
+success; fusion that only reduces output count is not a success; neither is a score gain on
+the selected subset without full-set precision, recall and FAR.
 
 \subsection{Timing and quality--cost analysis}
 \label{sec:exp-e5}
@@ -147,6 +174,12 @@ extraction. Measure the whole pair, including every TransVCL chunk and assembly.
 intrusive profiling, warm up, repeat at least three rounds, fix thread counts and synchronize
 GPU endpoints. Report wall time, stage residuals, RSS and allocated/reserved GPU memory; only
 matched hardware supports an algorithmic speed comparison.
+
+For the augmented system, report $\Taug$ as well: it starts before frame reading and includes
+decode, evidence assembly, geometry pre-fit, transfer, model calls, retries, connection DP,
+score fusion and final output. Cold cache, first-call initialisation and steady state are
+separate rows. A warm-cache number may not be compared with a cold-cache baseline, and a
+routing-only time may not stand in for the model time.
 
 Vary compute-controlling settings such as stride, width and path budget to construct the
 quality--cost plane. Thresholds are selected on validation per configuration. A score
@@ -164,7 +197,13 @@ and remains empty until runs exist.
 No row can yet be filled from an admissible run. The audited near-complete development
 execution scored 41,797 of 41,798 validation pairs, with one error and an unfrozen
 configuration; the run named \texttt{dev1000} scored only 200 pairs in its metrics file.
-Synthetic checks establish limited semantics, not real-data accuracy. H1 fails if sparse
-proposals lose coverage; H2 is weakened if lower MAE merely reflects lost matches; H3 fails
-if proposal or implementation overhead erases the saving. Null findings must narrow the
-claim rather than trigger test-driven redesign.
+No visual backend, verified frame map or action threshold has been validated, and the local
+data snapshot contains no source video for the audited feature files, so the decision layer
+currently has interface-level evidence only. Synthetic checks establish limited semantics, not
+real-data accuracy. H1 fails if sparse proposals lose coverage; H2 is weakened if lower MAE
+merely reflects lost matches; H3 fails if proposal or implementation overhead erases the
+saving. H4-A fails if filtering deletes true anchors or only reduces work without a quality or
+cost benefit; H4-F fails if fusion bridges real non-copy gaps, cannot repair over-segmentation,
+or loses to the geometric rule; H4-B fails if the same budget spent randomly or on a cheap rule
+matches the selective policy. Null findings must narrow the claim rather than trigger
+test-driven redesign.

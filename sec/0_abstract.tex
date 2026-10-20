@@ -1,18 +1,20 @@
 \begin{abstract}
-Video copy localization identifies corresponding temporal intervals within a pair of
-untrimmed videos. With fixed pretrained frame descriptors, the cost of dense comparison
-grows with the temporal product, even when only a few intervals are copied. We formulate
-\emph{FastVCL}, a training-free downstream localizer that separates candidate discovery
-from boundary refinement. Sparse mutual Top-$K$ correspondences propose local temporal
-tracks; support checks and gap splitting define finite tubes; a zero-floored local dynamic
-program searches only within those tubes. The design exposes three questions: whether
-sparse proposals retain short copies, whether local alignment improves boundaries, and
-whether reduced alignment work translates into lower measured latency. We specify controls
-against a simple sparse-to-band baseline, distinguish executed arithmetic from memory
-savings, and define a common evaluation and timing protocol. A separate proposed visual
-verification branch, named \texttt{seltive model}, requires original frames and is not
-included in the fixed-feature comparison. The current prototype differs from the proposed
-restart rule, and no frozen benchmark comparison is available.
+Video copy localization identifies corresponding temporal intervals in a pair of untrimmed
+videos. With fixed pretrained frame descriptors, dense comparison scales with the temporal
+product even when only a few intervals are copied. We formulate \emph{FastVCL}, a
+sparse-to-tube localizer that separates candidate discovery from boundary refinement: mutual
+Top-$K$ correspondences propose temporal tracks, dual-axis support checks and gap splitting
+define finite tubes, and a zero-floored local dynamic program aligns only inside them. Fixed
+descriptors remain ambiguous on repeated textures and on copies split by weak evidence. We
+therefore ask whether a small budget of visual decisions helps at two points: before fitting,
+to remove doubtful anchors, and after alignment, to decide whether adjacent fragments belong
+to one continuous copy. Both stages query one shared pretrained/post-trained multimodal model,
+the \texttt{seltive model}, with explicit abstention, geometric gates, a shared pair budget
+and fallback to unchanged evidence on uncertainty or failure. We state falsifiable
+hypotheses, controls against random and geometric selection, risk limits for anchor deletion
+and wrong fusion, and an evaluation protocol that keeps core and augmented results separate.
+The branch uses an external model and original frames; no frozen benchmark result exists yet,
+so no accuracy or latency benefit is claimed.
 \TODO{EMPIRICAL RESULTS PENDING: populate accuracy, negative-pair false alarms and measured
 latency only from completed runs under the finalized protocol.}
 \end{abstract}

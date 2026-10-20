@@ -1,5 +1,7 @@
 # `seltive model`: selective visual verification specification (proposed)
 
+> **Superseded scope, 2026-10-19:** the user now requests JEV for pre-RANSAC anchor filtering and post-alignment segment fusion. The [round-four execution plan](../FastVCL_CVPR2027_第四轮审查与执行方案.md) defines the new two-stage design, actions, budget and experiments. The post-localization-only scope below is historical; implementation and real-model validation remain pending.
+
 Date: 2026-10-18. Status: **PROPOSED / NOT IMPLEMENTED / NOT EVALUATED**. This is the
 interface and experiment specification requested in the round-two plan. It does not claim a
 backend, a prompt, a selection policy or a measured benefit.

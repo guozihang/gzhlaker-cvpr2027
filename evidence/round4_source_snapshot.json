@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-19",
+  "scope": "read-only audit plus synthetic semantic probes; no benchmark/model run",
+  "prototype_head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+  "files": {
+    "../FastVCL/fastvcl/evaluate.py": "24074415629221c39c1da0f34e43cc497b367e22974141813ce7c5352c30b6e4",
+    "../FastVCL/fastvcl/tube.py": "76dbb0d56bc88763d580fdb2ba77ccfc5086ed3776f89db969f7a4956f7bd747",
+    "../FastVCL/fastvcl/segments.py": "cd45cbf74fe741ddc5ddce21b3bc8ccc8a7111145f6e389da8dd5cb5e18b5573",
+    "../FastVCL/docs/METHOD_DECISIONS.md": "c50707ca7c96cfaea8435b8283aa8114595644f553540b92916612fbc800bdb6",
+    "../gzhlaker_transvcl/metric/eval.py": "941728afd4b67e44997b39b8dd56bc443b177d907fa78d5fce1e2d22086ef1e6",
+    "../FastVCL/fastvcl/pipeline.py": "69a1eb5b40099599c70ed97ec4214ff90cb97099f4d5cca97d62c0caa3c6497a",
+    "../FastVCL/fastvcl/router.py": "d8520c2f86b6cd48cf1bc34ab5a1722dbe93137e72534557b777b974670f5613",
+    "../FastVCL/fastvcl/visual_jev.py": "e3afd02bb8eacfbab07299676469d94fb95dee92005f2a829f2c1fec211fa042",
+    "sec/3_method.tex": "d3390f5cc439e74870be26d96afa0ed36e10a0b4dd8279ad63b60ded094d0a6b",
+    "sec/4_experiments.tex": "a92f9cae1247fda2087249434cbd4bb18ac5f4bdaaa8a79d353ad972439793af",
+    "main.bib": "502e397b8d52b7dbf4fb6521b80b0130031ffa277693fb349f283cfb1a632b4a"
+  },
+  "prior_snapshot_files_unchanged": true
+}
