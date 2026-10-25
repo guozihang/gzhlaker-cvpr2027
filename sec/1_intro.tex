@@ -4,7 +4,8 @@ Video copy localization (VCL) returns the corresponding temporal intervals in a 
 video and a reference video. Unlike whole-video retrieval, it must identify partial copies
 and their boundaries on both axes, despite cropping, overlays, re-encoding or speed
 changes~\cite{vcsl2022,transvcl2023}. We study the pairwise task given fixed pretrained
-ISC descriptors, rather than searching a video library.
+ISC descriptors, rather than searching a video library; ``Fast'' is a project name, not a
+speed claim.
 
 Classical methods use geometric voting or temporal alignment; learned methods detect copy
 patterns in similarity maps or enhance frame interactions before
@@ -70,14 +71,3 @@ changes pseudo-tracks, fragmented copies and wrong-bridge risk. (iii)~\emph{Prot
 fixed-upstream-input comparisons, explicit action-risk denominators and a quality--cost
 analysis. The experiment matrix, cache fields and audit records are reproduction material,
 not separate contributions.
-
-\paragraph{Evidence status.}
-The code is a preliminary prototype whose continuation rule differs from the DP specified
-here and whose visual-verification path is anchor-level only. No frozen benchmark, model call
-or GPU timing supports the paper; the main tables retain visible placeholders, and
-development/synthetic checks are only in the supplement. The local data snapshot contains ISC
-features and labels but no source videos, so the decision layer is specified, not run.
-``Training-free'' refers only to the core: ISC is pretrained and validation labels select
-parameters. The \texttt{seltive model} branch
-(Section~\ref{sec:method-decisions}) adds an external model, original frames and additional
-compute, and is reported separately. ``Fast'' is a project name, not a speed claim.

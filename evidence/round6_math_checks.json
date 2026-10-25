@@ -1,0 +1,471 @@
+{
+  "kind": "deterministic_round6_semantics_and_notation_checks",
+  "benchmark_result": false,
+  "prototype_executed": false,
+  "model_executed": false,
+  "checks_passed": 35,
+  "checks_total": 35,
+  "all_passed": true,
+  "results": [
+    {
+      "name": "conn_rejects_disconnected_suffix",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "reason": "no path",
+        "dp_cells_visited": 25
+      }
+    },
+    {
+      "name": "conn_rejects_invalid_start",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "reason": "empty left support"
+      }
+    },
+    {
+      "name": "conn_rejects_gap_at_full_coverage",
+      "passed": true,
+      "detail": {
+        "coverage": 0.75,
+        "skipped_b": 1
+      }
+    },
+    {
+      "name": "conn_accepts_gap_when_threshold_allows",
+      "passed": true,
+      "detail": {
+        "ok": true,
+        "coverage": 0.75,
+        "path": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "name": "conn_accepts_legal_short_connection",
+      "passed": true,
+      "detail": {
+        "ok": true,
+        "path_nodes": 5,
+        "coverage": 1.0
+      }
+    },
+    {
+      "name": "conn_low_run_cap_is_effective",
+      "passed": true,
+      "detail": {
+        "strict": "quality",
+        "lenient_low_run": 1
+      }
+    },
+    {
+      "name": "conn_region_cap_rejects_without_dp",
+      "passed": true,
+      "detail": {
+        "reason": "region cap",
+        "area": 9
+      }
+    },
+    {
+      "name": "conn_empty_left_support",
+      "passed": true,
+      "detail": "empty left support"
+    },
+    {
+      "name": "conn_empty_right_support",
+      "passed": true,
+      "detail": "empty right support"
+    },
+    {
+      "name": "conn_accounting_matches_enumeration",
+      "passed": true,
+      "detail": {
+        "dp_cells_visited": 16,
+        "predecessor_evaluations": 21,
+        "score": 0.8000000000000002,
+        "oracle": 0.8000000000000004
+      }
+    },
+    {
+      "name": "conn_reuse_rechecks_and_costs_no_dp",
+      "passed": true,
+      "detail": {
+        "ok": true,
+        "reused": true,
+        "dp": 0
+      }
+    },
+    {
+      "name": "conn_reuse_rejects_wrong_endpoints",
+      "passed": true,
+      "detail": "start outside left support"
+    },
+    {
+      "name": "conn_reuse_rejects_undeclared_step",
+      "passed": true,
+      "detail": "reused path uses an undeclared step"
+    },
+    {
+      "name": "fusion_rejects_asymmetric_axis_tolerance",
+      "passed": true,
+      "detail": {
+        "reasons": [
+          "boundary map"
+        ],
+        "measures": {
+          "gap_a": 5,
+          "gap_b": 8,
+          "iou_a": 0.0,
+          "iou_b": 0.0,
+          "map_errors_b": [
+            3.0,
+            3.0
+          ],
+          "map_errors_a": [
+            3.0,
+            3.0
+          ],
+          "max_map_error_b": 3.0,
+          "max_map_error_a": 3.0,
+          "max_map_error": 3.0,
+          "normalized_map_error": 3.0
+        }
+      }
+    },
+    {
+      "name": "fusion_accepts_small_symmetric_errors",
+      "passed": true,
+      "detail": {
+        "reasons": [],
+        "measures": {
+          "gap_a": 5,
+          "gap_b": 5,
+          "iou_a": 0.0,
+          "iou_b": 0.0,
+          "map_errors_b": [
+            0.0,
+            0.0
+          ],
+          "map_errors_a": [
+            0.0,
+            0.0
+          ],
+          "max_map_error_b": 0.0,
+          "max_map_error_a": 0.0,
+          "max_map_error": 0.0,
+          "normalized_map_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "fusion_rejects_nonfinite_threshold",
+      "passed": true,
+      "detail": [
+        "invalid threshold"
+      ]
+    },
+    {
+      "name": "fusion_rejects_degenerate_slope",
+      "passed": true,
+      "detail": [
+        "degenerate map"
+      ]
+    },
+    {
+      "name": "fusion_accepts_zero_gap_both_axes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "fusion_rejects_single_axis_zero_gap",
+      "passed": true,
+      "detail": [
+        "single-axis zero gap"
+      ]
+    },
+    {
+      "name": "fusion_keeps_same_a_different_b_separate",
+      "passed": true,
+      "detail": [
+        "order/overlap",
+        "negative gap",
+        "boundary map",
+        "same-A different-B"
+      ]
+    },
+    {
+      "name": "fusion_rejects_reversed_order",
+      "passed": true,
+      "detail": [
+        "order/overlap",
+        "negative gap"
+      ]
+    },
+    {
+      "name": "merge_chain_only_one_pair",
+      "passed": true,
+      "detail": {
+        "merges": [
+          {
+            "members": [
+              1,
+              2
+            ],
+            "endpoints": {
+              "a_s": 0,
+              "a_e": 10,
+              "b_s": 0,
+              "b_e": 10,
+              "score": 0.9
+            }
+          }
+        ],
+        "actions": [
+          {
+            "edge": [
+              1,
+              2
+            ],
+            "status": "merged",
+            "reason": "accepted pair"
+          },
+          {
+            "edge": [
+              2,
+              3
+            ],
+            "status": "skipped_consumed",
+            "reason": "member already consumed"
+          }
+        ],
+        "consumed": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "merge_shared_member_is_not_reused",
+      "passed": true,
+      "detail": {
+        "merges": [
+          {
+            "members": [
+              1,
+              2
+            ],
+            "endpoints": {
+              "a_s": 0,
+              "a_e": 10,
+              "b_s": 0,
+              "b_e": 10,
+              "score": 0.9
+            }
+          }
+        ],
+        "actions": [
+          {
+            "edge": [
+              1,
+              2
+            ],
+            "status": "merged",
+            "reason": "accepted pair"
+          },
+          {
+            "edge": [
+              1,
+              3
+            ],
+            "status": "skipped_consumed",
+            "reason": "member already consumed"
+          }
+        ],
+        "consumed": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "merge_rebuild_failure_keeps_members",
+      "passed": true,
+      "detail": {
+        "merges": [
+          {
+            "members": [
+              1,
+              3
+            ],
+            "endpoints": {
+              "a_s": 0,
+              "a_e": 10,
+              "b_s": 0,
+              "b_e": 10,
+              "score": 0.9
+            }
+          }
+        ],
+        "actions": [
+          {
+            "edge": [
+              1,
+              2
+            ],
+            "status": "rejected_rebuild",
+            "reason": "endpoint/score reconstruction failed"
+          },
+          {
+            "edge": [
+              1,
+              3
+            ],
+            "status": "merged",
+            "reason": "accepted pair"
+          }
+        ],
+        "consumed": [
+          1,
+          3
+        ]
+      }
+    },
+    {
+      "name": "merge_uncertain_keeps_fragments",
+      "passed": true,
+      "detail": {
+        "merges": [],
+        "actions": [
+          {
+            "edge": [
+              1,
+              2
+            ],
+            "status": "uncertain",
+            "reason": "visual verdict is not accept"
+          }
+        ],
+        "consumed": []
+      }
+    },
+    {
+      "name": "budget_envelope_transfer_case",
+      "passed": true,
+      "detail": {
+        "B": 12,
+        "B_A": 8,
+        "B_F": 4,
+        "fixed_pairs": 44,
+        "max_pairs": 60,
+        "max_source_slots": 120,
+        "max_q_a": 8
+      }
+    },
+    {
+      "name": "budget_all_transferred_is_valid",
+      "passed": true,
+      "detail": {
+        "valid": true,
+        "violations": [],
+        "B": 12,
+        "B_A": 8,
+        "B_F": 4,
+        "q_A": 0,
+        "q_F": 12,
+        "transferred_to_fusion": 8,
+        "unused": 0,
+        "paired_positions": 60,
+        "source_frame_slots": 120,
+        "paired_bound": 60,
+        "slot_bound": 120
+      }
+    },
+    {
+      "name": "budget_fixed_allocation_is_special_case",
+      "passed": true,
+      "detail": {
+        "valid": true,
+        "violations": [],
+        "B": 12,
+        "B_A": 8,
+        "B_F": 4,
+        "q_A": 8,
+        "q_F": 4,
+        "transferred_to_fusion": 0,
+        "unused": 0,
+        "paired_positions": 44,
+        "source_frame_slots": 88,
+        "paired_bound": 60,
+        "slot_bound": 120
+      }
+    },
+    {
+      "name": "budget_rejects_quota_violations",
+      "passed": true,
+      "detail": {
+        "over_a": [
+          "anchor quota exceeded"
+        ],
+        "over_total": [
+          "total budget exceeded"
+        ]
+      }
+    },
+    {
+      "name": "method_conn_is_anchored",
+      "passed": true,
+      "detail": {
+        "anchored": true
+      }
+    },
+    {
+      "name": "method_coverage_is_interval_based",
+      "passed": true,
+      "detail": {
+        "coverage_interval": true
+      }
+    },
+    {
+      "name": "method_fusion_is_axis_wise",
+      "passed": true,
+      "detail": {
+        "axis_wise": true
+      }
+    },
+    {
+      "name": "method_budget_transfer_bound",
+      "passed": true,
+      "detail": {
+        "budget_bound": true
+      }
+    },
+    {
+      "name": "supplement_matches_repaired_rules",
+      "passed": true,
+      "detail": {
+        "supplement_repaired": true
+      }
+    },
+    {
+      "name": "experiments_do_not_call_conn_only_a_model_row",
+      "passed": true,
+      "detail": {
+        "conn_only_accounted": true
+      }
+    }
+  ],
+  "scope": "Reference-rule and manuscript-text checks only; no VCSL pair, prototype, visual model, GPU or benchmark was run."
+}

@@ -4,6 +4,13 @@ This manifest records the assets, hashes and conventions that any future run mus
 Hashes were recomputed on 2026-10-17 from the local VCSL copy, not copied from an old log.
 No experiment in this draft is `BENCHMARK_VERIFIED`.
 
+**Round 6 update (2026-10-25).** No experiment was run. The audited local feature tree still
+has 12,254 `.npy` files; summing `stat().st_size` gives **4,388,241,152 bytes**, while
+summing `stat().st_blocks*512` gives **4,418,396,160 bytes**. The two figures therefore use
+logical-byte and allocated-block scopes; neither indicates a content change, and neither is an
+experiment artifact. Feature-content digests, frame maps and the frozen protocol are still
+absent. See [round6_review.md](round6_review.md).
+
 ## 1. Dataset
 
 | Item | Value |

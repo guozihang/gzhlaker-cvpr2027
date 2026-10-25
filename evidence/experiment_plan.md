@@ -3,6 +3,12 @@
 All comparisons are **PROPOSED / NOT RUN**. This file supersedes earlier E1 and budget
 rules. See the Chinese round-two execution plan for task order and deliverable names.
 
+**Round 6 note (2026-10-25):** the E6-F "geometry / Conn only" control asks **zero** model
+questions and may check at most 12 legal edges; it must not be reported as a 12-question
+row. The four-cell split disables cross-stage transfer, whereas A12/F12/A8+F4 must state
+whether transfer is enabled. Current `Conn`, coverage, per-axis geometry and one-pair merging
+are specified in `sec/3_method.tex`, `supplementary.tex` and `scripts/round6_reference.py`.
+
 ## Hypotheses and decisions
 
 | Hypothesis | Evidence needed | Failure interpretation |

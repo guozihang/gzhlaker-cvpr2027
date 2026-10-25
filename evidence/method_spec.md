@@ -5,6 +5,12 @@ Normative equations and algorithm: `sec/3_method.tex`. The prototype remains rea
 its HEAD on this audit is `fdc3362b2418b316e16d6dfd68435e40c1b1afb8`.
 The round-two report records corrections to the previous version.
 
+**Round 6 note (2026-10-25):** this file covers the core only. The repaired two-end
+`Conn` certification, interval coverage, per-axis fusion geometry, one-pair merge scope and the
+transfer-aware budget bound are specified in `sec/3_method.tex` and `supplementary.tex` and
+reference-checked in `scripts/round6_reference.py` (35/35 probes); they are not implemented in
+the prototype.
+
 ## 1. Scope and inputs
 
 Core input: fixed pre-extracted ISC matrices $F_A\in R^{M\times256}$ and

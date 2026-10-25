@@ -1,9 +1,11 @@
 # `seltive model`: current two-stage specification (proposed)
 
-Date: 2026-10-20. Status: **PROPOSED / NOT IMPLEMENTED / NOT EVALUATED**. This file is the
-current specification requested in round five. It supersedes the 2026-10-18 post-localization
-scope, which is retained only as a historical note at the end. It does not claim a backend, a
-prompt, a selection policy or a measured benefit.
+Date: 2026-10-20; **fusion/budget rules repaired 2026-10-25 (round 6)**. Status: **PROPOSED /
+NOT IMPLEMENTED / NOT EVALUATED**. This file is the current specification requested in round
+five and kept consistent with the round-six repair of `Conn`, coverage, per-axis geometry and
+one-pair-at-a-time merging. It supersedes the 2026-10-18 post-localization scope, which is
+retained only as a historical note at the end. It does not claim a backend, a prompt, a
+selection policy or a measured benefit.
 
 The user-requested name is exactly **`seltive model`**; it is kept verbatim in the figure,
 the manuscript and this file. “JEV” is the historical internal name for the same branch. The
@@ -117,13 +119,16 @@ From $\mathcal C_0$ after near-duplicate removal, a legal directed edge $(c_u,c_
 1. consistent temporal order and disjointness in the first version,
    $a_e^u\le a_s^v$ and $b_e^u\le b_s^v$;
 2. A and B gaps within frozen caps $G_A,G_B$, with raw and normalised gaps recorded;
-3. boundary-map agreement: for the A-to-B map $m_u$ of $u$,
-   $|m_u(a_s^v)-b_s^v|\le\kappa_B$ and $|m_u(a_e^v)-b_e^v|\le\kappa_B$; for the inverse map of
-   $v$, $|m_v^{-1}(b_s^u)-a_s^u|\le\kappa_A$ and $|m_v^{-1}(b_e^u)-a_e^u|\le\kappa_A$;
+3. boundary-map agreement is checked direction by direction, never against a pooled
+   tolerance: the two A-to-B residuals $|m_u(a)-b|$ at $a\in\{a_s^v,a_e^v\}$ must each be at
+   most $\kappa_B$, and the two B-to-A residuals $|m_v^{-1}(b)-a|$ at
+   $b\in\{b_s^u,b_e^u\}$ each at most $\kappa_A$;
 4. a connector from $(a_e^u,b_e^u)$ to $(a_s^v,b_s^v)$ with slope in
-   $[\alpha_{\min},\alpha_{\max}]$, with a zero-length gap handled by the map checks alone.
+   $[\alpha_{\min},\alpha_{\max}]$; a zero gap is legal only when both axes are zero, and a
+   single-axis zero gap has no finite connector slope and is rejected.
 
-A missing map makes the edge unavailable. A pair with
+Thresholds and inverse slopes must be finite; a missing or degenerate map makes the edge
+unavailable. A pair with
 $\operatorname{IoU}_A\ge\theta_{\mathrm{dedup}}$ but
 $\operatorname{IoU}_B<\theta_{\mathrm{dedup}}$ is the same A interval at another B position,
 hence a separate copy, and is excluded. Neighbours use a deterministic per-fragment cap;
@@ -131,20 +136,28 @@ edge and truncation counts are recorded.
 
 The first-version selector groups edges by the earlier fragment's A position on a grid of
 width twice the finest stride and visits groups round-robin. Within a group it sorts by
-$\tilde g=\max(\mathrm{gap}_A/G_A,\mathrm{gap}_B/G_B)$, then by the maximum boundary-map error
-over the four comparisons, then by $(c_u.\mathrm{id},c_v.\mathrm{id})$, and selects at most
-$B_F$ edges. No learned benefit predictor is used.
+$\tilde g=\max(\mathrm{gap}_A/G_A,\mathrm{gap}_B/G_B)$, then by the maximum
+threshold-normalised boundary-map error $\max(\max e_B/\kappa_B,\max e_A/\kappa_A)$, then by
+$(c_u.\mathrm{id},c_v.\mathrm{id})$, and selects at most $B_F$ edges. No learned benefit predictor is used.
 
-The connection check `Conn` is fixed before the model call. Its region
+The connection check `Conn` is fixed before the model call and is a *certification* pass,
+separate from the local DP that proposes paths. Its region
 $R_e=[a_e^u-\eta_A,a_s^v+\eta_A)\times[b_e^u-\eta_B,b_s^v+\eta_B)$ is clipped to the video;
 if its area exceeds $L_cW_c$, the edge is unavailable and the truncation is recorded. Support
 nodes are path nodes of $u$ with A index in $[a_e^u-\beta_A,a_e^u)$ and of $v$ with A index in
-$[a_s^v,a_s^v+\beta_A)$; an empty set gives `Conn=0`. Reuse a verified path touching both
-fragments, or run a bounded DP with the core steps, score $S_{ij}-\tau_{\mathrm{conn}}$ and
-zero restart inside $R_e$. `Conn=1` only if a cell adjacent to a support node of $v$ is
-reachable and the backtraced path has valid coverage at least $\kappa_{\mathrm{cov}}$ and no
-low-score run longer than $g_c$. Failure keeps the fragments separate; the region is never
-enlarged until a path appears; all attempted and failed cell visits are counted.
+$[a_s^v,a_s^v+\beta_A)$; an empty set gives `Conn=0`. Only valid left support nodes with
+positive scores seed the bounded DP; no other cell starts a path and no cell restarts one. It
+propagates the declared steps with score $S_{ij}-\tau_{\mathrm{conn}}$ while the cumulative
+score stays positive. A cell merely adjacent to the right fragment is not sufficient: the
+backtraced path must start at a left support node and end at a right support node, and both
+memberships are checked. Ties use score, then end coordinates, then step order. Coverage is
+interval-based, $\min(d_A/s_A,d_B/s_B)$ over the endpoint spans, and low-score runs are counted
+on path nodes; skipped indices and invalid cells in the bounding box are logged separately.
+Only the single highest-scoring path is tested; if it fails, the edge is rejected in this
+conservative first version, which does not claim to enumerate all feasible paths. A reused
+path passes the same endpoint, region, step and quality tests. Failure keeps the fragments
+separate; the region is never enlarged until a path appears; all attempted and failed cell
+visits are counted.
 
 With geometric legality $G$,
 
@@ -154,12 +167,14 @@ M(u,v)=G(u,v)\land\mathrm{Conn}(u,v)\land[p^{\mathrm{fus}}_M\ge\tau_F]
 \]
 
 and only $M=1$ merges. `KEEP_SEPARATE`, `UNCERTAIN`, failure and budget exhaustion retain both
-fragments. The first version merges only original disjoint pairs of $\mathcal C_0$; an
-accepted merge consumes both members, creates no new edge and does not propagate. After each
-acceptance the set is re-verified against its original members; a conflict stops expansion.
-Endpoints are rebuilt from merged path nodes and de-duplicated anchors; support and $q$ are
-recomputed by the core score rule, never by $\max(q_u,q_v)$ or a product with the visual
-probability. Development grids are $\tau_F\in\{0.90,0.95,0.98\}$ and
+fragments. The first version merges only original disjoint pairs of $\mathcal C_0$, processed
+in the frozen selector order; a pair is eligible only when neither member has been consumed.
+An accepted merge consumes exactly its two members, creates no new edge, performs no second
+model call, and triggers no set-level re-verification or propagation to a third fragment. If
+reconstruction fails, the action is rejected and both members remain available;
+same-A/different-B duplicates stay separate. Endpoints are rebuilt from merged path nodes and
+de-duplicated anchors; support and $q$ are recomputed by the core score rule, never by
+$\max(q_u,q_v)$ or a product with the visual probability. Development grids are $\tau_F\in\{0.90,0.95,0.98\}$ and
 $\delta_F\in\{0.15,0.30\}$; if no pair meets the risk and recall targets, fusion stays in
 shadow.
 
@@ -169,11 +184,15 @@ shadow.
 |---|---|---|
 | Anchor evidence | match + neighbours; at most 3 pairs / 6 source frames | source frames, boards, tokens separate |
 | Fusion evidence | interiors, boundaries, gap; at most 5 pairs / 10 source frames | overlaps de-duplicated; missing marked; no gap midpoint for overlap |
-| Question budget | $B\in\{0,4,8,12\}$, $B_A=\lfloor2B/3\rfloor$, $B_F=B-B_A$ | one logical question once; cache hit counts; unused A may move to F, never reverse |
+| Question budget | $B\in\{0,4,8,12\}$; $q_A\le\lfloor2B/3\rfloor$, $q_A+q_F\le B$; initial $B_A=\lfloor2B/3\rfloor$, $B_F=B-B_A$ | one logical question once; cache hit counts; unused A may move to F, never reverse; $3B_A+5B_F$ is only the fixed-allocation special case |
 | Retry | default off; if enabled at most one per question plus cap $R$ | extra execution charged; report $B+R$ |
 | Connection | fixed $R_e$, cap $L_cW_c$; reuse or bounded DP | all attempts and failed cell visits counted |
 
-The two stages share one pair budget; starting fusion must not reopen the pair budget.
+The two stages share one pair budget; starting fusion must not reopen the pair budget. With
+at most 3 paired positions per anchor question and 5 per fusion question,
+$N_{\mathrm{paired}}\le3q_A+5q_F\le5B$ and
+$N_{\mathrm{slots}}\le6q_A+10q_F\le10B$. At $B=12$, transferring all eight anchor questions
+permits 60 paired positions and 120 source-frame slots, not 44.
 Questions, frames, unique/repeated frames, tokens, forward passes, cache hits, memory and time
 are logged separately. The cache key binds frame-content and index-map hashes, question type,
 coordinates, layout, option order, prompt and checkpoint/adapter/readout revision. Failures

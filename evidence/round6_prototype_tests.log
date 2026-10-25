@@ -1,0 +1,2142 @@
+............missing required configuration: pair_file, feat_dir (set it in the config file, an environment variable, or a CLI flag)
+..measure[baseline]: ok
+measure[baseline]: ok
+measure[topk_3]: ok
+measure[stride_2]: ok
+measure[multi_scale_2_4_8]: ok
+measure[independent_phases_4]: ok
+measure[paths_8]: ok
+measure[extension_a_32]: ok
+{
+  "n_pairs": 6,
+  "usable_pairs": 6,
+  "excluded_pairs": 0,
+  "coverage": 1.0,
+  "problems_by_reason": {},
+  "coordinate_mode": "feature_index_only",
+  "encoders": {
+    "isc": {
+      "configured": true,
+      "root": "/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_84ii3uhz/data/features",
+      "dim": 32,
+      "present": 12,
+      "missing": 0
+    },
+    "dino": {
+      "configured": false,
+      "present": 0,
+      "missing": 0
+    }
+  },
+  "frame_dir": null,
+  "key_conflicts": [],
+  "notes": [
+    "label file loaded: 6 keys",
+    "no timestamp table: coordinate_mode stays feature_index_only; slopes are index-space mappings, not physical playback speeds"
+  ]
+}
+audit    : /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_84ii3uhz/out/asset_audit.json
+coverage : /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_84ii3uhz/out/coverage.csv
+assets   : /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_84ii3uhz/out/asset_manifest.json
+model    : /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_84ii3uhz/out/model_manifest.json
+{
+  "rows": [
+    {
+      "label": "baseline",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 0.3838,
+      "t_io_p50_ms": 0.3826,
+      "t_io_p95_ms": 0.4309,
+      "t_localize_mean_ms": 13.682,
+      "t_localize_p50_ms": 9.1411,
+      "t_localize_p95_ms": 33.366,
+      "t_serialize_mean_ms": 0.0019,
+      "t_pair_wall_mean_ms": 14.2999,
+      "t_pair_wall_p50_ms": 9.7334,
+      "t_pair_wall_p95_ms": 34.0618,
+      "t_dataset_wall_seconds": 0.0969,
+      "throughput_pairs_per_second": 61.8986,
+      "peak_rss_during_measurement_mb": 57.65625,
+      "rss_after_warmup_mb": 56.96875,
+      "n_segments": 3,
+      "warmup_seconds": 0.0448,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 2.303,
+          "t_localize_total_ms": 82.0923,
+          "t_serialize_total_ms": 0.0116,
+          "t_pair_wall_total_ms": 85.7994,
+          "wall_seconds": 0.0969,
+          "throughput_pairs_per_second": 61.8986,
+          "n_segments": 3
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 56.96875,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.484375,
+          "peak_rss_mb": 57.65625,
+          "round_wall_seconds": 0.09693266700196546
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 2.303,
+        "ransac": 50.9918,
+        "serialization": 0.0116,
+        "sparse_match": 26.8322,
+        "tube": 4.2565
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9769,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "baseline",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 1.0361,
+      "t_io_p50_ms": 0.3735,
+      "t_io_p95_ms": 3.3684,
+      "t_localize_mean_ms": 13.7706,
+      "t_localize_p50_ms": 9.1904,
+      "t_localize_p95_ms": 33.8321,
+      "t_serialize_mean_ms": 0.0017,
+      "t_pair_wall_mean_ms": 15.0746,
+      "t_pair_wall_p50_ms": 11.3841,
+      "t_pair_wall_p95_ms": 34.5724,
+      "t_dataset_wall_seconds": 0.1016,
+      "throughput_pairs_per_second": 59.0362,
+      "peak_rss_during_measurement_mb": 57.734375,
+      "rss_after_warmup_mb": 57.125,
+      "n_segments": 3,
+      "warmup_seconds": 0.0449,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 6.2163,
+          "t_localize_total_ms": 82.6237,
+          "t_serialize_total_ms": 0.0101,
+          "t_pair_wall_total_ms": 90.4475,
+          "wall_seconds": 0.1016,
+          "throughput_pairs_per_second": 59.0362,
+          "n_segments": 3
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 57.125,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.703125,
+          "peak_rss_mb": 57.734375,
+          "round_wall_seconds": 0.10163254200597294
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 6.2163,
+        "ransac": 52.0088,
+        "serialization": 0.0101,
+        "sparse_match": 26.4237,
+        "tube": 4.1808
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9763,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "topk_3",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 1.0742,
+      "t_io_p50_ms": 0.3632,
+      "t_io_p95_ms": 3.5857,
+      "t_localize_mean_ms": 56.637,
+      "t_localize_p50_ms": 15.5355,
+      "t_localize_p95_ms": 210.3424,
+      "t_serialize_mean_ms": 0.0017,
+      "t_pair_wall_mean_ms": 57.977,
+      "t_pair_wall_p50_ms": 16.1441,
+      "t_pair_wall_p95_ms": 211.0562,
+      "t_dataset_wall_seconds": 0.3591,
+      "throughput_pairs_per_second": 16.7096,
+      "peak_rss_during_measurement_mb": 58.09375,
+      "rss_after_warmup_mb": 57.234375,
+      "n_segments": 2,
+      "warmup_seconds": 0.0446,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 6.4449,
+          "t_localize_total_ms": 339.8218,
+          "t_serialize_total_ms": 0.0104,
+          "t_pair_wall_total_ms": 347.862,
+          "wall_seconds": 0.3591,
+          "throughput_pairs_per_second": 16.7096,
+          "n_segments": 2
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 57.234375,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.921875,
+          "peak_rss_mb": 58.09375,
+          "round_wall_seconds": 0.35907449999649543
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 6.4449,
+        "ransac": 304.3055,
+        "serialization": 0.0104,
+        "sparse_match": 32.8947,
+        "tube": 2.6111
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9843,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "stride_2",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 2.3514,
+      "t_io_p50_ms": 0.481,
+      "t_io_p95_ms": 6.9205,
+      "t_localize_mean_ms": 93.9937,
+      "t_localize_p50_ms": 25.3894,
+      "t_localize_p95_ms": 328.9366,
+      "t_serialize_mean_ms": 0.0021,
+      "t_pair_wall_mean_ms": 96.7232,
+      "t_pair_wall_p50_ms": 26.0952,
+      "t_pair_wall_p95_ms": 331.8216,
+      "t_dataset_wall_seconds": 0.5941,
+      "throughput_pairs_per_second": 10.0997,
+      "peak_rss_during_measurement_mb": 58.171875,
+      "rss_after_warmup_mb": 56.984375,
+      "n_segments": 3,
+      "warmup_seconds": 0.0554,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 14.1082,
+          "t_localize_total_ms": 563.9623,
+          "t_serialize_total_ms": 0.0125,
+          "t_pair_wall_total_ms": 580.3393,
+          "wall_seconds": 0.5941,
+          "throughput_pairs_per_second": 10.0997,
+          "n_segments": 3
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 56.984375,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 58.0,
+          "peak_rss_mb": 58.171875,
+          "round_wall_seconds": 0.5940775000053691
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 14.1082,
+        "ransac": 489.7405,
+        "serialization": 0.0125,
+        "sparse_match": 70.2312,
+        "tube": 3.9779
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9898,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "multi_scale_2_4_8",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 1.5454,
+      "t_io_p50_ms": 0.5021,
+      "t_io_p95_ms": 5.2089,
+      "t_localize_mean_ms": 51.0296,
+      "t_localize_p50_ms": 38.3244,
+      "t_localize_p95_ms": 106.9116,
+      "t_serialize_mean_ms": 0.0021,
+      "t_pair_wall_mean_ms": 52.9293,
+      "t_pair_wall_p50_ms": 42.3441,
+      "t_pair_wall_p95_ms": 107.8636,
+      "t_dataset_wall_seconds": 0.3337,
+      "throughput_pairs_per_second": 17.9797,
+      "peak_rss_during_measurement_mb": 57.90625,
+      "rss_after_warmup_mb": 56.984375,
+      "n_segments": 4,
+      "warmup_seconds": 0.0753,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 9.2722,
+          "t_localize_total_ms": 306.1777,
+          "t_serialize_total_ms": 0.0128,
+          "t_pair_wall_total_ms": 317.5761,
+          "wall_seconds": 0.3337,
+          "throughput_pairs_per_second": 17.9797,
+          "n_segments": 4
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 56.984375,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.734375,
+          "peak_rss_mb": 57.90625,
+          "round_wall_seconds": 0.3337095419992693
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 9.2722,
+        "ransac": 207.2706,
+        "serialization": 0.0128,
+        "sparse_match": 96.6451,
+        "tube": 2.2494
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9906,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "independent_phases_4",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 1.4437,
+      "t_io_p50_ms": 0.5262,
+      "t_io_p95_ms": 4.6536,
+      "t_localize_mean_ms": 46.2798,
+      "t_localize_p50_ms": 36.0262,
+      "t_localize_p95_ms": 88.7273,
+      "t_serialize_mean_ms": 0.0022,
+      "t_pair_wall_mean_ms": 48.2243,
+      "t_pair_wall_p50_ms": 39.6527,
+      "t_pair_wall_p95_ms": 89.8399,
+      "t_dataset_wall_seconds": 0.309,
+      "throughput_pairs_per_second": 19.4202,
+      "peak_rss_during_measurement_mb": 58.0,
+      "rss_after_warmup_mb": 57.234375,
+      "n_segments": 2,
+      "warmup_seconds": 0.0829,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 8.6624,
+          "t_localize_total_ms": 277.6786,
+          "t_serialize_total_ms": 0.0129,
+          "t_pair_wall_total_ms": 289.3459,
+          "wall_seconds": 0.309,
+          "throughput_pairs_per_second": 19.4202,
+          "n_segments": 2
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 57.234375,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 58.203125,
+          "peak_rss_mb": 58.0,
+          "round_wall_seconds": 0.3089567499991972
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 8.6624,
+        "ransac": 166.9483,
+        "serialization": 0.0129,
+        "sparse_match": 107.7303,
+        "tube": 2.9867
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9872,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "paths_8",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 1.2121,
+      "t_io_p50_ms": 0.4473,
+      "t_io_p95_ms": 3.97,
+      "t_localize_mean_ms": 14.1761,
+      "t_localize_p50_ms": 9.5932,
+      "t_localize_p95_ms": 34.262,
+      "t_serialize_mean_ms": 0.0028,
+      "t_pair_wall_mean_ms": 15.6792,
+      "t_pair_wall_p50_ms": 12.2244,
+      "t_pair_wall_p95_ms": 35.0525,
+      "t_dataset_wall_seconds": 0.1075,
+      "throughput_pairs_per_second": 55.822,
+      "peak_rss_during_measurement_mb": 57.46875,
+      "rss_after_warmup_mb": 56.84375,
+      "n_segments": 3,
+      "warmup_seconds": 0.0477,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 7.2724,
+          "t_localize_total_ms": 85.0566,
+          "t_serialize_total_ms": 0.0169,
+          "t_pair_wall_total_ms": 94.075,
+          "wall_seconds": 0.1075,
+          "throughput_pairs_per_second": 55.822,
+          "n_segments": 3
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 56.84375,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.359375,
+          "peak_rss_mb": 57.46875,
+          "round_wall_seconds": 0.10748454200802371
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 7.2724,
+        "ransac": 53.6737,
+        "serialization": 0.0169,
+        "sparse_match": 27.1144,
+        "tube": 4.2516
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9758,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    },
+    {
+      "label": "extension_a_32",
+      "ok": true,
+      "n_records": 6,
+      "n_failed": 0,
+      "repeats": 1,
+      "t_io_mean_ms": 0.438,
+      "t_io_p50_ms": 0.4181,
+      "t_io_p95_ms": 0.5507,
+      "t_localize_mean_ms": 13.9408,
+      "t_localize_p50_ms": 9.2843,
+      "t_localize_p95_ms": 33.8713,
+      "t_serialize_mean_ms": 0.0018,
+      "t_pair_wall_mean_ms": 14.6174,
+      "t_pair_wall_p50_ms": 9.8947,
+      "t_pair_wall_p95_ms": 34.707,
+      "t_dataset_wall_seconds": 0.0999,
+      "throughput_pairs_per_second": 60.0363,
+      "peak_rss_during_measurement_mb": 57.65625,
+      "rss_after_warmup_mb": 57.046875,
+      "n_segments": 3,
+      "warmup_seconds": 0.0447,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 2.628,
+          "t_localize_total_ms": 83.6449,
+          "t_serialize_total_ms": 0.011,
+          "t_pair_wall_total_ms": 87.7046,
+          "wall_seconds": 0.0999,
+          "throughput_pairs_per_second": 60.0363,
+          "n_segments": 3
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 57.046875,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.625,
+          "peak_rss_mb": 57.65625,
+          "round_wall_seconds": 0.09993958300037775
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 2.628,
+        "ransac": 51.9336,
+        "serialization": 0.011,
+        "sparse_match": 27.0339,
+        "tube": 4.6662
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 6,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.977,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    }
+  ],
+  "benchmark_csv": "/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_r3mg6jnk/out/benchmark.csv"
+}.measure[baseline]: ok
+.progress 1/6  OK=1  EMPTY=0  ERROR=0  elapsed=0.1s  rate=14.15 pair/s  ETA~0.0 min (estimate)
+progress 6/6  OK=3  EMPTY=3  ERROR=0  elapsed=0.3s  rate=21.29 pair/s  ETA~0.0 min (estimate)
+.prediction file not found: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test__h44ivzi/out/predictions.json (run `run` first)
+.progress 1/6  OK=1  EMPTY=0  ERROR=0  elapsed=0.0s  rate=50.09 pair/s  ETA~0.0 min (estimate)
+progress 6/6  OK=3  EMPTY=3  ERROR=0  elapsed=0.3s  rate=22.61 pair/s  ETA~0.0 min (estimate)
+
+{
+  "rows": [
+    {
+      "label": "baseline",
+      "ok": true,
+      "n_records": 12,
+      "n_failed": 0,
+      "repeats": 2,
+      "t_io_mean_ms": 0.8862,
+      "t_io_p50_ms": 0.4703,
+      "t_io_p95_ms": 2.7118,
+      "t_localize_mean_ms": 14.2536,
+      "t_localize_p50_ms": 9.7196,
+      "t_localize_p95_ms": 41.9122,
+      "t_serialize_mean_ms": 0.0026,
+      "t_pair_wall_mean_ms": 15.4538,
+      "t_pair_wall_p50_ms": 11.9541,
+      "t_pair_wall_p95_ms": 42.6724,
+      "t_dataset_wall_seconds": 0.2206,
+      "throughput_pairs_per_second": 54.3989,
+      "peak_rss_during_measurement_mb": 57.921875,
+      "rss_after_warmup_mb": 57.15625,
+      "n_segments": 6,
+      "warmup_seconds": 0.0488,
+      "per_round": [
+        {
+          "repeat_id": 0,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 7.9032,
+          "t_localize_total_ms": 86.7394,
+          "t_serialize_total_ms": 0.0193,
+          "t_pair_wall_total_ms": 96.6014,
+          "wall_seconds": 0.1181,
+          "throughput_pairs_per_second": 50.7883,
+          "n_segments": 3
+        },
+        {
+          "repeat_id": 1,
+          "n_records": 6,
+          "n_usable": 6,
+          "n_failed": 0,
+          "t_io_total_ms": 2.7307,
+          "t_localize_total_ms": 84.3034,
+          "t_serialize_total_ms": 0.0124,
+          "t_pair_wall_total_ms": 88.8437,
+          "wall_seconds": 0.1025,
+          "throughput_pairs_per_second": 58.5621,
+          "n_segments": 3
+        }
+      ],
+      "rss_marks": [
+        {
+          "mark": "after_warmup",
+          "rss_mb": 57.15625,
+          "warmup_pairs": 1
+        },
+        {
+          "mark": "repeat_0",
+          "rss_mb": 57.75,
+          "peak_rss_mb": 57.921875,
+          "round_wall_seconds": 0.11813750000146683
+        },
+        {
+          "mark": "repeat_1",
+          "rss_mb": 57.765625,
+          "peak_rss_mb": 57.875,
+          "round_wall_seconds": 0.10245529201347381
+        }
+      ],
+      "failed_pairs": [],
+      "stage_totals_ms": {
+        "load_features": 10.6339,
+        "ransac": 106.7048,
+        "serialization": 0.0317,
+        "sparse_match": 54.9918,
+        "tube": 9.3143
+      },
+      "backend": "cpu",
+      "stage_backends": {
+        "band": "cpu",
+        "dp": "cpu",
+        "traceback": "cpu",
+        "multipath": "cpu",
+        "postprocess": "cpu",
+        "sparse": "cpu",
+        "ransac": "cpu"
+      },
+      "device": null,
+      "stage_unit_audit": {
+        "n_checked": 12,
+        "io_ratio_mean": 1.0,
+        "localize_ratio_mean": 1.0,
+        "stages_total_over_wall_mean": 0.9719,
+        "consistent": true,
+        "n_violations": 0,
+        "violations_head": [],
+        "rule": "stages_ms is already in milliseconds: sum(load_features) must track T_io, sum(the online stages except load_features) must track T_localize, and the stage total must not exceed T_pair_wall by more than 2.0x (+1.0 ms). A 1000x mismatch is a unit error, not timer overhead."
+      },
+      "device_memory_marks": [
+        {
+          "mark": "after_warmup",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_0",
+          "kind": "cpu",
+          "device_memory": null
+        },
+        {
+          "mark": "repeat_1",
+          "kind": "cpu",
+          "device_memory": null
+        }
+      ],
+      "stage_backend_report": {
+        "timers_ms": {},
+        "counts": {}
+      },
+      "error": null
+    }
+  ],
+  "benchmark_csv": "/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iebgnlec/out/benchmark.csv"
+}
+{
+  "completion": "complete",
+  "interrupted": false,
+  "counts": {
+    "selected": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "skipped": 0,
+    "not_attempted": 0,
+    "reused_from_shards": 0,
+    "computed_this_invocation": 6,
+    "retried": 0
+  },
+  "counters": {
+    "computed": 6,
+    "reused": 0,
+    "retried": 0,
+    "skipped": 0,
+    "written": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "backend": "cpu",
+    "known_errors": 0,
+    "unresolved_errors": 0
+  },
+  "n_segments": 3,
+  "identity_digest": "acfe9d16e0a7063bb5394f3ed7dc222378f6ff6c786dbc822f7d100fee4563df",
+  "dataset_wall_seconds": 0.281746,
+  "latency_summary": {
+    "n": 6,
+    "t_io_mean_ms": 6.2055,
+    "t_io_p50_ms": 6.431,
+    "t_io_p95_ms": 7.2289,
+    "t_localize_mean_ms": 38.2983,
+    "t_localize_p50_ms": 35.7804,
+    "t_localize_p95_ms": 66.9425,
+    "t_serialize_mean_ms": 0.0031,
+    "t_pair_wall_mean_ms": 45.9846,
+    "t_pair_wall_p50_ms": 44.2719,
+    "t_pair_wall_p95_ms": 74.36,
+    "t_dataset_wall_seconds": 0.281746,
+    "throughput_pairs_per_second": 21.2958,
+    "note": "T_io = read+validate this pair's features; T_localize = raw features usable -> five-column rows; T_serialize = row encoding / shard write; T_pair_wall = whole call"
+  },
+  "metrics": {
+    "label": "COMPLETE",
+    "macro_recall": 0.9991666536173612,
+    "macro_precision": 0.887526300932641,
+    "f1": 0.9400429592321142,
+    "n_pairs": 6
+  }
+}
+config_snapshot: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/config.snapshot.yaml
+coverage: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/coverage.csv
+error_log: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/errors.jsonl
+feature_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/feature_manifest.json
+manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/manifest.json
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/metrics.json
+pairs_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/pairs_manifest.jsonl
+predictions: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/predictions.json
+run_status: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/run_status.jsonl
+run_summary: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/run_summary.json
+timing: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/timing.jsonl
+{
+  "label": "COMPLETE",
+  "macro_recall": 0.9991666536173612,
+  "macro_precision": 0.887526300932641,
+  "f1": 0.9400429592321142,
+  "n_pairs": 6,
+  "conf": 0.0,
+  "filter_mode": "legacy",
+  "unit": "feature_index",
+  "n_excluded_failed": 0
+}
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_gctm8ibn/out/metrics.json
+{
+  "completion": "complete",
+  "interrupted": false,
+  "counts": {
+    "selected": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "skipped": 0,
+    "not_attempted": 0,
+    "reused_from_shards": 0,
+    "computed_this_invocation": 6,
+    "retried": 0
+  },
+  "counters": {
+    "computed": 6,
+    "reused": 0,
+    "retried": 0,
+    "skipped": 0,
+    "written": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "backend": "cpu",
+    "known_errors": 0,
+    "unresolved_errors": 0
+  },
+  "n_segments": 3,
+  "identity_digest": "2cba2c806896747fac973c780231c9fee97e3d35d53b74a86334028d2846aff5",
+  "dataset_wall_seconds": 0.26766,
+  "latency_summary": {
+    "n": 6,
+    "t_io_mean_ms": 9.5579,
+    "t_io_p50_ms": 9.174,
+    "t_io_p95_ms": 13.9865,
+    "t_localize_mean_ms": 31.4672,
+    "t_localize_p50_ms": 20.2768,
+    "t_localize_p95_ms": 72.23,
+    "t_serialize_mean_ms": 0.0032,
+    "t_pair_wall_mean_ms": 42.5199,
+    "t_pair_wall_p50_ms": 32.4177,
+    "t_pair_wall_p95_ms": 82.8014,
+    "t_dataset_wall_seconds": 0.26766,
+    "throughput_pairs_per_second": 22.4165,
+    "note": "T_io = read+validate this pair's features; T_localize = raw features usable -> five-column rows; T_serialize = row encoding / shard write; T_pair_wall = whole call"
+  },
+  "metrics": {
+    "label": "COMPLETE",
+    "macro_recall": 0.9991666536173612,
+    "macro_precision": 0.887526300932641,
+    "f1": 0.9400429592321142,
+    "n_pairs": 6
+  }
+}
+config_snapshot: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/config.snapshot.yaml
+coverage: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/coverage.csv
+error_log: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/errors.jsonl.progress 1/6  OK=1  EMPTY=0  ERROR=0  elapsed=0.0s  rate=32.49 pair/s  ETA~0.0 min (estimate)
+progress 6/6  OK=3  EMPTY=3  ERROR=0  elapsed=0.2s  rate=26.51 pair/s  ETA~0.0 min (estimate)
+.progress 1/6  OK=1  EMPTY=0  ERROR=0  elapsed=0.0s  rate=71.28 pair/s  ETA~0.0 min (estimate)
+progress 6/6  OK=3  EMPTY=3  ERROR=0  elapsed=0.2s  rate=27.29 pair/s  ETA~0.0 min (estimate)
+.progress 1/6  OK=1  EMPTY=0  ERROR=0  elapsed=0.0s  rate=34.57 pair/s  ETA~0.0 min (estimate)
+progress 6/6  OK=3  EMPTY=3  ERROR=0  elapsed=0.3s  rate=21.78 pair/s  ETA~0.0 min (estimate)
+
+feature_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/feature_manifest.json
+manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/manifest.json
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/metrics.json
+pairs_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/pairs_manifest.jsonl
+predictions: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/predictions.json
+run_status: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/run_status.jsonl
+run_summary: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/run_summary.json
+timing: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ghdsg17n/out/timing.jsonl
+{
+  "completion": "complete",
+  "interrupted": false,
+  "counts": {
+    "selected": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "skipped": 0,
+    "not_attempted": 0,
+    "reused_from_shards": 0,
+    "computed_this_invocation": 6,
+    "retried": 0
+  },
+  "counters": {
+    "computed": 6,
+    "reused": 0,
+    "retried": 0,
+    "skipped": 0,
+    "written": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "backend": "cpu",
+    "known_errors": 0,
+    "unresolved_errors": 0
+  },
+  "n_segments": 3,
+  "identity_digest": "b57ace2a4d7082165560bc4ed497070ccb16758afcfa1e393544be5226bbbca8",
+  "dataset_wall_seconds": 0.226303,
+  "latency_summary": {
+    "n": 6,
+    "t_io_mean_ms": 7.1366,
+    "t_io_p50_ms": 6.5099,
+    "t_io_p95_ms": 9.7496,
+    "t_localize_mean_ms": 28.5081,
+    "t_localize_p50_ms": 19.5506,
+    "t_localize_p95_ms": 77.8876,
+    "t_serialize_mean_ms": 0.0025,
+    "t_pair_wall_mean_ms": 36.9212,
+    "t_pair_wall_p50_ms": 27.0523,
+    "t_pair_wall_p95_ms": 85.1767,
+    "t_dataset_wall_seconds": 0.226303,
+    "throughput_pairs_per_second": 26.5132,
+    "note": "T_io = read+validate this pair's features; T_localize = raw features usable -> five-column rows; T_serialize = row encoding / shard write; T_pair_wall = whole call"
+  },
+  "metrics": {
+    "label": "COMPLETE",
+    "macro_recall": 0.9991666536173612,
+    "macro_precision": 0.887526300932641,
+    "f1": 0.9400429592321142,
+    "n_pairs": 6
+  }
+}
+config_snapshot: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/config.snapshot.yaml
+coverage: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/coverage.csv
+error_log: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/errors.jsonl
+feature_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/feature_manifest.json
+manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/manifest.json
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/metrics.json
+pairs_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/pairs_manifest.jsonl
+predictions: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/predictions.json
+run_status: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/run_status.jsonl
+run_summary: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/run_summary.json
+timing: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nuo3ckmr/out/timing.jsonl
+{
+  "completion": "complete",
+  "interrupted": false,
+  "counts": {
+    "selected": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "skipped": 0,
+    "not_attempted": 0,
+    "reused_from_shards": 0,
+    "computed_this_invocation": 6,
+    "retried": 0
+  },
+  "counters": {
+    "computed": 6,
+    "reused": 0,
+    "retried": 0,
+    "skipped": 0,
+    "written": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "backend": "cpu",
+    "known_errors": 0,
+    "unresolved_errors": 0
+  },
+  "n_segments": 3,
+  "identity_digest": "37246b6f50dd52780cd76997413517ebcf97125dd27a2e639353808350574f77",
+  "dataset_wall_seconds": 0.219901,
+  "latency_summary": {
+    "n": 6,
+    "t_io_mean_ms": 7.8816,
+    "t_io_p50_ms": 7.9394,
+    "t_io_p95_ms": 10.7719,
+    "t_localize_mean_ms": 26.303,
+    "t_localize_p50_ms": 21.5763,
+    "t_localize_p95_ms": 59.7056,
+    "t_serialize_mean_ms": 0.0025,
+    "t_pair_wall_mean_ms": 35.6127,
+    "t_pair_wall_p50_ms": 31.3404,
+    "t_pair_wall_p95_ms": 71.1619,
+    "t_dataset_wall_seconds": 0.219901,
+    "throughput_pairs_per_second": 27.285,
+    "note": "T_io = read+validate this pair's features; T_localize = raw features usable -> five-column rows; T_serialize = row encoding / shard write; T_pair_wall = whole call"
+  },
+  "metrics": {
+    "label": "COMPLETE",
+    "macro_recall": 0.9991666536173612,
+    "macro_precision": 0.887526300932641,
+    "f1": 0.9400429592321142,
+    "n_pairs": 6
+  }
+}
+config_snapshot: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/config.snapshot.yaml
+coverage: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/coverage.csv
+error_log: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/errors.jsonl
+feature_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/feature_manifest.json
+manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/manifest.json
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/metrics.json
+pairs_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/pairs_manifest.jsonl
+predictions: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/predictions.json
+run_status: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/run_status.jsonl
+run_summary: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/run_summary.json
+timing: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuxjt3f_/out/timing.jsonl
+{
+  "completion": "complete",
+  "interrupted": false,
+  "counts": {
+    "selected": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "skipped": 0,
+    "not_attempted": 0,
+    "reused_from_shards": 0,
+    "computed_this_invocation": 6,
+    "retried": 0
+  },
+  "counters": {
+    "computed": 6,
+    "reused": 0,
+    "retried": 0,
+    "skipped": 0,
+    "written": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "backend": "cpu",
+    "known_errors": 0,
+    "unresolved_errors": 0
+  },
+  "n_segments": 3,
+  "identity_digest": "936e297a4e8145a8381a355104fce0a2e459e74deaedc7572a943a0a3e6c8e04",
+  "dataset_wall_seconds": 0.275467,
+  "latency_summary": {
+    "n": 6,
+    "t_io_mean_ms": 8.0695,
+    "t_io_p50_ms": 7.1405,
+    "t_io_p95_ms": 13.0468,
+    "t_localize_mean_ms": 34.2164,
+    "t_localize_p50_ms": 18.8064,
+    "t_localize_p95_ms": 81.9458,
+    "t_serialize_mean_ms": 0.0028,
+    "t_pair_wall_mean_ms": 43.7176,
+    "t_pair_wall_p50_ms": 26.639,
+    "t_pair_wall_p95_ms": 90.6928,
+    "t_dataset_wall_seconds": 0.275467,
+    "throughput_pairs_per_second": 21.7812,
+    "note": "T_io = read+validate this pair's features; T_localize = raw features usable -> five-column rows; T_serialize = row encoding / shard write; T_pair_wall = whole call"
+  },
+  "metrics": {
+    "label": "COMPLETE",
+    "macro_recall": 0.9991666536173612,
+    "macro_precision": 0.887526300932641,
+    "f1": 0.9400429592321142,
+    "n_pairs": 6
+  }
+}
+config_snapshot: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/config.snapshot.yaml
+coverage: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/coverage.csv
+error_log: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/errors.jsonl
+feature_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/feature_manifest.json
+manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/manifest.json
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/metrics.json
+pairs_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/pairs_manifest.jsonl
+predictions: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/predictions.json.usage: python -m fastvcl.cli [-h] [--version]
+                             {audit,run,test-pair,freeze-threshold,manifests,evaluate,benchmark,measure-worker,layer1,visualize}
+                             ...
+python -m fastvcl.cli: error: argument command: invalid choice: 'frobnicate' (choose from audit, run, test-pair, freeze-threshold, manifests, evaluate, benchmark, measure-worker, layer1, visualize)
+.debug directory not found: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_komzvrc_/out/debug
+.progress 1/6  OK=1  EMPTY=0  ERROR=0  elapsed=0.0s  rate=58.06 pair/s  ETA~0.0 min (estimate)
+progress 6/6  OK=3  EMPTY=3  ERROR=0  elapsed=0.3s  rate=22.46 pair/s  ETA~0.0 min (estimate)
+.comparison refused: incomplete or malformed prediction set
+..missing input: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_0yxhs72j/nope.json
+.per-method val threshold selection did NOT happen; this is not a fair comparison yet (see fairness.reason)
+.
+run_status: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/run_status.jsonl
+run_summary: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/run_summary.json
+timing: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_iws6w67n/out/timing.jsonl
+{
+  "completion": "complete",
+  "interrupted": false,
+  "counts": {
+    "selected": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "skipped": 0,
+    "not_attempted": 0,
+    "reused_from_shards": 0,
+    "computed_this_invocation": 6,
+    "retried": 0
+  },
+  "counters": {
+    "computed": 6,
+    "reused": 0,
+    "retried": 0,
+    "skipped": 0,
+    "written": 6,
+    "ok": 3,
+    "empty": 3,
+    "error": 0,
+    "backend": "cpu",
+    "known_errors": 0,
+    "unresolved_errors": 0
+  },
+  "n_segments": 3,
+  "identity_digest": "36148901bd6509e8c6e7bf3abb042a2f429d94ca8ac4f1d12804ce970cb1eb18",
+  "dataset_wall_seconds": 0.267135,
+  "latency_summary": {
+    "n": 6,
+    "t_io_mean_ms": 6.3336,
+    "t_io_p50_ms": 6.3275,
+    "t_io_p95_ms": 7.5092,
+    "t_localize_mean_ms": 34.3131,
+    "t_localize_p50_ms": 20.8002,
+    "t_localize_p95_ms": 82.1569,
+    "t_serialize_mean_ms": 0.0033,
+    "t_pair_wall_mean_ms": 42.0436,
+    "t_pair_wall_p50_ms": 28.5816,
+    "t_pair_wall_p95_ms": 89.6544,
+    "t_dataset_wall_seconds": 0.267135,
+    "throughput_pairs_per_second": 22.4606,
+    "note": "T_io = read+validate this pair's features; T_localize = raw features usable -> five-column rows; T_serialize = row encoding / shard write; T_pair_wall = whole call"
+  },
+  "metrics": {
+    "label": "COMPLETE",
+    "macro_recall": 0.9991666536173612,
+    "macro_precision": 0.887526300932641,
+    "f1": 0.9400429592321142,
+    "n_pairs": 6
+  }
+}
+config_snapshot: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/config.snapshot.yaml
+coverage: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/coverage.csv
+error_log: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/errors.jsonl
+feature_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/feature_manifest.json
+manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/manifest.json
+metrics: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/metrics.json
+pairs_manifest: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/pairs_manifest.jsonl
+predictions: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/predictions.json
+run_status: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/run_status.jsonl
+run_summary: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/run_summary.json
+timing: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/timing.jsonl
+{
+  "debug_dir": "/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/debug",
+  "figures_dir": "/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2wk1_mr7/out/figures",
+  "figures_written": 12
+}
+{
+  "integrity": {
+    "legacy": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: prediction_for_failed_pair(q5-r5); failed pairs (ERROR/SKIPPED): q5-r5. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [
+        "q5-r5"
+      ],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 6,
+      "n_statuses": 6,
+      "n_predictions": 6
+    },
+    "fastvcl": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: prediction_for_failed_pair(q5-r5); failed pairs (ERROR/SKIPPED): q5-r5. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [
+        "q5-r5"
+      ],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 6,
+      "n_statuses": 6,
+      "n_predictions": 6
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "refused_methods": [
+      "legacy",
+      "fastvcl"
+    ],
+    "partial_methods": [],
+    "reason": "the completeness gate refused (or only partially accepted) a prediction set; a comparison built on it would be a comparison of different pair sets"
+  }
+}
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.9999999379699277,
+    "f1": 0.9399287739642317,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": {
+      "conf": 0.94,
+      "macro_recall": 0.8866666149444468,
+      "macro_precision": 0.9999999379699277,
+      "f1": 0.9399287739642317,
+      "n_pairs": 6,
+      "n_excluded_failed": 0,
+      "label": "COMPLETE"
+    }
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.0616883103578356,
+    "f1": 0.11535113319229852,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": {
+      "conf": 0.54,
+      "macro_recall": 0.8866666149444468,
+      "macro_precision": 0.9999999379699277,
+      "f1": 0.9399287739642317,
+      "n_pairs": 6,
+      "n_excluded_failed": 0,
+      "label": "COMPLETE"
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "PERFORMED",
+    "objective": "f1",
+    "grid_points": 51,
+    "same_evaluator": true,
+    "same_pair_list": true
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_sddi9o4c/comparison.json
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.9999999379699277,
+    "f1": 0.9399287739642317,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.0616883103578356,
+    "f1": 0.11535113319229852,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "missing_for": [
+      "legacy",
+      "fastvcl"
+    ],
+    "reason": "val predictions are required so each method can freeze its own threshold; the official-conf row is reported for the record only"
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test__dxejgtp/comparison.json
+{
+  "integrity": {
+    "legacy": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: prediction_for_failed_pair(q5-r5); failed pairs (ERROR/SKIPPED): q5-r5. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [
+        "q5-r5"
+      ],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 6,
+      "n_statuses": 6,
+      "n_predictions": 6
+    },
+    "fastvcl": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: prediction_for_failed_pair(q5-r5); failed pairs (ERROR/SKIPPED): q5-r5. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [
+        "q5-r5"
+      ],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 6,
+      "n_statuses": 6,
+      "n_predictions": 6
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "refused_methods": [
+      "legacy",
+      "fastvcl"
+    ],
+    "partial_methods": [],
+    "reason": "the completeness gate refused (or only partially accepted) a prediction set; a comparison built on it would be a comparison of different pair sets"
+  }
+}comparison refused: incomplete or malformed prediction set
+..per-method val threshold selection did NOT happen; this is not a fair comparison yet (see fairness.reason)
+.per-method val threshold selection did NOT happen; this is not a fair comparison yet (see fairness.reason)
+..prediction file has a duplicate key: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_3nd1xv93/dupe.json: duplicate JSON key 'a-b' (last-wins is not allowed)
+.per-method val threshold selection did NOT happen; this is not a fair comparison yet (see fairness.reason)
+.comparison refused: incomplete or malformed prediction set
+.
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.9999999379699277,
+    "f1": 0.9399287739642317,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": {
+      "conf": 0.94,
+      "macro_recall": 0.8866666149444468,
+      "macro_precision": 0.9999999379699277,
+      "f1": 0.9399287739642317,
+      "n_pairs": 6,
+      "n_excluded_failed": 0,
+      "label": "COMPLETE"
+    }
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.07402597242940272,
+    "f1": 0.13664369004767254,
+    "label": "PARTIAL_DIAGNOSTIC",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": {
+      "conf": 0.54,
+      "macro_recall": 0.8866666149444468,
+      "macro_precision": 0.9999999379699277,
+      "f1": 0.9399287739642317,
+      "n_pairs": 5,
+      "n_excluded_failed": 1,
+      "label": "PARTIAL_DIAGNOSTIC"
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "PERFORMED",
+    "objective": "f1",
+    "grid_points": 51,
+    "same_evaluator": true,
+    "same_pair_list": true
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_qo9q74zy/comparison.json
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.9999999379699277,
+    "f1": 0.9399287739642317,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.0616883103578356,
+    "f1": 0.11535113319229852,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "missing_for": [
+      "legacy",
+      "fastvcl"
+    ],
+    "reason": "val predictions are required so each method can freeze its own threshold; the official-conf row is reported for the record only"
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vwaw4rrj/comparison.json
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.9999999379699277,
+    "f1": 0.9399287739642317,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.8866666149444468,
+    "macro_precision": 0.0616883103578356,
+    "f1": 0.11535113319229852,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "missing_for": [
+      "legacy",
+      "fastvcl"
+    ],
+    "reason": "val predictions are required so each method can freeze its own threshold; the official-conf row is reported for the record only"
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_kx3q5ld_/comparison.json
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.9999990000007499,
+    "macro_precision": 0.9999990000007499,
+    "f1": 0.999998500001,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": {
+      "conf": 0.88,
+      "macro_recall": 0.9999990000007499,
+      "macro_precision": 0.9999990000007499,
+      "f1": 0.999998500001,
+      "n_pairs": 2,
+      "n_excluded_failed": 0,
+      "label": "COMPLETE"
+    }
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.9999990000007499,
+    "macro_precision": 0.9999990000007499,
+    "f1": 0.999998500001,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": {
+      "conf": 0.88,
+      "macro_recall": 0.9999990000007499,
+      "macro_precision": 0.9999990000007499,
+      "f1": 0.999998500001,
+      "n_pairs": 2,
+      "n_excluded_failed": 0,
+      "label": "COMPLETE"
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "PERFORMED",
+    "objective": "f1",
+    "grid_points": 51,
+    "same_evaluator": true,
+    "same_pair_list": true
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ql_9d5b9/comparison.json
+{
+  "legacy": {
+    "conf": 0.1,
+    "macro_recall": 0.9999990000007499,
+    "macro_precision": 0.9999990000007499,
+    "f1": 0.999998500001,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fastvcl": {
+    "conf": 0.1,
+    "macro_recall": 0.9999990000007499,
+    "macro_precision": 0.9999990000007499,
+    "f1": 0.999998500001,
+    "label": "COMPLETE",
+    "filter_mode": "legacy",
+    "note": "official evaluation.py convention (objectness > 0.1 for Legacy)",
+    "frozen": null
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "missing_for": [
+      "legacy",
+      "fastvcl"
+    ],
+    "reason": "val predictions are required so each method can freeze its own threshold; the official-conf row is reported for the record only"
+  }
+}
+comparison: /var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test__irrstic/comparison.json
+{
+  "integrity": {
+    "legacy": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: missing_status(c-d). Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [],
+      "missing_prediction": [
+        "c-d"
+      ],
+      "missing_status": [
+        "c-d"
+      ],
+      "n_selected": 2,
+      "n_statuses": 1,
+      "n_predictions": 1
+    },
+    "fastvcl": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: missing_status(c-d). Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [],
+      "missing_prediction": [
+        "c-d"
+      ],
+      "missing_status": [
+        "c-d"
+      ],
+      "n_selected": 2,
+      "n_statuses": 1,
+      "n_predictions": 1
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "refused_methods": [
+      "legacy",
+      "fastvcl"
+    ],
+    "partial_methods": [],
+    "reason": "the completeness gate refused (or only partially accepted) a prediction set; a comparison built on it would be a comparison of different pair sets"
+  }
+}
+{
+  "integrity": {
+    "legacy": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: status_file_not_provided: --legacy-status was not passed; without a per-pair run status this method's coverage cannot be established, so it cannot be scored as COMPLETE. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "prediction_keys",
+      "blocking_problems": [
+        {
+          "problem": "status_file_not_provided",
+          "detail": "--legacy-status was not passed; without a per-pair run status this method's coverage cannot be established, so it cannot be scored as COMPLETE"
+        },
+        {
+          "problem": "status_origin",
+          "pair": "a-b",
+          "origin": "prediction_key"
+        },
+        {
+          "problem": "status_origin",
+          "pair": "c-d",
+          "origin": "prediction_key"
+        }
+      ],
+      "failed_pairs": [],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 2,
+      "n_statuses": 2,
+      "n_predictions": 2
+    },
+    "fastvcl": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: status_file_not_provided: --fastvcl-status was not passed; without a per-pair run status this method's coverage cannot be established, so it cannot be scored as COMPLETE. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "prediction_keys",
+      "blocking_problems": [
+        {
+          "problem": "status_file_not_provided",
+          "detail": "--fastvcl-status was not passed; without a per-pair run status this method's coverage cannot be established, so it cannot be scored as COMPLETE"
+        },
+        {
+          "problem": "status_origin",
+          "pair": "a-b",
+          "origin": "prediction_key"
+        },
+        {
+          "problem": "status_origin",
+          "pair": "c-d",
+          "origin": "prediction_key"
+        }
+      ],
+      "failed_pairs": [],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 2,
+      "n_statuses": 2,
+      "n_predictions": 2
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "refused_methods": [
+      "legacy",
+      "fastvcl"
+    ],
+    "partial_methods": [],
+    "reason": "the completeness gate refused (or only partially accepted) a prediction set; a comparison built on it would be a comparison of different pair sets"
+  }
+}comparison refused: incomplete or malformed prediction set
+.comparison refused: incomplete or malformed prediction set
+...........................................ssssssssss................................................................................................................./Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+../Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:527: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  result = run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:542: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_qy4nx6rd/run/run_status.jsonl' mode='r' encoding='utf-8'>
+  for line in open(os.path.join(self.path("run"), "run_status.jsonl"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:545: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_qy4nx6rd/run/errors.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(self.path("run"), "errors.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:549: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_qy4nx6rd/run/run_summary.json' mode='r' encoding='utf-8'>
+  summary = json.load(open(os.path.join(self.path("run"), "run_summary.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:553: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_qy4nx6rd/run/errors.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(self.path("run"), "errors.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:563: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  result = run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......./Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:637: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:637: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_backend_contract.py:637: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....../Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_g1_contract.py:144: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_g1_contract.py:144: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_g1_contract.py:144: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+../Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_g1_contract.py:144: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+../Users/gzhlaker/Documents/code/FastVCL/tests/test_l15_g1_contract.py:144: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:1006: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_isbc42sq/out/predictions.json' mode='r' encoding='UTF-8'>
+  payload = json.load(open(pred_path))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:1017: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_k9wcj45b/out/predictions.json' mode='r' encoding='UTF-8'>
+  payload = json.load(open(pred_path))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:1060: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_2f9wv0ef/out/metrics.json' mode='r' encoding='UTF-8'>
+  metrics = json.load(open(os.path.join(self.out_root, "metrics.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:995: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_c9gtbvog/out/predictions.json' mode='r' encoding='UTF-8'>
+  payload = json.load(open(pred_path))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:987: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_7dmgszg8/out/metrics.json' mode='r' encoding='UTF-8'>
+  metrics = json.load(open(os.path.join(self.out_root, "metrics.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.../Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:1029: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_4jvvy1lc/out/predictions.json' mode='r' encoding='UTF-8'>
+  payload = json.load(open(pred_path))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................................../Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_aprime.py:1118: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_z3nln3v0/wrapper/run_status.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(self.root, "run_status.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............................./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:385: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  second = run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:481: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuwegmps/run/coverage.csv' mode='r' encoding='utf-8'>
+  coverage = open(os.path.join(self.out, "coverage.csv"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:485: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_vuwegmps/run/timing.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(self.out, "timing.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:439: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  result = run_batch(self.cfg, pair_file=pairs_path, feat_dir=self.info["feat_dir"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:444: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_sbrqas01/mixed_run/predictions.json' mode='r' encoding='utf-8'>
+  prediction = json.load(open(os.path.join(out, "predictions.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:447: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_sbrqas01/mixed_run/run_status.jsonl' mode='r' encoding='utf-8'>
+  for line in open(os.path.join(out, "run_status.jsonl"), encoding="utf-8"):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:452: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  again = run_batch(self.cfg, pair_file=pairs_path, feat_dir=self.info["feat_dir"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:458: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  retried = run_batch(self.cfg, pair_file=pairs_path, feat_dir=self.info["feat_dir"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:496: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_opn7dqmz/run/feature_manifest.json' mode='r' encoding='utf-8'>
+  manifest = json.load(open(os.path.join(self.out, "feature_manifest.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:500: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_opn7dqmz/run/manifest.json' mode='r' encoding='utf-8'>
+  json.load(open(os.path.join(self.out, "manifest.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/lib/python3.12/traceback.py:241: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:343: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_rjy1stcv/run/run_status.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(self.out, "run_status.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:350: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_rjy1stcv/run/predictions.json' mode='r' encoding='utf-8'>
+  before = json.load(open(os.path.join(self.out, "predictions.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:352: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  restarted = run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:361: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  run_batch(self.cfg, pair_file=self.info["pair_file"], feat_dir=self.info["feat_dir"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:364: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_rjy1stcv/run/predictions.json' mode='r' encoding='utf-8'>
+  resumed = json.load(open(os.path.join(self.out, "predictions.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:366: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_rjy1stcv/clean/predictions.json' mode='r' encoding='utf-8'>
+  clean = json.load(open(os.path.join(clean_out, "predictions.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:372: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_rjy1stcv/run/run_status.jsonl' mode='r' encoding='utf-8'>
+  for line in open(os.path.join(self.out, "run_status.jsonl"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:375: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_rjy1stcv/clean/run_status.jsonl' mode='r' encoding='utf-8'>
+  for line in open(os.path.join(clean_out, "run_status.jsonl"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:310: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  second = run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:300: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_n1xktg_b/run/run_summary.json' mode='r' encoding='utf-8'>
+  summary = json.load(open(os.path.join(self.out, "run_summary.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:287: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  return run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:469: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='w' encoding='UTF-8'>
+  again = run_batch(self.cfg, pair_file=self.info["pair_file"],
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....../Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:581: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_wyxaizl9/run/predictions.json' mode='r' encoding='utf-8'>
+  resumed_pred = json.load(open(os.path.join(out, "predictions.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:582: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_wyxaizl9/clean/predictions.json' mode='r' encoding='utf-8'>
+  clean_pred = json.load(open(os.path.join(clean_out, "predictions.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:586: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_wyxaizl9/run/run_status.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(out, "run_status.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:588: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_wyxaizl9/clean/run_status.jsonl' mode='r' encoding='utf-8'>
+  open(os.path.join(clean_out, "run_status.jsonl"), encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_complete.py:594: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_wyxaizl9/run/run_summary.json' mode='r' encoding='utf-8'>
+  counters = json.load(open(os.path.join(out, "run_summary.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+................./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:446: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_su463xu9/exp/val/run_summary.json' mode='r' encoding='utf-8'>
+  summary = json.load(open(os.path.join(root, "val", "run_summary.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:409: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ajdwlshe/exp/experiment_execution.json' mode='r' encoding='utf-8'>
+  execution = json.load(open(os.path.join(root, "experiment_execution.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:413: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ajdwlshe/exp/val/frozen_protocol.json' mode='r' encoding='utf-8'>
+  frozen = json.load(open(os.path.join(root, "val", "frozen_protocol.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:416: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ajdwlshe/exp/test/frozen_protocol.json' mode='r' encoding='utf-8'>
+  test_frozen = json.load(open(os.path.join(root, "test", "frozen_protocol.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:420: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ajdwlshe/exp/test/metrics.json' mode='r' encoding='utf-8'>
+  metrics = json.load(open(os.path.join(root, "test", "metrics.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:178: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_sf_qrmyp/val/threshold_selection.json' mode='r' encoding='utf-8'>
+  selection = json.load(open(os.path.join(out, THRESHOLD_FILENAME), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:182: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_sf_qrmyp/val/frozen_protocol.json' mode='r' encoding='utf-8'>
+  frozen = json.load(open(os.path.join(out, "frozen_protocol.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:192: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_nbc0wulg/pairs.csv' mode='r' encoding='utf-8'>
+  pairs = open(info["pair_file"], encoding="utf-8").read().strip().splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:249: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_d8ip503t/val/frozen_protocol.json' mode='r' encoding='utf-8'>
+  frozen = json.load(open(os.path.join(out, "frozen_protocol.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:258: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_d8ip503t/val/metrics.json' mode='r' encoding='utf-8'>
+  metrics = json.load(open(os.path.join(out, "metrics.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..../Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:613: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ou02wkr9/exp/test/metrics.json' mode='r' encoding='utf-8'>
+  metrics = json.load(open(os.path.join(root, "test", "metrics.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:622: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ou02wkr9/exp/val/frozen_protocol.json' mode='r' encoding='utf-8'>
+  self.assertEqual(metrics["conf"], json.load(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..../Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:334: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_l1troyvn/exp/execution_report.json' mode='r' encoding='utf-8'>
+  payload = json.load(open(os.path.join(out_root, "execution_report.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:349: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_9iilpzd1/exp/val/run_summary.json' mode='r' encoding='utf-8'>
+  summary = json.load(open(os.path.join(out_root, "val", "run_summary.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:306: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_5frlqf5n/exp/execution_report.json' mode='r' encoding='utf-8'>
+  payload = json.load(open(os.path.join(out_root, "execution_report.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:316: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_5frlqf5n/exp/report/report.json' mode='r' encoding='utf-8'>
+  report = json.load(open(os.path.join(out_root, "report", REPORT_JSON),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...../Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:456: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ftkh24yv/test/predictions.json' mode='w' encoding='UTF-8'>
+  json.dump({"a-b": [[0, 0, 10, 10, 0.5]]},
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:465: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ftkh24yv/test/manifest.json' mode='w' encoding='UTF-8'>
+  json.dump({"identity": {}, "counts": {"selected": 1, "ok": 1, "empty": 0,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/gzhlaker/Documents/code/FastVCL/tests/test_layer1_delivery.py:468: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/c6/7qmzjrcs2mv_wt1c9qbrd37h0000gn/T/fastvcl_test_ftkh24yv/test/run_summary.json' mode='w' encoding='UTF-8'>
+  json.dump({"completion": "complete"}, open(os.path.join(run_dir, "run_summary.json"),
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.............................................................................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 646 tests in 43.101s
+
+OK (skipped=10)
+
+{
+  "integrity": {
+    "legacy": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: missing_length(a-b): a formal score needs the frozen feature length of both axes; without it the coordinate upper bound cannot be checked; missing_length(c-d): a formal score needs the frozen feature length of both axes; without it the coordinate upper bound cannot be checked. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 2,
+      "n_statuses": 2,
+      "n_predictions": 2
+    },
+    "fastvcl": {
+      "label": "REFUSED",
+      "error": "prediction set is not scoreable as a complete result: missing_length(a-b): a formal score needs the frozen feature length of both axes; without it the coordinate upper bound cannot be checked; missing_length(c-d): a formal score needs the frozen feature length of both axes; without it the coordinate upper bound cannot be checked. Fix the run or pass partial_diagnostic=True to score it explicitly as a PARTIAL_DIAGNOSTIC subset (never as the main result).",
+      "status_source": "run_status.jsonl",
+      "blocking_problems": [],
+      "failed_pairs": [],
+      "missing_prediction": [],
+      "missing_status": [],
+      "n_selected": 2,
+      "n_statuses": 2,
+      "n_predictions": 2
+    }
+  },
+  "fairness": {
+    "per_method_threshold_selection": "NOT_PERFORMED",
+    "refused_methods": [
+      "legacy",
+      "fastvcl"
+    ],
+    "partial_methods": [],
+    "reason": "the completeness gate refused (or only partially accepted) a prediction set; a comparison built on it would be a comparison of different pair sets"
+  }
+}
+[round-b negative rate] structured negative (permuted reference): track counts per fixed RNG seed [0, 1, 0, 0, 0] -> 1 track(s) from 5 seeds; dropped knobs={}. The rate is recorded, never promised to be zero.

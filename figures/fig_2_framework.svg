@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1220" viewBox="0 0 1760 1220">
 <title>FastVCL: sparse-to-tube video copy localization framework</title>
-<desc>Proposed sparse-to-tube method with two budgeted insertions of one shared selective visual-decision model named seltive model: anchor filtering before RANSAC (A0 to A1) and fragment fusion after candidate extraction (C0 to Y). Both call sites share one pair budget, cache and model revision, and abstain on uncertainty or failure; unselected, uncertain and failed items keep their core evidence. Matrices and trajectories are schematic, not empirical outputs.</desc>
+<desc>Proposed sparse-to-tube method with two budgeted insertions of one shared selective visual-decision model named seltive model: anchor filtering before RANSAC (A0 to A1) and fragment fusion after candidate extraction (C0 to Y). Both call sites share one pair budget, cache and model revision, and abstain on uncertainty or failure; unselected, uncertain and failed items keep their core evidence. The local DP proposes paths with a zero restart, whereas the connection check Conn is a separate two-end certification that cannot restart; fusion merges original disjoint candidate pairs one at a time without another model call. Matrices and trajectories are schematic, not empirical outputs.</desc>
 <defs>
 <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#526477"/></marker>
 <marker id="blueArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#2D69AD"/></marker>
@@ -442,7 +442,7 @@
 <circle cx="1551.5" cy="302.5" r="3.5" fill="#FFFFFF" stroke="#2D69AD" stroke-width="1.5"/>
 <text x="1305" y="276" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="italic" fill="#526477" text-anchor="start">j</text>
 <text x="1643" y="460" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" font-style="italic" fill="#526477" text-anchor="start">i</text>
-<text x="1490" y="495" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">Local DP with a zero restart</text>
+<text x="1490" y="495" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">Local DP: propose paths, zero restart</text>
 <text x="1490" y="528" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" font-style="normal" fill="#7962A6" text-anchor="middle">Hᵢⱼ = max{0, rᵢⱼ, continuation}</text>
 <text x="1490" y="568" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="400" font-style="normal" fill="#17283C" text-anchor="middle">Traceback → trim → score</text>
 <polyline points="1702,555 1720,555 1720,260 1660,260" fill="none" stroke="#526477" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
@@ -479,9 +479,9 @@
 <text x="1312" y="891" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" font-style="normal" fill="#FFFFFF" text-anchor="middle">2</text>
 <text x="1336" y="891" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" font-style="normal" fill="#17283C" text-anchor="start">Fusion decision</text>
 <text x="1510" y="928" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">C0 → legal edges (G, gaps)</text>
-<text x="1510" y="958" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">same copy? + Conn</text>
+<text x="1510" y="958" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">Conn: separate two-end certification</text>
 <text x="1510" y="988" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" font-style="normal" fill="#526477" text-anchor="middle">M = G ∧ Conn ∧ margin</text>
-<text x="1510" y="1020" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">merge / keep · one round</text>
+<text x="1510" y="1020" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">pairwise merge · no model call</text>
 <text x="1510" y="1046" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">→ Y final intervals</text>
 <rect x="20" y="1072" width="1720" height="40" rx="10" fill="#FFF9F1" stroke="#D6BC98" stroke-width="1.5"/>
 <text x="880" y="1098" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" font-style="normal" fill="#17283C" text-anchor="middle">A/B original frames + verified index → frame map</text>

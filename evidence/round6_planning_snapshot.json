@@ -1,0 +1,485 @@
+{
+  "date": "2026-10-22",
+  "kind": "round6_planning_audit",
+  "scope": "Plan preparation only: local source review, small standard-library reference probes, read-only prototype HEAD/status and local dataset metadata/file inventory, official web-source checks. No manuscript or prototype fix, no dataset/model/GPU inference, no paid call, no full prototype test rerun, no PDF rebuild.",
+  "paper": {
+    "head": "f4f6ffb400f661e8e5e84f79cf7019782a4745c1",
+    "source_sha256": {
+      "main.tex": "49c2d4eabbf76476fd8a8a6b6555bf0357433a7a0e4f795d4d6ae49360e835b0",
+      "preamble.tex": "c7250c7a3320da787cf42caf3dc0a7d1520fbed964251984f8742e58746f2774",
+      "main.bib": "d398ef888f3eeb9f09e0e9d927784dbe0b01b64f2c70531a1c66e544bacf4df8",
+      "supplementary.tex": "846c33f30535a7d838f86902f24d2782bb7156ca95683febfd62c5e17a17856b",
+      "README_BUILD.md": "3d79d7501ea85d67b0f01a3665c7dc585779ff1ab1e8ef0761892bcd58791d6f",
+      "sec/0_abstract.tex": "309bc60a450f5a91f4f70a427c402a18756b3d665361ce1101dc3c1880f2c862",
+      "sec/1_intro.tex": "dcefe78b37558cc687599239ddc947936119a66ff4de31076f54bdd224ac3bd3",
+      "sec/2_related_work.tex": "d2f982b8abba734ab488e9691625372af87f6f04660614ac4a824b66bfd1abfb",
+      "sec/3_method.tex": "e51f12c02d57952ecf01a23ab0a2e57771adbac3e72e8d75bd0ab207f1e10465",
+      "sec/4_experiments.tex": "cb81493144d60dcbd2596695546fc6589b97951d8bf74b224d454b0dc0446704",
+      "sec/5_conclusion.tex": "c9b0afc619fb732ac705467746141595ce892ed4d39f9f5ab6daa6d2a3789440",
+      "scripts/round5_reference.py": "7038b7b330281f315c45b744eae24b5c2b734167e2ddf26bd00f17e83cdd6be5",
+      "scripts/check_round5_semantics.py": "9e44a5d726a4bfd4c67be08a00795abb71df8ae1dd8e3a347400a1fe85558c0d",
+      "evidence/round5_review.md": "c53e7cacd01237d0c5c511ffd060811cbfb74c8a81eee3220a75a6053450ec13",
+      "evidence/round5_assets.json": "8378b02756ecaf1d5347eb4cfd6701e273eb48f16b9a0a22215539f6505a85fd",
+      "evidence/experiment_manifest.md": "9587f7f99a1a001e71f2be22ffe0dd11164b50b57cb6b6fe1aa07957cf904a1f",
+      "evidence/experiment_plan.md": "b562e07c9f1c8143e786615c63f72083ec0893921f8f76f4ed3326778d88fe24",
+      "evidence/selective_model_spec.md": "6dc68cfa454e8f758e8d8e6b8f25963b0c1ad7c744dd3df07a6b3681dafd44ac",
+      "evidence/missing_evidence.md": "a2faa865e5b9a2908ba8c66e3363fec9518697de30c40c9156b23a9f28b9b954",
+      "evidence/implementation_status.md": "06e4d11531fdd68c3effbd89b4a15493c11b03faa06c7f0f683dffe322c08604",
+      "evidence/claims_ledger.md": "f6f66a4ada636f7975d0b1dcd525e627c3d9e4e162844c5511c886fba89770c2",
+      "FastVCL_CVPR2027_第五轮论文优化方案.md": "63632bb6d523e7efe111e7b48ebea3db891b5e6fd2ede923470f5543d3209d31"
+    },
+    "changed_from_round5_snapshot": [],
+    "preexisting_untracked": [
+      "README.md",
+      "rebuttal.tex"
+    ],
+    "pdf_layout": "Historical round5 observation: main 10 total pages, body about 8.5 pages; supplement 12. Not recompiled or remeasured in this planning task."
+  },
+  "prototype": {
+    "root": "../FastVCL",
+    "head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+    "worktree_status": "",
+    "modified": false,
+    "test_suite_rerun": false
+  },
+  "dataset_inventory": {
+    "root": "/Users/gzhlaker/Downloads/VCSL",
+    "scope": "Only local VCSL tree; no assertion about other machines or storage. stat sizes are logical bytes, not allocated disk usage.",
+    "feature_files": 12254,
+    "feature_logical_bytes": 4388241152,
+    "source_videos_found": 0,
+    "extensions_checked": [
+      ".mp4",
+      ".mkv",
+      ".avi",
+      ".webm",
+      ".mov"
+    ],
+    "metadata": {
+      "pair_file_train.csv": {
+        "path": "info/pair_file_train.csv",
+        "sha256": "e7fb88859e29dc872c10fc2b9e1a1a5c5a6516a6346ec685aec42ecef14a5c9c",
+        "csv_data_rows": 97033
+      },
+      "pair_file_val.csv": {
+        "path": "info/pair_file_val.csv",
+        "sha256": "f7065467eb71340576c1f83ce6ada8810b02311d8d932c269069c414fa746f91",
+        "csv_data_rows": 41798
+      },
+      "pair_file_test.csv": {
+        "path": "info/pair_file_test.csv",
+        "sha256": "b52c1b5fb394d117d7f02206493331e78ba26fdb7ee344fc4302aba0cf231880",
+        "csv_data_rows": 54630
+      },
+      "label_file_uuid_total.json": {
+        "path": "info/label_file_uuid_total.json",
+        "sha256": "47d492e201741f10f970faedc6063feab06716dc604790fc5539af50b90a82ce"
+      },
+      "split_meta_pairs.json": {
+        "path": "info/split_meta_pairs.json",
+        "sha256": "840a3011b93556100ea6811120716ac3729d53afd24c39b6215a77eafd6d5329"
+      },
+      "frames_all.csv": {
+        "path": "info/frames_all.csv",
+        "sha256": "e9971d4bd08a31b03bc73fdf44b2f9d15e59ed7043b14af5ca410f2606e180b6"
+      }
+    },
+    "full_feature_content_digest_computed": false,
+    "frame_mapping_validated": false,
+    "round5_asset_bytes": 4418396160,
+    "byte_count_note": "Current .npy stat total matches experiment_manifest.md (4,388,241,152), differs from round5_assets.json. Prior counting scope is not established; no inference of feature corruption."
+  },
+  "backend_hardware_status": {
+    "new_audit": false,
+    "source": "evidence/round5_assets.json",
+    "as_of": "2026-10-20",
+    "note": "Historical audit found no validated visual checkpoint/torch/CUDA backend. This planning task did not repeat a global cache, credential, remote-host or GPU audit."
+  },
+  "existing_round5_checks_rerun": {
+    "passed": 18,
+    "total": 18,
+    "benchmark_result": false
+  },
+  "reference_probes": [
+    {
+      "id": "CONN_DISCONNECTED_SUFFIX",
+      "function": "connection_path",
+      "kwargs": {
+        "sim": [
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.9,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.9
+          ]
+        ],
+        "valid": [
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        ],
+        "starts": [
+          [
+            0,
+            0
+          ]
+        ],
+        "ends": [
+          [
+            4,
+            4
+          ]
+        ],
+        "tau": 0.6,
+        "max_low_run": 0,
+        "min_coverage": 1.0
+      },
+      "observed": [
+        true,
+        {
+          "reason": "ok",
+          "cells": 2,
+          "worst_low_run": 0,
+          "coverage": 1.0
+        }
+      ],
+      "required_behavior": "Reject: accepted path must originate in the designated source support.",
+      "issue": "Free restarts can accept a suffix unrelated to the left fragment."
+    },
+    {
+      "id": "CONN_INVALID_START",
+      "function": "connection_path",
+      "kwargs": {
+        "sim": [
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.9,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.9
+          ]
+        ],
+        "valid": [
+          [
+            false,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        ],
+        "starts": [
+          [
+            0,
+            0
+          ]
+        ],
+        "ends": [
+          [
+            4,
+            4
+          ]
+        ],
+        "tau": 0.6,
+        "max_low_run": 0,
+        "min_coverage": 1.0
+      },
+      "observed": [
+        true,
+        {
+          "reason": "ok",
+          "cells": 2,
+          "worst_low_run": 0,
+          "coverage": 1.0
+        }
+      ],
+      "required_behavior": "Reject: no valid source support.",
+      "issue": "The only source is invalid, but a free local restart is accepted."
+    },
+    {
+      "id": "CONN_COVERAGE_DENOMINATOR",
+      "function": "connection_path",
+      "kwargs": {
+        "sim": [
+          [
+            0.9,
+            0.1,
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.9,
+            0.1
+          ],
+          [
+            0.1,
+            0.1,
+            0.1,
+            0.9
+          ]
+        ],
+        "valid": [
+          [
+            true,
+            false,
+            false,
+            false
+          ],
+          [
+            false,
+            false,
+            true,
+            false
+          ],
+          [
+            false,
+            false,
+            false,
+            true
+          ]
+        ],
+        "starts": [
+          [
+            0,
+            0
+          ]
+        ],
+        "ends": [
+          [
+            2,
+            3
+          ]
+        ],
+        "tau": 0.6,
+        "max_low_run": 0,
+        "min_coverage": 1.0
+      },
+      "observed": [
+        true,
+        {
+          "reason": "ok",
+          "cells": 3,
+          "worst_low_run": 0,
+          "coverage": 1.0
+        }
+      ],
+      "required_behavior": "Freeze a non-tautological axis/gap coverage definition. Under the proposed min-axis fraction, coverage is min(3/3,3/4)=0.75 and threshold 1 rejects.",
+      "issue": "All traced nodes are valid by construction; valid_nodes/path_nodes is always one for a nonempty returned path. cells is path length, not executed DP visits."
+    },
+    {
+      "id": "FUSION_AXIS_TOLERANCE",
+      "function": "fusion_edge",
+      "kwargs": {
+        "u": {
+          "id": "u",
+          "a_s": 0,
+          "a_e": 10,
+          "b_s": 0,
+          "b_e": 10,
+          "alpha": 1.0,
+          "beta": 0.0
+        },
+        "v": {
+          "id": "v",
+          "a_s": 15,
+          "a_e": 25,
+          "b_s": 18,
+          "b_e": 28,
+          "alpha": 1.0,
+          "beta": 3.0
+        },
+        "config": {
+          "G_A": 48,
+          "G_B": 48,
+          "kappa_A": 1,
+          "kappa_B": 4,
+          "alpha_min": 0.5,
+          "alpha_max": 2.0,
+          "theta_dedup": 0.8
+        }
+      },
+      "observed": [
+        true,
+        [],
+        {
+          "gap_a": 5,
+          "gap_b": 8,
+          "iou_a": 0.0,
+          "iou_b": 0.0,
+          "max_map_error": 3.0
+        }
+      ],
+      "required_behavior": "Reject: the reverse A-axis error is 3, greater than kappa_A=1.",
+      "issue": "max(all_errors)<=max(kappa_A,kappa_B) is not equivalent to per-axis gates."
+    },
+    {
+      "id": "BUDGET_NO_TRANSFER_BOUND",
+      "function": "evidence_frame_pairs",
+      "kwargs": {
+        "budget": 12
+      },
+      "observed": {
+        "B": 12,
+        "B_A": 8,
+        "B_F": 4,
+        "anchor_pairs": 24,
+        "fusion_pairs": 20,
+        "total_pairs": 44
+      },
+      "required_behavior": "44 paired positions is a fixed A8/F4 bound only; transferring all unused A quota permits 60 paired positions (120 source-frame slots).",
+      "issue": "The manuscript permits A-to-F transfer but states the fixed-allocation evidence upper bound."
+    }
+  ],
+  "official_sources": [
+    {
+      "url": "https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines",
+      "checked": "2026-10-22",
+      "status": "reachable",
+      "verified_facts": [
+        "Main paper limit: eight pages including figures and tables; extra pages only for cited references and mandatory LLM Usage Statement.",
+        "Official CVPR 2027 submission-template link is present."
+      ],
+      "template_url": "https://media.eventhosts.cc/Conferences/CVPR2027/author-kit-CVPR2027-v1-latex.zip",
+      "template_archive_inspected": false,
+      "note": "Web tool reports application/zip unsupported; do not infer template file contents."
+    },
+    {
+      "url": "https://cvpr.thecvf.com/Conferences/2027/CallForPapers",
+      "checked": "2026-10-22",
+      "deadlines_aoe": {
+        "enrollment": "2026-11-10",
+        "paper": "2026-11-16",
+        "supplement": "2026-11-23"
+      }
+    },
+    {
+      "url": "https://arxiv.org/abs/2609.25845",
+      "checked": "2026-10-22",
+      "scope": "Author abstract: shared visual-context multiple-question scoring; no video-copy transfer validated here."
+    },
+    {
+      "url": "https://arxiv.org/abs/2610.18615",
+      "checked": "2026-10-22",
+      "scope": "Author abstract: temporal grounding and video multiple-choice QA; no video-copy transfer validated here."
+    }
+  ]
+}

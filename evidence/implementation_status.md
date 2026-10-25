@@ -5,6 +5,22 @@ Read-only audit date: 2026-10-17. Prototype HEAD `fdc3362b2418b316e16d6dfd68435e
 `4b57976da5ad1b38f999c96aba315e63a272acdf`. This file records what the code **does**, not
 what the research plan hopes it does.
 
+## Round 6 status (2026-10-25)
+
+- **The prototype is unchanged.** HEAD remains
+  `fdc3362b2418b316e16d6dfd68435e40c1b1afb8` with a clean tracked work tree. A read-only
+  rerun of the suite gives **646 tests OK, 10 CUDA tests skipped, 43.101 s**
+  (`round6_prototype_tests.log`). Passing tests do not validate the proposed rules.
+- **The repaired rules exist only in the paper-side reference.**
+  [round6_reference.py](../scripts/round6_reference.py) separates proposal DP from `Conn`,
+  uses interval coverage, per-axis geometry, one-pair merging and the transfer-aware budget;
+  [check_round6_semantics.py](../scripts/check_round6_semantics.py) passes **35/35**
+  deterministic probes. This is a specification reference, not the pipeline.
+- **Still not implemented in the prototype:** the zero-floor core variant, distinct dual-axis
+  support, zero margin, strongest-competitor margin, fusion selector, `Conn`, anchor
+  filtering and the two-stage budget. The round-five `CONFLICT` rows below still apply.
+- **No run this round:** no VCSL pair, visual model, GPU kernel or benchmark was executed.
+
 ## 1. What is actually implemented
 
 | Stage | Location | State | Evidence grade |

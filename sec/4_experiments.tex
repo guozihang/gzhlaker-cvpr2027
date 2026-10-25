@@ -11,10 +11,9 @@ supplement.
 \begin{table*}[t]
 \centering
 \caption{\textbf{Core comparison under the proposed VCSL protocol (fixed ISC features).}
-Planned reruns use the same features, pair lists, GT and evaluator, with separate
+Planned reruns share features, pair lists, GT and evaluator but use separate
 validation-selected thresholds. ``Learned loc.'' marks a trained downstream localizer, even
-when we only load a checkpoint. \TODO{All measurements are pending.} FAR is test-only and is
-not reported on the positive-only validation split.}
+with a loaded checkpoint. \TODO{All measurements are pending.} FAR is test-only.}
 \label{tab:main}
 \scriptsize
 \setlength{\tabcolsep}{4pt}
@@ -35,19 +34,17 @@ FastVCL-core          & No  & -- & -- & -- & -- \\
 \end{tabular}
 \vspace{3pt}
 \par\raggedright\footnotesize
-Classical baseline implementations: VCSL~\cite{vcsl2022}; learned baselines:
-SPD~\cite{spd2021}, TransVCL~\cite{transvcl2023}. Report the four denominators in
-Section~\ref{sec:exp-metric}. Published numbers using different inputs or protocols belong
-in a separate supplementary table, never in this ranking.
+Classical baselines: VCSL~\cite{vcsl2022}; learned: SPD~\cite{spd2021},
+TransVCL~\cite{transvcl2023}. Report the four denominators in Section~\ref{sec:exp-data};
+published numbers under other inputs or protocols belong only in the supplement.
 \end{table*}
 
 \begin{table*}[t]
 \centering
 \caption{\textbf{Augmented system (additional original frames and model calls).}
 These rows are not fixed-feature comparisons and are never merged into
-Table~\ref{tab:main}. ``Q'' is the shared pair budget $B$; full P/R/F1, per-question source limits (6 anchor /
-10 fusion frames) and the four-cell split are in the supplement; FAR is test-only, so val is
-not applicable.
+Table~\ref{tab:main}. ``Q'' is the shared pair budget $B$; per-question limits (6 anchor /
+10 fusion frames) and the four-cell split are in the supplement. FAR is test-only.
 \TODO{All measurements are pending.}}
 \label{tab:augmented}
 \scriptsize
@@ -62,36 +59,31 @@ A-only visual filter          & 8 & -- & -- & -- & -- \\
 F-only visual fusion          & 4 & -- & -- & -- & -- \\
 A+F joint                     & 12 & -- & -- & -- & -- \\
 A+F random selection          & 12 & -- & -- & -- & -- \\
-A+F geometry / Conn only      & 12 & -- & -- & -- & -- \\
+A+F geometry / Conn only$^{\dagger}$ & 0 & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}
+\vspace{3pt}
+\par\raggedright\footnotesize
+$^{\dagger}$No model question is asked; this control may check up to 12 legal
+edges, and those checks are not counted as visual budget.
 \end{table*}
 
-\subsection{Data and selection protocol}
+\subsection{Data, metric and protocol}
 \label{sec:exp-data}
-The audited local VCSL release~\cite{vcsl2022} contains 12,254 fixed ISC feature files,
-97,033 training pairs, 41,798 validation pairs and 54,630 test pairs. Validation is
-positive-only; the test list contains 27,315 GT-key-missing pairs, treated as negatives by
-the local loader. Coordinates are half-open feature indices, not seconds or source frames.
-We preserve original GT and separately count degenerate or out-of-range annotations.
+The audited local VCSL release~\cite{vcsl2022} has 12,254 fixed ISC feature files and 97,033
+training, 41,798 validation and 54,630 test pairs. Validation is positive-only; 27,315 test
+pairs lack a GT key and count as negatives, and coordinates are half-open feature indices.
+Structural settings are chosen on \texttt{dev\_design}, thresholds on
+\texttt{dev\_calibration}, and the audit is held out in \texttt{dev\_audit}, grouped by shared
+video across splits; validation cannot calibrate test FAR, which stays held out. The target
+is about 200 real pairs covering short, edited, repeated, similar and multi-segment copies,
+plus at least 300 anchor and 150 fusion-edge decisions; if fewer exist, the count is reported
+as-is. Action labels require human review or traceable transform truth, otherwise the actions
+stay in shadow.
 
-Choose structural settings on development data and each threshold on validation with a
-predeclared grid, objective and tie rule; freeze before test. Validation is selection-biased
-and has no negatives, so it cannot calibrate test FAR; without a provenance-audited negative
-set, FAR stays held out. Audit shared videos across splits before treating pairs as
-independent. Development data are grouped by shared videos into \texttt{dev\_design}
-(structure and selector), \texttt{dev\_calibration} (action thresholds) and \texttt{dev\_audit}
-(held-out check). The first target is about 200 real pairs covering short copies, strong
-edits, repeated shots, semantically similar non-copies and multi-segment copies, plus at
-least 300 anchor and 150 fusion-edge decisions. If fewer exist, the count is reported as-is;
-synthetic samples do not fill the gap. Action labels require human review or traceable
-transform truth; without reliable labels the actions stay in shadow.
-
-\subsection{Metric and completion accounting}
-\label{sec:exp-metric}
 For predictions $P_k$ and GT boxes $G_l$, let $O_k^A$ be the union of A-axis projections of
 their positive-area intersections and $O_k^B$ the analogue; $Q_l^A,Q_l^B$ reverse the roles.
-The reference evaluator computes
+The evaluator computes
 \begin{equation}
 \begin{aligned}
 P_p&=\frac{\sum_k\ell(O_k^A)}{\sum_k\ell(P_{k,A})+\epsilon}
@@ -101,95 +93,57 @@ R_p&=\frac{\sum_l\ell(Q_l^A)}{\sum_l\ell(G_{l,A})+\epsilon}
 \end{aligned}
 \label{eq:metric}
 \end{equation}
-with $\ell$ interval length and $\epsilon=10^{-6}$: products of axis coverage, not min-IoU or
-area IoU. Empty predictions return $(P_p,R_p)=(1,0)$ against nonempty GT, nonempty
-predictions $(0,1)$ against empty GT, and both empty $(1,1)$; exactly-one values are excluded
-from each mean, and
-\begin{equation}
-\bar P=\frac{\sum_{p\in\mathcal D_P}P_p}{|\mathcal D_P|},\quad
-\bar R=\frac{\sum_{p\in\mathcal D_R}R_p}{|\mathcal D_R|},\quad
-\mathrm{F1}=\frac{2\bar P\bar R}{\bar P+\bar R+\epsilon},
-\label{eq:macro}
-\end{equation}
-where $\mathcal D_P=\{p:P_p\ne1\}$ and $\mathcal D_R=\{p:R_p\ne1\}$. Report
-\texttt{n\_expected}, \texttt{n\_processed} (\textsc{ok}+\textsc{empty}), both macro
-denominators, failures, skips and equality exclusions; an empty denominator is undefined,
-not zero, and an exception is never an empty prediction. Candidate-recall and boundary-MAE
-diagnostics, including matching and cohort rules, are defined in the supplement.
+and macro averages whose exact denominators are in the supplement, with $\ell$ interval
+length and $\epsilon=10^{-6}$. Products of axis coverage replace min-IoU or area IoU. Empty
+prediction against nonempty GT gives $(1,0)$, the reverse $(0,1)$, both empty $(1,1)$, and
+exactly-one values are excluded. Report \texttt{n\_expected}, \texttt{n\_processed}
+(\textsc{ok}+\textsc{empty}), both denominators, failures, skips and exclusions; an empty
+denominator is undefined and an exception is never an empty prediction.
 
-\subsection{Baselines and controlled experiments}
+\subsection{Baselines and controlled comparisons}
 \label{sec:exp-baselines}
 Classical HV/TN/DP/DTW and compatible pretrained SPD/TransVCL are planned reruns under the
-same inputs and evaluator. A checkpoint, feature interface and runnable environment are
-prerequisites, not established facts. The simple sparse-to-band baseline (E1) uses one
-zero-phase grid, mutual Top-$K_{\rm nn}$, RANSAC, fixed-width bands, one path per band, and
-shared scoring, threshold selection and min-IoU post-processing; it omits gap splitting and
-the extra dual-axis support/span checks, but must use the same recurrence, margin and support
-rule as the core it is compared with. Only E3 freezes identical tubes.
+same inputs and evaluator; checkpoints and runnable environments are prerequisites. E1 uses
+one zero-phase grid, mutual Top-$K_{\rm nn}$, RANSAC, fixed-width bands, one path per band,
+and shared scoring and post-processing; it omits gap splitting and the extra dual-axis checks
+but keeps the recurrence, margin and support rule. Only E3 freezes identical tubes. E0, E2
+and E4 compare external baselines, stride/scale/phase changes and single structural factors
+against executed dots; E5 compares scan and direct offset after semantic parity. Core
+consistency and E1/E3 precede shadow decisions, action controls, the joint four-cell
+comparison, and then the quality--cost curve.
 
-E0 compares external baselines; E2 varies stride, nested scales and independent phases against
-executed dots; E3 holds tracks and tubes and compares support boxes, band DTW, prototype
-continuation and the zero-floor recurrence; E4 varies one structural factor at a time; E5
-compares scan and direct-offset after semantic parity, with full-matrix DP as a separate
-search-domain comparison. Five seeds measure fit variability, not data significance. Core
-consistency and E1/E3 run first, then shadow decisions, action controls, the joint four-cell
-comparison, and only then the full quality--cost curve and external baselines.
-
-\subsection{Action risk and audit}
+\subsection{Risk, decisions and timing}
 \label{sec:exp-risk}
-We freeze five quantities before choosing sample size. \emph{True anchor deletion rate:}
-deleted true-copy anchors over audited true-copy anchors, reported over all $\Anch_0$ and
-over queried true anchors, so unqueried items do not dilute risk. \emph{Deletion action
-error:} wrongly deleted true anchors over all deletion actions, \texttt{N/A} when there are
-none. \emph{Wrong-fusion rate:} wrongly accepted merges over all accepted merges, with correct
-opportunities among legal edges and missed merges also reported. \emph{Coverage and
-abstention:} asked, verified, acted, abstained or failed, counted separately. \emph{Final
-effect:} full P/R/F1/FAR, paired recall difference with uncertainty, and boundary MAE on a
-common-GT cohort. Targets are a $1\%$ true-anchor deletion rate, a $1\%$ wrong-fusion rate and
-a $0.5$ percentage-point recall drop; they are operating targets, not certificates.
+We freeze five quantities: true anchor deletion over audited true anchors, reported over all
+$\Anch_0$ and over queried true anchors separately; deletion action error (wrongly deleted
+true anchors over all deletions); wrong-fusion rate (wrongly accepted merges over all
+accepted merges, with opportunities and missed merges); coverage and abstention counts; and
+final P/R/F1/FAR with paired recall difference and boundary MAE on a common-GT cohort.
+Targets are $1\%$ deletion, $1\%$ wrong fusion and a $0.5$-point recall drop, not
+certificates. For $n$ independent zero-error trials the one-sided $95\%$ bound is
+$1-0.05^{1/n}$ ($1.98\%$ at $n=150$, $0.994\%$ at $n=300$), so 299 effective trials are
+needed for $1\%$; correlated observations use predeclared grouped intervals (supplement).
 
-For $n$ independent zero-error trials the one-sided $95\%$ bound is
-$p_{\rm upper}=1-0.05^{1/n}$: $1.98\%$ at $n=150$ and $0.994\%$ at $n=300$, so at least 299
-effective trials are needed for a bound no larger than $1\%$. Candidate edges usually do not
-yield as many accepted fusions; video-correlated observations violate independence and
-grouped intervals are predeclared. Thresholds are selected on \texttt{dev\_calibration} and
-frozen to \texttt{dev\_audit}; the supplement gives the full risk-ledger template and
-grouped-interval rules.
+Each E6 row fixes the correct upstream input. E6-A compares no action, random selection, a
+margin/geometry rule and time-spread selection from the same $\Anch_0$. E6-F compares no
+fusion, geometry plus connection only, random visual and selective visual from the same
+$\mathcal C_0$ and edge pool, reporting legal-edge coverage, $\mathrm{Conn}$ pass rate and
+asked-versus-executed actions. E6-J reruns core, A only, F only and A+F without adding gains;
+its four cells fix A8, F4 and A8+F4, while A12/F12/A8+F4 states whether transfer is enabled.
+Neither is an equal-frame or equal-token control. E6-S/R/V test shared execution, readout
+separation and visual necessity (supplement).
 
-\subsection{Two decision points (E6)}
-\label{sec:exp-e6}
-Each E6 row fixes the correct upstream input. \textbf{E6-A} compares no action, random
-selection, a margin/geometry rule and time-spread selection from the same $\Anch_0$ and input
-cap. \textbf{E6-F} compares no fusion, geometry plus connection only, random visual and
-selective visual from the same $\mathcal C_0$ and legal edge pool, and reports correct
-opportunities, legal-edge coverage, $\mathrm{Conn}$ pass rate and asked-versus-executed
-actions on a fixed edge set. \textbf{E6-J} reruns core, A only, F only and A+F and never adds
-gains across rows. \textbf{E6-S}, \textbf{E6-R} and \textbf{E6-V} test shared execution,
-readout/post-training separation and visual necessity respectively; their full matrix is in
-the supplement. A cheap visual or local-correspondence control on the same frames rules out a
-gain from seeing more pixels. Core consistency and E1/E3 precede these rows.
-
-\subsection{Timing and quality--cost analysis}
-\label{sec:exp-e5}
-$\Tloc$ starts with raw features resident in CPU memory and initialized operators, and ends
-with in-memory predictions. Include normalization, transfers, matching, RANSAC, DP, traceback
-and post-processing; separate feature I/O, export and initialization, and measure every
-TransVCL chunk and assembly. Disable intrusive profiling, warm up, repeat at least three
-rounds, fix threads and synchronize GPU endpoints. For the augmented system, $\Taug$ starts
-before frame reading and includes decode, evidence assembly, geometry pre-fit, transfer,
-model calls, retries, connection DP, score reconstruction and output; cold cache,
-first-call initialisation and steady state are separate rows. A warm-cache number is not
-compared with a cold-cache baseline, routing time does not stand in for model time, and score
-thresholds are not used to fake an upstream saving.
-
-\subsection{Results reserved for verified runs}
-\label{sec:exp-results}
+$\Tloc$ starts with features resident and initialized operators and ends with in-memory
+predictions; $\Taug$ adds decode, evidence, model calls, retries, connection DP and output.
+We warm up, repeat at least three rounds, fix threads, separate cold cache, first-call and
+steady state, and never compare a warm-cache number with a cold baseline; the full protocol
+is in the supplement.
 
 \paragraph{Evidence limits.}
 \label{sec:exp-status}
 All result rows are pending. The near-complete validation execution scored 41,797 of 41,798
-pairs with one error and an unfrozen configuration, and \texttt{dev1000} covers 200 pairs. No
-visual backend, verified frame map or action threshold is validated, and the local snapshot
-has no source video for the audited features, so the decision layer is interface-level only;
-synthetic checks establish semantics, not accuracy. No benchmark claim is admissible until a
-frozen protocol and the corresponding full-set, risk and cost artifacts exist.
+pairs with one error under an unfrozen configuration, and \texttt{dev1000} covers 200 pairs.
+No visual backend, verified frame map or action threshold is validated, and the snapshot has
+no source video, so the decision layer is interface-level only. Synthetic checks establish
+semantics, not accuracy; no benchmark claim is admissible until a frozen protocol and
+full-set risk and cost artifacts exist.

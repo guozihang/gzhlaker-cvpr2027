@@ -4,9 +4,11 @@ Every claim that appears in the paper must have an entry here. Grades follow the
 plan: `SOURCE_VERIFIED`, `PROPOSED`, `IMPLEMENTED_UNVALIDATED`, `PILOT_ONLY`,
 `BENCHMARK_VERIFIED`, `MISSING`, `CONFLICT`.
 
-**Global verdict at draft time: no claim in this paper is `BENCHMARK_VERIFIED`.** The
-novelty gate (E1) has not been run; the ledger therefore carries an explicit
-**`NOVELTY_GAP`** marker (see C18).
+**Global verdict (round 6, 2026-10-25): still no claim in this paper is
+`BENCHMARK_VERIFIED`.** The definitional repairs C25–C29 are reference-checked in
+`scripts/round6_reference.py` (35/35 deterministic probes), but they are not implemented in
+the prototype and no dataset, model or GPU run exists. The novelty gate (E1) has not been
+run; the ledger therefore carries an explicit **`NOVELTY_GAP`** marker (see C18).
 
 | ID | Claim (paper wording, abbreviated) | Grade | Evidence / basis | What would refute it | Allowed placement |
 |---|---|---|---|---|---|
@@ -34,6 +36,23 @@ novelty gate (E1) has not been run; the ledger therefore carries an explicit
 | C22 | Thresholds must be tuned per method because scores are uncalibrated and semantically different | `SOURCE_VERIFIED` | `METHOD_DECISIONS.md` D5; TransVCL objectness vs. local score | a calibrated common score | Exp. protocol |
 | C23 | The `dev1000` metrics file is computed over 200 pairs, not 1,000 | `CONFLICT` (verified) | `metrics.json n_pairs=200` vs `run_summary n_selected=1000` | a re-score over 1,000 | internal only; never a table |
 | C24 | The near-complete val run (41,797 scored, 1 ERROR) is not a benchmark-verified result | `PILOT_ONLY` | `run_summary.json`, `metrics.json` | zero-error frozen rerun | Suppl. status only |
+| C25 | `Conn` certifies a bridge only when the backtracked path starts at a valid left support node and ends at a right support node; it cannot restart, and only the best path is tested | `PROPOSED` (reference-checked) | `scripts/round6_reference.py::connection_path`; 35/35 probes in `round6_math_checks.json`, including the planning counterexamples | any accepted path whose endpoints are not support nodes, or that starts inside the region | Method, Suppl. |
+| C26 | Coverage is interval-based, $\min(d_A/s_A,d_B/s_B)$ over the selected endpoint spans, not path length; skipped indices lower it | `PROPOSED` (reference-checked) | same reference and probes; small-grid enumeration agrees with the DP counters | a gap-spanning path that reports coverage 1 | Method, Suppl. |
+| C27 | Boundary compatibility is per axis: A-to-B residuals compare with $\kappa_B$ and B-to-A residuals with $\kappa_A$; a pooled maximum is invalid | `PROPOSED` (reference-checked) | reference `fusion_edge`; asymmetric-threshold probe is rejected | a pooled-threshold acceptance under asymmetric $\kappa$ | Method, Suppl., E6-F |
+| C28 | Fusion merges one original disjoint pair at a time in frozen selector order, consumes both members, adds no model call and triggers no set-level re-verification | `PROPOSED` (reference-checked) | reference merge probes: three-fragment chain yields one merge; shared-member edge is refused; failed reconstruction retains members | an unaccounted second merge or acceptance of a consumed member | Method, Suppl., E6-F |
+| C29 | With $q_A,q_F$ logical questions, evidence is bounded by $3q_A+5q_F\le5B$ paired positions and $6q_A+10q_F\le10B$ slots; the fixed-allocation $3B_A+5B_F$ is only a special case (44 is not the worst case at $B=12$) | `PROPOSED` (arithmetic + probe) | `round6_reference.py` budget envelope; `eq:evidence-bound`; transfer probe at $B=12$ gives 60/120 | an accounting log exceeding these bounds, or a claim that 44 is the upper bound | Method, Suppl. |
+
+## Round 6 status (2026-10-25)
+
+- **Closed as specification/reference:** P0-1 anchored `Conn`, P0-2 interval coverage, P0-3
+  per-axis geometry and one-pair merging, P0-4 transfer-aware budget bound, P0-5 official
+  2027 template and LLM statement. The manuscript, supplement and `round6_reference.py`
+  agree; 35/35 deterministic probes pass. These checks are definitional, not empirical.
+- **Still open:** prototype implementation of the new core (W6-1), E1/E3 pilot (W6-2),
+  frame map/backend (W6-3), action audit (W6-4), full campaign (W6-5). C15 remains
+  `CONFLICT`, C16/C18 remain `MISSING`, C19/C24 remain `PILOT_ONLY`.
+- **Not changed by this round:** no table value, no model call, no GPU timing, no benchmark
+  claim. See `evidence/round6_review.md` for the execution record.
 
 ## Novelty gate (must be resolved before submission)
 

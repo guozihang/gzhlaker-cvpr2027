@@ -1,8 +1,10 @@
 % FastVCL -- CVPR 2027 anonymous draft.
-% Template status: this project is built on the CVPR 2026 author kit (cvpr.sty,
-% review mode) as a fallback.  It is NOT the official CVPR 2027 author kit; see
-% README_BUILD.md.  Replace cvpr.sty and re-check the page limit once the 2027
-% kit is published.
+% Template status: official CVPR 2027 author kit (v1), downloaded 2026-10-22.
+%   archive: https://media.eventhosts.cc/Conferences/CVPR2027/author-kit-CVPR2027-v1-latex.zip
+%   archive sha256: 7271bdbb0d2f20043b101c3bb10cba67a8c7f2711f0067b395f9f27451c43121
+%   cvpr.sty sha256: 1cd7f434b13d41c475df4a1901a5d82d9ca8b80b8cf6205dc4602a5c164286b4
+% The kit dropped the visible Paper ID from the review header; keep this file
+% anonymous and do not reintroduce an ID.
 
 \documentclass[10pt,twocolumn,letterpaper]{article}
 
@@ -17,8 +19,7 @@
 \definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
 \usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
 
-%%%%%%%%% PAPER ID
-\def\paperID{*****}
+%%%%%%%%% CONFERENCE
 \def\confName{CVPR}
 \def\confYear{2027}
 
@@ -26,8 +27,7 @@
 \title{FastVCL: Budgeted Visual Decisions for Sparse-to-Tube Video Copy Localization}
 
 %%%%%%%%% AUTHORS (suppressed by the review option; kept anonymous on purpose)
-\author{Anonymous submission\\
-Paper ID \paperID}
+\author{Anonymous submission}
 
 \begin{document}
 \maketitle
@@ -47,5 +47,18 @@ Paper ID \paperID}
 
 % The supplementary material is a separate entry point (supplementary.tex) so
 % that detailed audit material stays outside the main paper. Do not \input it here.
+
+% Mandatory LLM usage statement.  The CVPR 2027 guidelines allow the eight-page
+% body to be followed by references and this statement on extra pages.
+\clearpage
+\section*{LLM Usage Statement}
+Large language model (LLM) tools were used during the preparation of this
+manuscript for \LaTeX{} editing, implementation of the reference semantic checks,
+and consistency auditing of the reported protocols and evidence records. They
+were not used to generate experimental results, to create or alter data, or to
+produce scientific claims beyond the authors' analysis. No LLM or other learned
+visual model was executed for the experiments reported here: the optional visual
+decision module is a proposed component, and all result entries remain pending.
+The authors reviewed the text, code and claims and take responsibility for them.
 
 \end{document}

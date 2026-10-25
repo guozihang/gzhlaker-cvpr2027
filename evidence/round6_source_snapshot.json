@@ -1,0 +1,199 @@
+{
+ "date": "2026-10-25",
+ "kind": "round6_execution_snapshot",
+ "scope": "Manuscript-side round-6 execution: P0-1–P0-5 repairs, official-template migration, LLM statement, framework-figure regeneration, both PDF rebuilds and evidence sync. Reference semantic probes plus read-only parity/contract/prototype tests only; no VCSL pair, dataset inference, visual model, GPU kernel, benchmark or paid call was executed.",
+ "base_head": "f4f6ffb400f661e8e5e84f79cf7019782a4745c1",
+ "base_head_short": "f4f6ffb",
+ "working_tree": {
+  "branch": "main",
+  "round6_changes_committed_at_snapshot": false,
+  "status_lines": [
+   " M README_BUILD.md",
+   " M cvpr.sty",
+   " M evidence/claims_ledger.md",
+   " M evidence/experiment_manifest.md",
+   " M evidence/experiment_plan.md",
+   " M evidence/implementation_status.md",
+   " M evidence/method_spec.md",
+   " M evidence/missing_evidence.md",
+   " M evidence/selective_model_spec.md",
+   " M evidence/spec_code_contract.md",
+   " M figures/fig_2_framework.pdf",
+   " M figures/fig_2_framework.png",
+   " M figures/fig_2_framework.svg",
+   " M main.tex",
+   " M scripts/generate_framework.py",
+   " M sec/1_intro.tex",
+   " M sec/3_method.tex",
+   " M sec/4_experiments.tex",
+   " M supplementary.tex",
+   "?? \"FastVCL_CVPR2027_\\347\\254\\254\\345\\205\\255\\350\\275\\256\\350\\256\\272\\346\\226\\207\\344\\274\\230\\345\\214\\226\\346\\211\\247\\350\\241\\214\\350\\256\\241\\345\\210\\222.md\"",
+   "?? README.md",
+   "?? evidence/round6_contract_probes.json",
+   "?? evidence/round6_evaluator_parity.json",
+   "?? evidence/round6_math_checks.json",
+   "?? evidence/round6_paper_math_checks.json",
+   "?? evidence/round6_planning_snapshot.json",
+   "?? evidence/round6_review.md",
+   "?? rebuttal.tex",
+   "?? scripts/check_round6_semantics.py",
+   "?? scripts/round6_reference.py"
+  ]
+ },
+ "paper": {
+  "source_sha256": {
+   "main.tex": "d823eda0d604867e196d9cb8bb78252744a67beada91a1eecc80a75d0de4b8aa",
+   "preamble.tex": "c7250c7a3320da787cf42caf3dc0a7d1520fbed964251984f8742e58746f2774",
+   "main.bib": "d398ef888f3eeb9f09e0e9d927784dbe0b01b64f2c70531a1c66e544bacf4df8",
+   "cvpr.sty": "1cd7f434b13d41c475df4a1901a5d82d9ca8b80b8cf6205dc4602a5c164286b4",
+   "ieeenat_fullname.bst": "e38e6166bd7b1e6d23a1b79dcdb55c656e4fcdbe91bdf6b50d827e6b5d1aacfc",
+   "supplementary.tex": "a0bfe8896cb5f72bb9d782bf8ceddfd792347ba069c13b5f7783cb971a97bd1a",
+   "README_BUILD.md": "76f197db87576807b42340308c7ad125fada613c0544cf958ebed7f5ce7514d1",
+   "sec/0_abstract.tex": "309bc60a450f5a91f4f70a427c402a18756b3d665361ce1101dc3c1880f2c862",
+   "sec/1_intro.tex": "7edbbeb463cbeeeec794d62f26decc88dc098a5b51ddb294a3e7b354c07d9774",
+   "sec/2_related_work.tex": "d2f982b8abba734ab488e9691625372af87f6f04660614ac4a824b66bfd1abfb",
+   "sec/3_method.tex": "5f575afa03b33ae33c6f96c4b3697c6b087943fecd53c33967a41b6292c7c24b",
+   "sec/4_experiments.tex": "f2a3091a87039b011b7e1b70a6e7576a9fb7ca281e62c220d7457f2dbffd2f3d",
+   "sec/5_conclusion.tex": "c9b0afc619fb732ac705467746141595ce892ed4d39f9f5ab6daa6d2a3789440",
+   "scripts/round6_reference.py": "a2a5e5f0541a20f253ee23788ac1f3db43b789d12613ffc47c6cc1783ee70f39",
+   "scripts/check_round6_semantics.py": "f08ec12228f7c6880fb9ef2ca7faf70ceb07a14da2a7124a11d2f44050a9bd42",
+   "scripts/check_paper_semantics.py": "f36d95701e42944b4fabaaf28015c4e2d3891b3034a1e860f7353f01688d86d9",
+   "scripts/generate_framework.py": "65061410b08d362d817e8fe5daccefdd8b7406460dd63fbe13bbc021ecf055c6",
+   "figures/fig_2_framework.svg": "137342095f5b83b35e36550ea51ef92cbe42841f24e57befe1f53fe3374a5ba8",
+   "figures/fig_2_framework.pdf": "be69173ad5030593b147928523f7f6da92cf940dc0db42f4587c1191f1fe6dce",
+   "figures/fig_2_framework.png": "a66f6f0106d05f942190ff3c26f22381dce254441447fe61a83e7422f2da5c27",
+   "evidence/claims_ledger.md": "df1ee4a36bee8838f45e2060b3707be516c5db884df0e12d1b2fb862cf56e6f0",
+   "evidence/implementation_status.md": "ba601a149e8da99afcfc0f167e2d99d86d219fef474b6711ebe16adf055c57fb",
+   "evidence/missing_evidence.md": "8c03b5be84d97f1f551e1fd55807be3cfc9bfc958c36e5bce9a37cf37032708b",
+   "evidence/experiment_manifest.md": "234016f548e194f60b75eec15d1d6799a5d504750236cf5b099bc4bfe4997e28",
+   "evidence/selective_model_spec.md": "7f39fa0506f02b37c68f6ff59bcd1181a26c06b93623a4c3b50a85137fd36032",
+   "evidence/experiment_plan.md": "cdbf36e5bb6f07e6b6eec56fb21cd2b60b4bc34eab567000715dacb06356ba72",
+   "evidence/spec_code_contract.md": "5bf6bacd5f259dc83c1b8442391cc98a83153587ebef5c96ad7892e1d0d598e6",
+   "evidence/method_spec.md": "d39300d7b4b3e65bc88409dceca5e505c26dc63c6ba98a46d1ccf1b621e64dad",
+   "evidence/round6_review.md": "54281838d8a62e82f8bea0e288eb6160566fd4e6597197a7c3f5e5ae352eca6a",
+   "evidence/round6_math_checks.json": "75ad1dad6c32aa7a315e98dcac304dcf1b71a948d912a489f7e83dcab55b29a8",
+   "evidence/round6_paper_math_checks.json": "e06752645ae1f9c0612cc52fa02d3792ea9da3c6e645d9771b9019722239bb7b",
+   "evidence/round6_evaluator_parity.json": "aa791b06682bc4b7fe1962a325c60ae213713859935f064479a42e40edb7c6c8",
+   "evidence/round6_contract_probes.json": "99d0ca711dbbf3bf2601b31cc06fece7a5699fd738303a4578d55543a1f43b61",
+   "evidence/round6_prototype_tests.log": "d1ce9067196e506f1d886f6de63f76d3f88afce444f113cca2c2e5879408d05e"
+  },
+  "build": {
+   "main": {
+    "pages": 10,
+    "overfull_boxes": 0,
+    "undefined_references": 0,
+    "undefined_citations": 0,
+    "multiply_defined_labels": 0
+   },
+   "supplementary": {
+    "pages": 12,
+    "overfull_boxes": 0,
+    "undefined_references": 0,
+    "undefined_citations": 0,
+    "multiply_defined_labels": 0
+   }
+  },
+  "body_last_page": 8,
+  "reference_pages": [
+   8,
+   9
+  ],
+  "llm_statement_page": 10,
+  "page_limit": "eight body pages including figures/tables; body ends on page 8 without font or margin changes"
+ },
+ "template": {
+  "name": "official CVPR 2027 author kit v1 (LaTeX)",
+  "url": "https://media.eventhosts.cc/Conferences/CVPR2027/author-kit-CVPR2027-v1-latex.zip",
+  "downloaded": "2026-10-25",
+  "archive_sha256": "7271bdbb0d2f20043b101c3bb10cba67a8c7f2711f0067b395f9f27451c43121",
+  "cvpr_sty_sha256": "1cd7f434b13d41c475df4a1901a5d82d9ca8b80b8cf6205dc4602a5c164286b4",
+  "bst_sha256": "e38e6166bd7b1e6d23a1b79dcdb55c656e4fcdbe91bdf6b50d827e6b5d1aacfc",
+  "cvpr_sty_matches_kit": true,
+  "bst_matches_kit": true,
+  "preamble_project_specific": true,
+  "paper_id_header_removed": true
+ },
+ "checks": {
+  "round6_reference_semantics": {
+   "passed": 35,
+   "total": 35,
+   "all_passed": true,
+   "artifact": "evidence/round6_math_checks.json"
+  },
+  "paper_scalar": {
+   "passed": 7,
+   "artifact": "evidence/round6_paper_math_checks.json"
+  },
+  "evaluator_function_parity": {
+   "cases": 211,
+   "random_cases": 200,
+   "max_abs_per_pair_diff": 0.0,
+   "passed": true,
+   "artifact": "evidence/round6_evaluator_parity.json"
+  },
+  "contract_probes": {
+   "all_documented_behaviours_observed": true,
+   "artifact": "evidence/round6_contract_probes.json"
+  },
+  "prototype_tests": {
+   "tests": 646,
+   "skipped": 10,
+   "seconds": 43.101,
+   "ok": true,
+   "artifact": "evidence/round6_prototype_tests.log"
+  },
+  "benchmark_result": false,
+  "dataset_executed": false,
+  "model_executed": false,
+  "gpu_executed": false
+ },
+ "dataset": {
+  "root": "/Users/gzhlaker/Downloads/VCSL",
+  "feature_files": 12254,
+  "feature_logical_bytes": 4388241152,
+  "feature_allocated_bytes": 4418396160,
+  "byte_scope_note": "stat().st_size sum = logical bytes; stat().st_blocks*512 sum = allocated bytes. The round-5 4,418,396,160 figure is the allocated-block value; the manifest 4,388,241,152 figure is the logical-byte value. Neither indicates content change.",
+  "train_pairs": 97033,
+  "val_pairs": 41798,
+  "test_pairs": 54630,
+  "source_videos_found": 0,
+  "frame_mapping_validated": false,
+  "full_feature_content_digest_computed": false
+ },
+ "prototype": {
+  "root": "../FastVCL",
+  "head": "fdc3362b2418b316e16d6dfd68435e40c1b1afb8",
+  "worktree_status": "",
+  "modified_this_round": false,
+  "new_rules_implemented": false,
+  "tests_rerun_read_only": true
+ },
+ "official_sources": [
+  {
+   "url": "https://cvpr.thecvf.com/Conferences/2027/AuthorGuidelines",
+   "checked": "2026-10-22",
+   "verified_facts": [
+    "eight-page body including figures and tables",
+    "extra pages only for references and the mandatory LLM Usage Statement",
+    "official 2027 template link present"
+   ]
+  },
+  {
+   "url": "https://cvpr.thecvf.com/Conferences/2027/CallForPapers",
+   "checked": "2026-10-22",
+   "deadlines_aoe": {
+    "enrollment": "2026-11-10",
+    "paper": "2026-11-16",
+    "supplement": "2026-11-23"
+   }
+  }
+ ],
+ "remaining_work": [
+  "W6-1 core/STB implementation in ../FastVCL",
+  "W6-2 ~200-pair E1/E3 pilot",
+  "W6-3 frame map and visual backend",
+  "W6-4 action audit",
+  "W6-5 full val/test campaign"
+ ],
+ "no_benchmark_claim": true
+}

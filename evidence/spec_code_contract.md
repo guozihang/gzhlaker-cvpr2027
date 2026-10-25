@@ -10,6 +10,12 @@ what the manuscript says, what the code does, where they differ, and which diffe
 **paper fix**, a **proposed but unimplemented rule**, or an **open decision**. It does not
 promote any proposed rule to “implemented”.
 
+**Round 6 note (2026-10-25):** this audit predates the round-six repairs of `Conn`, coverage,
+per-axis geometry, merge scope and the budget envelope, which live in
+`scripts/round6_reference.py` and are checked by `check_round6_semantics.py` (35/35). The
+prototype is still at `fdc3362…` and none of those repaired rules is implemented there, so
+the `CONFLICT`/`PROPOSED_ONLY` rows below still describe the prototype.
+
 ## 0. Evidence labels
 
 | Label | Meaning |

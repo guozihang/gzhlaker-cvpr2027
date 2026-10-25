@@ -27,7 +27,7 @@ class Canvas:
     def __init__(self):
         self.parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1220" viewBox="0 0 1760 1220">',
                       '<title>FastVCL: sparse-to-tube video copy localization framework</title>',
-                      '<desc>Proposed sparse-to-tube method with two budgeted insertions of one shared selective visual-decision model named seltive model: anchor filtering before RANSAC (A0 to A1) and fragment fusion after candidate extraction (C0 to Y). Both call sites share one pair budget, cache and model revision, and abstain on uncertainty or failure; unselected, uncertain and failed items keep their core evidence. Matrices and trajectories are schematic, not empirical outputs.</desc>',
+                      '<desc>Proposed sparse-to-tube method with two budgeted insertions of one shared selective visual-decision model named seltive model: anchor filtering before RANSAC (A0 to A1) and fragment fusion after candidate extraction (C0 to Y). Both call sites share one pair budget, cache and model revision, and abstain on uncertainty or failure; unselected, uncertain and failed items keep their core evidence. The local DP proposes paths with a zero restart, whereas the connection check Conn is a separate two-end certification that cannot restart; fusion merges original disjoint candidate pairs one at a time without another model call. Matrices and trajectories are schematic, not empirical outputs.</desc>',
                       '<defs>',
                       '<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#526477"/></marker>',
                       '<marker id="blueArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#2D69AD"/></marker>',
@@ -193,7 +193,7 @@ def build_framework():
     for px,py in path[:-1]: c.circle(px,py,3.5,'#FFFFFF',BLUE,1.5)
     c.text(gx-20,gy+8,'j',23,MUTED,italic=True)
     c.text(gx+13*cell+6,gy+8*cell,'i',23,MUTED,italic=True)
-    c.text(1490,495,'Local DP with a zero restart',25,INK,600,'middle')
+    c.text(1490,495,'Local DP: propose paths, zero restart',25,INK,600,'middle')
     c.text(1490,528,'Hᵢⱼ = max{0, rᵢⱼ, continuation}',24,PURPLE,anchor='middle')
     c.text(1490,568,'Traceback → trim → score',25,INK,anchor='middle')
     c.path([(1702,555),(1720,555),(1720,260),(1660,260)],MUTED,1.8,'5 5',True)
@@ -238,9 +238,9 @@ def build_framework():
     c.text(1312,891,'2',22,'#FFFFFF',700,'middle')
     c.text(1336,891,'Fusion decision',27,INK,700)
     for yy,t,color,weight in [(928,'C0 → legal edges (G, gaps)',MUTED,400),
-                              (958,'same copy? + Conn',MUTED,400),
+                              (958,'Conn: separate two-end certification',MUTED,400),
                               (988,'M = G ∧ Conn ∧ margin',MUTED,400),
-                              (1020,'merge / keep · one round',INK,600),
+                              (1020,'pairwise merge · no model call',INK,600),
                               (1046,'→ Y final intervals',INK,600)]:
         c.text(1510,yy,t,22,color,weight,'middle')
 

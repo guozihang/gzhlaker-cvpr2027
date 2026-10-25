@@ -4,6 +4,19 @@ Legend: `MISSING` = no artifact exists; `CONFLICT` = artifacts disagree; `PILOT_
 only small/incomplete diagnostics exist. Each row states the exact artifact that would
 close the gap and the acceptance criterion.
 
+## Round 6 update (2026-10-25)
+
+**Closed as definitional artifacts, not as empirical evidence:** the anchored `Conn`
+certification, interval coverage, per-axis geometry, one-pair merge scope and the
+transfer-aware budget bound now agree across the manuscript, the supplement and
+`scripts/round6_reference.py` (35/35 probes). The official CVPR 2027 template is installed and
+the body ends on page 8. These close specification ambiguity, not any run.
+
+**Still blocking, unchanged:** B1 frozen zero-error benchmark; B2 runnable Simple
+Sparse-to-Band baseline; no verified index-to-frame map; no validated visual backend; no
+independent action audit; no frozen protocol or test execution. The prototype still lacks the
+new core/`Conn` implementation, so W6-1 and W6-2 remain unstarted.
+
 ## Top-5 blockers (must be closed before any empirical claim)
 
 ### B1. No frozen, zero-error benchmark result (`MISSING`)

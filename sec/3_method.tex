@@ -194,9 +194,13 @@ interval; it is not score averaging or NMS. From $\mathcal C_0$, after near-dupl
 a legal directed edge $(c_u,c_v)$ requires consistent order and disjointness in the first
 version ($a_e^u\le a_s^v$, $b_e^u\le b_s^v$), A/B gaps within caps $G_A,G_B$, boundary-map
 agreement and a connector slope in $[\alpha_{\min},\alpha_{\max}]$. Boundary maps are
-compared at mapped positions, not slopes or intercepts: $|m_u(a_s^v)-b_s^v|\le\kappa_B$,
-$|m_u(a_e^v)-b_e^v|\le\kappa_B$ and the reverse checks within $\kappa_A$, where $m_u$ is the
-affine map of $u$'s source track; a missing map makes the edge unavailable. A pair with
+checked direction by direction, not against a pooled tolerance: the two A$\to$B residuals
+$|m_u(a)-b|$ at $a\in\{a_s^v,a_e^v\}$ must each be at most $\kappa_B$, and the two
+B$\to$A residuals $|m_v^{-1}(b)-a|$ at $b\in\{b_s^u,b_e^u\}$ each at most $\kappa_A$, where
+$m_u$ is the affine map of $u$'s source track. Thresholds and inverse slopes must be finite,
+and a missing or degenerate map makes the edge unavailable. A zero gap is legal only when
+both axes are zero; a single-axis zero gap leaves the connector slope undefined and is
+rejected. A pair with
 $\IoU_A\ge\theta_{\mathrm{dedup}}$ but $\IoU_B<\theta_{\mathrm{dedup}}$ is the same A interval
 at another B position and is excluded. Neighbours use a deterministic per-fragment cap,
 recording edge and truncation counts.
@@ -204,7 +208,7 @@ recording edge and truncation counts.
 The first-version selector groups edges by the earlier fragment's A position on a grid of
 width twice the finest stride and visits groups round-robin; within a group it sorts by
 normalized gap $\tilde g=\max(\mathrm{gap}_A/G_A,\mathrm{gap}_B/G_B)$, then by the maximum
-boundary-map error over the four checks, then by fragment ids. It selects at most $B_F$ edges;
+threshold-normalized boundary-map error, then by fragment ids. It selects at most $B_F$ edges;
 no learned benefit predictor is used. Exact edge caps, group ties and the full selector are
 in the supplement.
 
@@ -213,13 +217,27 @@ $R_e=[a_e^u-\eta_A,a_s^v+\eta_A)\times[b_e^u-\eta_B,b_s^v+\eta_B)$ is clipped to
 if its area exceeds $L_cW_c$ the edge is unavailable and the truncation is recorded, not
 silently shrunk. Support nodes are path nodes of $u$ with A index in
 $[a_e^u-\beta_A,a_e^u)$ and of $v$ with A index in $[a_s^v,a_s^v+\beta_A)$; an empty set
-gives $\mathrm{Conn}=0$. We reuse a verified path touching both fragments, or run a bounded
-DP with the steps of \eqref{eq:localdp}, score $\Sim_{ij}-\tau_{\mathrm{conn}}$ and zero
-restart inside $R_e$. $\mathrm{Conn}=1$ only if a cell adjacent to a support node of $v$ is
-reachable and the path has valid coverage at least $\kappa_{\mathrm{cov}}$ and no
-low-score run longer than $g_c$. Failure keeps the fragments separate; the region is never
-enlarged until a path appears, and all attempted and failed cell visits are counted. With
-geometric legality $G$,
+gives $\mathrm{Conn}=0$. The DP that proposes paths and the check that certifies a bridge are
+separate. Certification is initialized only at valid support nodes of $u$, and only their
+positive scores are seeds: no other cell can start a path and no cell can restart one. It
+propagates the steps of \eqref{eq:localdp} with score $\Sim_{ij}-\tau_{\mathrm{conn}}$ while
+the cumulative score stays positive. Reaching a cell next to $v$ is not enough: the
+backtracked path must start at a left support node and end at a right support node, and both
+memberships are checked explicitly. Ties use score, then end coordinates, then step order.
+The single highest-scoring path is then tested for interval coverage and low-score runs; if
+it fails, the edge is rejected in this conservative first version, which does not claim to
+enumerate every feasible path. A reused path passes the same endpoint, region, step and
+quality tests. Failure keeps the fragments separate; the region is never enlarged until a
+path appears, and all attempted and failed cell visits are counted.
+
+Coverage is measured on the intervals between the selected endpoints, not on the path
+length. Let $d_A$ be the number of distinct A indices on the path and
+$s_A=a_{\mathrm{end}}-a_{\mathrm{start}}+1$, with $d_B,s_B$ defined on B; coverage is
+$\min(d_A/s_A,d_B/s_B)$. A skipped index therefore lowers coverage below one, so
+$\kappa_{\mathrm{cov}}$ is a development-frozen threshold rather than a constant one.
+Low-score runs are counted over path nodes, not raw time indices; skipped indices and
+invalid cells inside the path bounding box are logged separately. With geometric legality
+$G$,
 \begin{equation}
 \begin{aligned}
 M(u,v)=&\,G(u,v)\land\mathrm{Conn}(u,v)\\
@@ -230,11 +248,14 @@ M(u,v)=&\,G(u,v)\land\mathrm{Conn}(u,v)\\
 \end{equation}
 and only $M=1$ merges; \texttt{KEEP\_SEPARATE}, \texttt{UNCERTAIN}, failure and budget
 exhaustion retain both fragments. The first version merges only original disjoint pairs of
-$\mathcal C_0$; an accepted merge consumes both members, creates no new edge and does not
-propagate. After each acceptance the set is re-verified against its original members, and a
-conflict stops expansion. Endpoints are rebuilt from merged path nodes and de-duplicated
-anchors; support and $q$ are recomputed by \eqref{eq:score}, never by $\max(q_u,q_v)$ or a
-product with the visual probability. Final de-duplication and cap come last. The initial
+$\mathcal C_0$. Edges are processed in the frozen selector order, and a pair is eligible only
+when neither member has been consumed. An accepted merge consumes exactly its two members,
+creates no new edge, performs no second model call, and triggers no set-level re-verification
+or propagation to a third fragment. Endpoints are rebuilt from merged path nodes and
+de-duplicated anchors; support and $q$ are recomputed by \eqref{eq:score}, never by
+$\max(q_u,q_v)$ or a product with the visual probability. If reconstruction fails, the
+action is rejected and both members remain available; same-A/different-B duplicates stay
+separate. Final de-duplication and cap come last. The initial
 grid is $\tau_F\in\{0.90,0.95,0.98\}$, $\delta_F\in\{0.15,0.30\}$; if no pair meets the risk
 and recall targets, fusion stays in shadow.
 
@@ -248,16 +269,24 @@ $\mathrm{Conn}$, the branch has no repair opportunity; if $\mathrm{Conn}$ alread
 every safe merge, the model adds cost without demonstrated benefit.
 
 \paragraph{Budget and failure contract.}
-One pair budget is shared: $B\in\{0,4,8,12\}$ logical questions, with
-$B_A=\lfloor2B/3\rfloor$ anchor and $B_F=B-B_A$ fusion questions. Unused anchor budget may
-move to fusion, never the reverse. A cache hit counts as a question; frames, unique and
-repeated frames, tokens, forwards, memory and time are logged separately. Anchor evidence
-uses at most 3 pairs (6 source frames), fusion evidence at most 5 pairs (10 source frames),
-with overlaps de-duplicated and missing frames marked. Retries are off by default; if
-enabled, at most one per question plus a per-pair cap $R$, with the worst case $B+R$
-reported. Connection work counts every attempted and failed cell visit. The cache key,
-prefix-sharing rules, full accounting table and log schema are in the supplement; failures
-are never cached as a verdict and the two stages are not one forward pass.
+One pair budget is shared: $B\in\{0,4,8,12\}$ logical questions, with initial allocation
+$B_A=\lfloor2B/3\rfloor$ anchor and $B_F=B-B_A$ fusion questions. Unused anchor quota may
+move to fusion, never the reverse. Let $q_A,q_F$ be the logical questions actually asked,
+including cache hits, so $q_A\le\lfloor2B/3\rfloor$ and $q_A+q_F\le B$. Anchor evidence uses
+at most 3 paired positions (6 source-frame slots) per question and fusion evidence at most 5
+(10 slots); with overlaps de-duplicated and missing frames marked,
+\begin{equation}
+\label{eq:evidence-bound}
+N_{\mathrm{paired}}\le 3q_A+5q_F\le 5B,\qquad
+N_{\mathrm{slots}}\le 6q_A+10q_F\le 10B .
+\end{equation}
+The fixed-allocation value $3B_A+5B_F$ is a special case, not the worst case: at $B=12$,
+$q_A=0,q_F=12$ permits 60 paired positions and 120 slots rather than 44. Source-frame slots,
+unique frames, repeated inputs and decoded frames are reported separately. Retries are off
+by default; if enabled, at most one per question plus a per-pair cap $R$, with the worst
+case $B+R$ reported. Connection work counts every attempted and failed cell visit. The cache
+key, prefix-sharing rules, full accounting table and log schema are in the supplement;
+failures are never cached as a verdict and the two stages are not one forward pass.
 
 The branch cannot recover an anchor absent from $\Anch_0$, a copy absent from
 $\mathcal C_0$, or a boundary unsupported by any path. Filtering can lose recall and fusion
@@ -280,9 +309,10 @@ a predecessor-row scan. Neither is the pipeline bound, which also includes tiled
 $O(RI|\Anch_0|)$ RANSAC scoring, refits, traceback and $O(C^2)$ de-duplication. Resident
 input is $O((M+N)d)$; refinement keeps $O(\max_rL_rW_r)$ tables plus retained candidates.
 
-The decision layer adds at most $B_A$ anchor questions of three frame pairs and $B_F$ fusion
-questions of five frame pairs, so evidence is bounded by $3B_A+5B_F$ pairs; this is not the
-model cost, which also includes prefill, batching and suffix execution. Connection work is
+The decision layer asks $q_A$ anchor questions of at most three paired positions and $q_F$
+fusion questions of at most five, so evidence is bounded by $3q_A+5q_F\le5B$ paired
+positions and $6q_A+10q_F\le10B$ source-frame slots; this is not the model cost, which also
+includes prefill, batching and suffix execution. Connection work is
 $\sum_{e\in\mathcal E_{\mathrm{checked}}}L_eW_e$ cells times path attempts; failures count.
 Since $\Tloc$ does not bound system cost, the augmented system reports $\Taug$ with cold
 cache, initialisation and steady state separated, including frame decoding, evidence
