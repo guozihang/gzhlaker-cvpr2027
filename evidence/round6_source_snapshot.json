@@ -47,7 +47,7 @@
    "main.bib": "d398ef888f3eeb9f09e0e9d927784dbe0b01b64f2c70531a1c66e544bacf4df8",
    "cvpr.sty": "1cd7f434b13d41c475df4a1901a5d82d9ca8b80b8cf6205dc4602a5c164286b4",
    "ieeenat_fullname.bst": "e38e6166bd7b1e6d23a1b79dcdb55c656e4fcdbe91bdf6b50d827e6b5d1aacfc",
-   "supplementary.tex": "a0bfe8896cb5f72bb9d782bf8ceddfd792347ba069c13b5f7783cb971a97bd1a",
+   "supplementary.tex": "8443d6c3c775941dee029e33e87e2e060e8f413843a7712e6c6ef597f8736f93",
    "README_BUILD.md": "76f197db87576807b42340308c7ad125fada613c0544cf958ebed7f5ce7514d1",
    "sec/0_abstract.tex": "309bc60a450f5a91f4f70a427c402a18756b3d665361ce1101dc3c1880f2c862",
    "sec/1_intro.tex": "7edbbeb463cbeeeec794d62f26decc88dc098a5b51ddb294a3e7b354c07d9774",
@@ -195,5 +195,6 @@
   "W6-4 action audit",
   "W6-5 full val/test campaign"
  ],
- "no_benchmark_claim": true
+ "no_benchmark_claim": true,
+ "follow_up_cleanup": "2026-10-25: removed the unused \\paperID definition and author-block reference from supplementary.tex so no entry point reintroduces a Paper ID."
 }
