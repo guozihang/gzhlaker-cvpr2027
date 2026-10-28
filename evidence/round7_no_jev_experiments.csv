@@ -1,0 +1,43 @@
+﻿source_row,source_cells,variant,parameters_raw,split_raw,recall_pct,precision_pct,f1_pct,elapsed_raw,elapsed_seconds,notes_raw,f1_from_rounded_pr_pct,audit_flags,evidence_status
+12,Sheet1!A12:O12,DP 基线 CPU,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,14.36,93.94,24.91,57m15s,3435,"CPU,master 分支
+10.18",24.911882,CPU label conflicts with GPU token in E12,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+13,Sheet1!A13:O13,DP 基线 GPU,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,14.36,93.94,24.91,32m37s,1957,"GPU,modular分支
+10.19",24.911882,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+15,Sheet1!A15:O15,无DP（argmax）,"tube=有；DP=无；GPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,16.53,85.11,27.68,30m21s,1821,modular分支,27.683359,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+16,Sheet1!A16:O16,non-tube,"tube=无；DP=无；CPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,7.19,94.26,13.35,32m31s,1951,non-tube分支,13.360856,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+17,Sheet1!A17:O17,non-tube-fully（直接 track→segment）,"tube=无；DP=无；CPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.5-2.0",test set,13.69,94.05,23.9,29m24s,1764,non-tube-fully分支,23.900956,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+18,Sheet1!A18:O18,min_cosine=0.6,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.60,inl=5,slope=0.5-2.0,aspan=4.0",test set,15.83,93.77,27.09,31m59s,1919,modular分支,27.08721,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+19,Sheet1!A19:O19,min_cosine=0.55,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.55,inl=5,slope=0.5-2.0,aspan=4.0",test set,16.18,93.7,27.59,31m14s,1874,modular分支,27.59494,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+20,Sheet1!A20:O20,min_cosine=0.50,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.50,inl=5,slope=0.5-2.0,aspan=4.0",test set,16.38,93.7,27.89,33m19s,1999,modular分支,27.885283,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+21,Sheet1!A21:O21,sparse.stride=2,"tube=有；DP=有；GPU；stride=2,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,25.96,89.04,40.2,33m43s,2023,modular分支,40.199624,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+22,Sheet1!A22:O22,sparse.stride=1,"tube=有；DP=有；GPU；stride=1,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,31.15,86.33,45.79,40m32s,2432,modular分支,45.781061,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+23,Sheet1!A23:O23,min_inliers=3,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.70,inl=3,slope=0.5-2.0,aspan=4.0",test set,21.97,89.93,35.31,32m49s,1969,modular分支,35.312996,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+24,Sheet1!A24:O24,min_inliers=2,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.70,inl=2,slope=0.5-2.0,aspan=4.0",test set,24.07,89.13,37.9,33m32s,2012,modular分支,37.903871,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+25,Sheet1!A25:O25,"min/max
+slope=0.25 /4.0","tube=有；DP=有；GPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.25-4.0,aspan=4.0",test set,14.4,93.86,24.97,31m38s,1898,modular分支,24.969222,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+26,Sheet1!A26:O26,ransac.min_a_span=2.0,"tube=有；DP=有；GPU；stride=4,topk=1,cos=0.70,inl=5,slope=0.5-2.0,aspan=2.0",test set,14.36,93.94,24.92,31m41s,1901,modular分支,24.911882,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+27,Sheet1!A27:O27,sparse.topk=3,"tube=有；DP=有；GPU；stride=4,topk=3,cos=0.70,inl=5,slope=0.5-2.0,aspan=4.0",test set,14.74,91.2,25.38,33m55s,2035,modular分支,25.37829,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+29,Sheet1!A29:O29,"tube + DP
+stride2 + inliers3","tube=有；DP=有；GPU；stride=2,topk=1,cos=0.70,inl=3,slope=0.5-2.0,aspan=4.0",test set,29.65,87.07,44.24,40m32s,2432,modular分支,44.236215,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+30,Sheet1!A30:O30,"tube + DP
+stride1 + inliers2","tube=有；DP=有；GPU；stride=1,topk=1,cos=0.70,inl=2,slope=0.5-2.0,aspan=4.0",test set,31.33,86.03,45.93,41m18s,2478,modular分支,45.932514,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+31,Sheet1!A31:O31,"tube + DP
+stride1 + inliers2 + min_cosine=0.6","tube=有；DP=有；GPU；stride=1,topk=1,cos=0.60,inl=2,slope=0.5-2.0,aspan=4.0",test set,31.48,86.06,46.09,43m18s,2598,modular分支,46.097819,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+32,Sheet1!A32:O32,"non-tube
+stride1 + inliers2 + min_cosine=0.6","tube=无；DP=无；CPU；stride=1,topk=1,cos=0.60,inl=2,slope=0.5-2.0,aspan=4.0",test set,37.05,80.82,50.81,37m32s,2252,non-tube分支,50.808195,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+33,Sheet1!A33:O33,"tube + argmax？
+stride1 + inliers2 + min_cosine=0.6","tube=有；DP=无；GPU；stride=1,topk=1,cos=0.60,inl=2,slope=0.5-2.0,aspan=4.0",test set,56.23,63.58,59.68,37m50s,2270,modular分支,59.679549,alignment marked with question mark in source,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+34,Sheet1!A34:O34,"tube + argmax？
+stride1 + inliers2 + min_cosine=0.6","tube=有；DP=无；GPU；stride=1,topk=1,cos=0.60,inl=2,slope=0.5-2.0,aspan=4.1",test set,58.07,61.81,59.88,9m3s,543,always-on-gpu,59.88166,alignment marked with question mark in source; aspan=4.1; do not assume identical to 4.0,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+35,Sheet1!A35:O35,"tube + argmax？
+stride1 + inliers2 + min_cosine=0.6
++slope=0.25 /4.0","tube=有；DP=无；GPU；stride=1,topk=1,cos=0.60,inl=2,slope=0.25-4.0,aspan=4.1",test set,60.31,61.15,60.73,8m44s,524,always-on-gpu,60.727095,alignment marked with question mark in source; aspan=4.1; do not assume identical to 4.0,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+36,Sheet1!A36:O36,"tube + argmax
+stride1 + inliers2 + min_cosine=0.5
++ topk=3 +slope=0.25 /4.0","tube=有；DP=无；GPU；stride=1,topk=3,cos=0.50,inl=2,slope=0.25-4.0,aspan=4.0",test set,60.73,59.39,60.05,56m31s,3391,modular分支,60.052526,,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+37,Sheet1!A37:O37,"tube + argmax
+stride1 + inliers2 + min_cosine=0.5
++ topk=3 +slope=0.25 /4.0","tube=有；DP=无；GPU；stride=1,topk=3,cos=0.50,inl=2,slope=0.25-4.0,aspan=4.0",test set,60.73,59.39,60.05,9m33s,573,,60.052526,branch/run identity absent from notes,HISTORICAL_REPORTED_NOT_RUN_VERIFIED
+38,Sheet1!A38:O38,"non-tube-fully
+stride1 + inliers2 + min_cosine=0.5
++ topk=3 +slope=0.25 /4.0","tube=无；DP=无；CPU；stride=1,topk=3,cos=0.50,inl=2,slope=0.25-4.0,aspan=4.0；",test set,36.48,66.9,47.21,53m15s,3195,,47.214393,branch/run identity absent from notes,HISTORICAL_REPORTED_NOT_RUN_VERIFIED

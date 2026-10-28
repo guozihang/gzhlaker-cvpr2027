@@ -1,43 +1,44 @@
 \section{Related Work}
 \label{sec:related}
 \paragraph{Benchmarks and learned localization.}
-VCDB and VCSL provide partial-copy localization benchmarks~\cite{jiang2014,vcsl2022};
-VCSL scores segment overlap on both axes, but interval labels do not give dense frame
+VCDB and VCSL provide partial-copy localization benchmarks~\cite{jiang2014,vcsl2022}; VCSL
+scores segment overlap on both axes, but interval labels do not give dense frame
 correspondence. VSC 2023 and FiGVCL use different settings or annotations, so their numbers
 cannot be merged~\cite{pizzi2024vsc,figvcl2025}. SPD learns a detector on similarity
 maps~\cite{spd2021}; TransVCL uses self-/cross-attention, correlation and a localization
-head~\cite{transvcl2023}, processing long pairs in chunks that must all be timed. RTR trains
-regional features~\cite{rtr2024}; recent variants include iESTA and
-VCSA~\cite{ding2025iesta,li2025vcsa}. These systems change the matching or detection network;
-we hold fixed pretrained descriptors and ask what a small additional decision budget buys.
+head~\cite{transvcl2023}, and RTR trains regional features~\cite{rtr2024}; recent variants
+include iESTA and VCSA~\cite{ding2025iesta,li2025vcsa}. These systems change the matching or
+detection network. We hold pretrained descriptors fixed and ask a narrower question: what two
+discrete decisions---admit a weak track, or move a boundary---buy under a fixed call budget.
 
-\paragraph{Structured visual decisions with pretrained models.}
-Visual Jev~\cite{visualjev2026} batch-encodes one image and public context once, executes
-independent question suffixes separately, and reads candidate probabilities from the
-language-model head; answer-supervised post-training improves accuracy, and shared execution
-reduces warm amortized latency at higher peak memory. VideoJev~\cite{videojev2026} scores
-temporal intervals and textual options against video evidence with a shared head and reuses
-visual computation through cached or joint inference. These designs motivate direct candidate
-scoring, explicit abstention and context reuse. They do not establish video-copy identity:
-Visual Jev answers single-image questions, VideoJev is evaluated on temporal grounding and
-multiple-choice QA, and a paired A/B evidence board is our input adaptation, not an official
-two-video interface. Its authors report that predicted probabilities can overestimate
-correctness, so we treat scores as uncalibrated rankings and attempt prefix reuse only for
-identical frame sets, layout and model revision.
+\paragraph{Structured decisions with pretrained models.}
+Visual Jev~\cite{visualjev2026} encodes one image and public context once, executes independent
+question suffixes, and reads candidate probabilities from the language-model head. VideoJev~
+\cite{videojev2026} scores temporal intervals and textual options against video evidence with a
+shared head and reuses visual computation through cached or joint inference. Our interface is a
+JEV-style decision service with two question types: a Noul question that returns the
+probability of a single proposition, and a Choice question that returns one identifier from a
+finite option set with per-option probabilities. Neither type can output coordinates, which is
+what lets us gate geometry before the call and preserve the strict fallback. The authors of
+Visual Jev report that predicted probabilities can overestimate correctness, so we treat scores
+as uncalibrated rankings, fix the operating points in advance and report fallback rates rather
+than claiming calibrated risk.
 
-\paragraph{Geometry, alignment and efficient search.}
+\paragraph{Geometry, alignment and duplicate structure.}
 The VCSL comparison includes HV, TN, DP and DTW~\cite{vcsl2022,tan2009,chou2015}; temporal
 consistency and cascading search also appear in retrieval~\cite{douze2016,tian2013}, and SAM
-uses temporal line fitting~\cite{liu2023sam}. Our zero-floor principle follows local
-alignment~\cite{smith1981} with a restricted step set and tube domain; it is not a new
-dynamic-programming principle. Temporal-consistency re-ranking~\cite{tcsvt2024},
-library-scale retrieval-plus-matching~\cite{wang2026mltdedup} and sampling
-efficiency~\cite{chen2025sampling} are adjacent; reducing the sampling rate alone is not
-sufficient novelty.
+uses temporal line fitting~\cite{liu2023sam}. Our local program follows banded sequence
+alignment~\cite{smith1981} with a restricted step set and a tube domain; the difference from a
+textbook zero-floor DP is that a cell with a legal predecessor keeps a negative continuation,
+so one weak frame does not restart a copy. For merging, most deduplication rules compare one
+axis or a product of overlaps. A product can hide a genuine one-query/many-reference copy
+because the reference overlap is small even when the query interval is identical. We
+therefore require overlap on both axes separately, which is the minimal rule that preserves
+multiplicity while still collapsing shifted duplicates.
 
-\paragraph{Comparison that matters.}
-The proposed distinction is the controlled relationship between sparse candidate support,
-finite refinement domains, and budgeted visual decisions against the same core and the same
-measured cost. The closest mechanism is a post-hoc verifier or a geometric fusion rule
-operating on the same candidates; those are the controls in E6. No priority or performance
-advantage follows from this review.
+\paragraph{Positioning.}
+The closest mechanisms are a post-hoc verifier and a geometric fusion rule on the same
+candidates; both are controls here (C1, C2), not straw men. The proposed distinction is the
+controlled relationship between sparse support, finite refinement domains and budgeted
+discrete decisions at the same measured cost. No priority or performance advantage follows
+from this review; the experiments are designed to falsify the architecture, not to confirm it.

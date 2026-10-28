@@ -1,73 +1,83 @@
 \section{Introduction}
 \label{sec:intro}
-Video copy localization (VCL) returns the corresponding temporal intervals in a query
-video and a reference video. Unlike whole-video retrieval, it must identify partial copies
-and their boundaries on both axes, despite cropping, overlays, re-encoding or speed
-changes~\cite{vcsl2022,transvcl2023}. We study the pairwise task given fixed pretrained
-ISC descriptors, rather than searching a video library; ``Fast'' is a project name, not a
-speed claim.
+Video copy localization (VCL) returns the pairs of temporal intervals at which a query and a
+reference video show the same content. It is a pairwise task, not library retrieval: copies can
+be cropped, overlaid, re-encoded or speed-changed, so both interval endpoints and the temporal
+mapping between them must be recovered~\cite{vcsl2022,transvcl2023}. With fixed pretrained
+descriptors, comparing all frame pairs of sequences of lengths $M$ and $N$ costs $MN$ cosine
+similarities per pair. Sparse-to-tube pipelines avoid most of that cost by discovering a few
+correspondences, fitting temporal tracks, and refining only a narrow band around each track.
 
-Classical methods use geometric voting or temporal alignment; learned methods detect copy
-patterns in similarity maps or enhance frame interactions before
-localization~\cite{vcsl2022,spd2021,transvcl2023}. Dense comparison considers $MN$ frame
-pairs for sequences of $M$ and $N$ descriptors; chunking reduces peak allocation, but still
-requires the comparisons inside the processed chunk pairs. When copies occupy a small part
-of the time plane, discovery and boundary refinement need not use the same domain.
+FastVCL follows this pattern. A stride-4 grid supplies mutual top-1 ISC matches; RANSAC keeps
+geometrically consistent tracks; each track defines a band; and a local dynamic program aligns
+frames inside the band. The strict operating point (cosine 0.70, five inliers, eight tracks) is
+deliberately conservative. It yields few false anchors, but it also decides that a copy exists
+\emph{before} the band is examined. A short copy, an edited middle, or a copy whose frames match
+only weakly can fail the anchor stage entirely, and no boundary refinement can recover it. Two
+decisions therefore remain outside the strict core: (i) is a weak temporal correspondence a real
+copy that strict matching missed, and (ii) given an admitted copy, where does it start and end?
 
-FastVCL separates them. Sparse mutual matches support local affine temporal tracks;
-dual-axis support checks and gap splitting produce finite tubes, within which full-resolution
-features are compared and aligned. Extension moves the search beyond the outer anchors but
-does not guarantee that those boundaries are recoverable. Sparse proposals may miss a copy,
-and local alignment cannot create evidence outside its search domain.
+\paragraph{Two structured decisions.}
+We answer both with a pretrained decision interface (JEV) that consumes numeric evidence and
+returns a scalar probability or one identifier from a finite option set. The interface never
+emits coordinates or segment scores, never overrides a geometric gate, and is not given video
+frames in the version studied here. For recovery, a shadow RANSAC pass relaxes only the support
+threshold and re-fits tracks on the same anchors. A hard gate removes tracks whose slope,
+bounds, support, order, residuals or gaps are impossible; a probabilistic question then
+estimates whether the remaining track is a copy, and only tracks above 0.75 are sent to the
+tube. For boundaries, every segment, strict or recovered, receives at most five candidates (keep,
+extend left, extend right, extend both, shrink), each revalidated against local features; a
+multiple-choice question selects one, with confidence at least 0.65, and otherwise the original
+boundary is kept. The refined segments are then merged through a dual-axis deduplication that
+treats two intervals as duplicates only when they overlap on \emph{both} axes. One query interval that maps to two
+different reference locations therefore survives as two copies.
 
-\paragraph{Source identity is not settled by geometry alone.}
-Repeated textures, static logos and similar shots can pass mutual matching and RANSAC,
-producing pseudo-tracks that consume refinement and become false intervals. Conversely, a
-genuine copy can be fragmented when a weak or edited middle section breaks anchor support, so
-the core reports several pieces where one continuous copy exists. Both errors concern source
-identity rather than alignment quality. More ISC comparisons, additional context or post-hoc
-geometric rules may still help; whether a limited number of visual decisions provides
-information beyond those cheap controls is a question we test, not a premise.
+\paragraph{Why decisions rather than more matching.}
+The historical ablations in Section~\ref{sec:exp} show the trade-off directly. Relaxing the
+stride to 1 with two inliers raises recall from 14.36 to 31.15 and F1 from 24.91 to 45.79;
+per-frame argmax reaches recall 59.73 but precision collapses to 9.12, and TransVCL reaches
+R 40.19 at B 84.13 under its own protocol. More anchors thus buy recall, but they also multiply ambiguous matches on
+repeated textures, logos and similar shots. A decision layer is attractive only if it can
+separate the additional true copies from the additional false ones at a cost far below dense
+matching. This is the hypothesis we formalize and test, not a result we assume.
 
-\paragraph{Two budgeted interventions.}
-A post-hoc verifier cannot undo work already spent on a pseudo-anchor, and it can rejoin
-fragments only if it explicitly constructs a relation between them. We therefore query one
-shared model, named the \texttt{seltive model}, at two intervention points: before fitting,
-where a decisive verdict may delete a doubtful anchor; and after alignment, where a decisive
-verdict may merge two fragments that are plausibly one continuous copy. Each decision is
-\emph{selective} (a small declared budget of questions per pair), \emph{conservative} (only
-a decisive \texttt{NOT\_COPY} or \texttt{MERGE} acts, and geometry or connection evidence can
-veto it), and \emph{abstaining} (uncertainty, budget exhaustion or failure leaves the
-affected item at its core state). Abstention is per item, not a global inverse: in
-\textsc{on} mode, one failed action does not guarantee that the final output equals the core
-output, because other accepted actions may still change it. Only \textsc{off} and
-\textsc{shadow} modes must reproduce the core output item by item. The model is pretrained
-and post-trained by its authors on external data; we add no training on our benchmark, and
-we do not read its scores as calibrated probabilities.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/framework.pdf}
+\caption{\textbf{FastVCL overview.} A strict branch (top) discovers high-precision anchors,
+fits temporal tracks and refines a band with a local dynamic program. A shadow pass over the
+same anchors exposes weak tracks; a hard geometric gate filters them and a Noul question admits
+a track only above 0.75. Each segment, whatever its provenance, receives up to five boundary
+candidates revalidated with local features and a Choice question selects one; the refined
+segments are then merged by dual-axis deduplication. The model never writes coordinates, and
+every output carries its source.}
+\label{fig:framework}
+\end{figure*}
 
 \paragraph{Research questions.}
-We organize the study around three questions rather than six independent hypotheses.
-\textbf{RQ1 (core):} does sparse-to-tube retain useful candidate coverage and improve
-boundary recovery over a simple sparse-to-band pipeline at equal executed coarse work, and
-does any gain survive end-to-end cost? This covers H1--H3 in Section~\ref{sec:exp}.
-\textbf{RQ2 (anchor filtering):} does a budgeted visual filter reduce pseudo-tracks or false
-intervals, within a predeclared recall-loss limit, relative to no action, random selection and
-cheap geometric rules (H4-A)? Deleting anchors is not success by itself. \textbf{RQ3 (fusion
-and allocation):} does a visual relation verdict plus a connection check repair true
-over-segmentation and avoid bridging real non-copy gaps, relative to purely geometric fusion
-(H4-F); and at the same measured cost, does the two-stage allocation beat a single stage or
-random selection (H4-B)? A strong sparse-to-band baseline and controlled changes are
-necessary to distinguish mechanism gains from larger budgets, different candidates or simply
-having seen more pixels.
+\textbf{RQ1 (recovery).} Does shadow recovery add true copies without raising false alarms
+beyond a matched rule-based control on the same candidate pool? \textbf{RQ2 (boundary).} Does
+boundary choice improve interval accuracy over keeping the original boundary and over
+rule-based candidate selection? \textbf{RQ3 (multiplicity and cost).} Does dual-axis
+deduplication preserve one-query/many-reference copies under a fixed per-pair decision budget,
+and what do the questions cost in calls, tokens and latency? Each question has a stated
+falsifier in Section~\ref{sec:exp}.
 
-\paragraph{Contributions and scope.}
-This draft makes three contributions, each conditional on evidence that is still pending.
-(i)~\emph{Method:} a sparse-to-tube localization framework that spends a limited visual
-decision budget at two intervention points, with one shared model, budget and fallback
-contract; mutual matching, RANSAC and local dynamic programming are classical components and
-are not claimed as original. (ii)~\emph{Mechanism:} selection-only filtering, abstention and
-geometric/connection constraints, with stage-specific controls that isolate how each action
-changes pseudo-tracks, fragmented copies and wrong-bridge risk. (iii)~\emph{Protocol:}
-fixed-upstream-input comparisons, explicit action-risk denominators and a quality--cost
-analysis. The experiment matrix, cache fields and audit records are reproduction material,
-not separate contributions.
+\paragraph{Contributions.}
+(i)~\emph{Architecture:} a strict sparse-to-tube localizer augmented with two discrete decision
+stages, hard geometric gates, fail-closed thresholds and per-output provenance; the strict
+system is recovered exactly when the interface is disabled. (ii)~\emph{Mechanism:} same-anchor
+shadow recovery with a Noul admission test, dual-axis dedupe that preserves multi-copy
+instances, and C0--C4 boundary candidates with feature revalidation and a Choice fallback.
+(iii)~\emph{Protocol:} a reproducible specification of the strict branch, a 27-row historical
+diagnostic (24 internal runs plus three external baselines), an F0--F3 ladder, eight controls,
+and multi-copy/boundary/cost metrics. The
+new ladder is specified but not yet executed; historical diagnostics motivate the design, and
+no accuracy or latency gain is claimed.
+
+\paragraph{Scope.}
+Recovery consumes the same anchor set as the strict branch: it re-fits tracks with a lower
+inlier requirement but does not run an independent loose sparse matcher, so it cannot recover
+evidence absent from the strict anchor pool. The interface sees numeric track evidence, not
+frames. All JEV rows use batch size one. These boundaries are stated again where they affect a
+claim.

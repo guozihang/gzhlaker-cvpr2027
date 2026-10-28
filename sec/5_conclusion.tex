@@ -1,23 +1,27 @@
 \section{Conclusion and Limitations}
 \label{sec:conclusion}
-FastVCL separates sparse discovery from local refinement via finite tubes, making explicit
-where matching is evaluated and how restart semantics affect weak prefixes and separated
-copies. Fixed-stride coarse matching remains quadratic, and lower memory or fewer refinement
-cells do not establish a runtime advantage; RQ1 must still test the quality--cost trade-off
-against a simple sparse-to-band baseline at equal executed coarse work.
+FastVCL turns two decisions that sparse-to-tube localization usually leaves implicit---whether
+a weak track is a copy, and where an admitted copy starts and ends---into explicit,
+fail-closed questions with hard geometric gates and a fixed per-pair budget. Shadow recovery
+reuses the strict anchor set, so it can admit a copy that the strict support test rejected
+without inventing evidence; the Noul question arbitrates admission at 0.75. Dual-axis
+deduplication preserves one-query/many-reference copies, and the five boundary candidates are
+revalidated before a Choice question selects one at 0.65 confidence. The interface never
+writes coordinates or scores, every output is labelled with its provenance, and turning the
+interface off recovers the strict branch exactly.
 
-The two budgeted visual interventions filter anchors before fitting and decide whether
-adjacent fragments belong to one continuous copy after alignment. Both are selective,
-conservative, share one pair budget and cache, and abstain per item; a geometric or
-connection check can veto a visual verdict. Abstention is not a global inverse: only the
-affected item keeps its core state, so \textsc{on} mode can still change the final output. The
-branch needs an external model, original frames and a verified index-to-frame map; it cannot
-recover an anchor or copy the core never proposed, and it can delete true anchors or bridge
-real non-copy gaps.
+The historical diagnostics explain why the design is worth testing: the strict operating point
+has high precision but recall 14.36, and simply relaxing the support on the same anchors
+recovers five recall points at a large precision cost. Whether a decision layer can keep the
+recall while controlling the false alarms is the empirical question, and it is not answered
+here. The ladder, the eight controls and the falsifiers are specified, but no ladder row has
+been run; no accuracy, latency or cost advantage is claimed.
 
-The sampling bound limits support inside a short copy, not every detection; repeated content
-may create spurious tracks, overlapping tubes may erase the saving, and interval GT cannot
-validate dense correspondence, so boundary error is read with recall. Visual scores are
-uncalibrated and the $1\%$ risk targets are not certified by small or correlated samples. No
-benchmark advantage is established; until complete full-set metrics, independent action risk
-and full-cost timings exist, neither accuracy nor speed may be claimed.
+Several limits follow directly from the design. Recovery shares the strict anchor pool and
+therefore cannot recover copies that pool does not contain; an independent loose branch is
+planned but disabled. The interface sees numeric evidence only, so a copy whose ambiguity is
+visual rather than geometric is outside the current state. Probabilities are uncalibrated, the
+thresholds are operating points rather than certified risks, and batch size one bounds
+throughput. Boundary labels are interval-level, so endpoint accuracy is not dense
+correspondence accuracy. Until the ladder, the controls and full-cost measurements are
+complete, the contribution is an architecture and a protocol, not a benchmark result.

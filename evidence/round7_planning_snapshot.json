@@ -1,0 +1,187 @@
+{
+  "date": "2026-10-28",
+  "scope": "Planning and source/workbook audit only; no dataset inference, real model request, CUDA execution or manuscript build in this turn",
+  "paper_head": "413c99882ab896fcf581e51b58eeed024fcdae7f",
+  "fastvcl_head": "7c049599813de29b37adf94d07beccfd0b366a00",
+  "fastvcl_branch": "add-jev",
+  "fastvcl_status_at_snapshot": "",
+  "paper_preexisting_untracked": [
+    "README.md",
+    "rebuttal.tex"
+  ],
+  "inputs": [
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/main.tex",
+      "bytes": 2454,
+      "sha256": "d823eda0d604867e196d9cb8bb78252744a67beada91a1eecc80a75d0de4b8aa"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/sec/0_abstract.tex",
+      "bytes": 1626,
+      "sha256": "309bc60a450f5a91f4f70a427c402a18756b3d665361ce1101dc3c1880f2c862"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/sec/1_intro.tex",
+      "bytes": 5390,
+      "sha256": "7edbbeb463cbeeeec794d62f26decc88dc098a5b51ddb294a3e7b354c07d9774"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/sec/2_related_work.tex",
+      "bytes": 3096,
+      "sha256": "d2f982b8abba734ab488e9691625372af87f6f04660614ac4a824b66bfd1abfb"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/sec/3_method.tex",
+      "bytes": 19934,
+      "sha256": "5f575afa03b33ae33c6f96c4b3697c6b087943fecd53c33967a41b6292c7c24b"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/sec/4_experiments.tex",
+      "bytes": 8301,
+      "sha256": "f2a3091a87039b011b7e1b70a6e7576a9fb7ca281e62c220d7457f2dbffd2f3d"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/sec/5_conclusion.tex",
+      "bytes": 1675,
+      "sha256": "c9b0afc619fb732ac705467746141595ce892ed4d39f9f5ab6daa6d2a3789440"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/main.bib",
+      "bytes": 11044,
+      "sha256": "d398ef888f3eeb9f09e0e9d927784dbe0b01b64f2c70531a1c66e544bacf4df8"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/supplementary.tex",
+      "bytes": 59310,
+      "sha256": "8443d6c3c775941dee029e33e87e2e060e8f413843a7712e6c6ef597f8736f93"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/README_BUILD.md",
+      "bytes": 9909,
+      "sha256": "76f197db87576807b42340308c7ad125fada613c0544cf958ebed7f5ce7514d1"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/gzhlaker_cvpr2027/evidence/experiment_manifest.md",
+      "bytes": 10497,
+      "sha256": "234016f548e194f60b75eec15d1d6799a5d504750236cf5b099bc4bfe4997e28"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/configs/isc_only.yaml",
+      "bytes": 7732,
+      "sha256": "bde077b62e04a7a5b9ca850c22d9d28d6c824cabfa872f656912995bd26056cf"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/configs/jev_vcl.overlay.yaml",
+      "bytes": 492,
+      "sha256": "5d4780fadd54f4f367ce35a7e7cee25530082d6f4b8c2d03d5ce54ddef37a36e"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/localize.py",
+      "bytes": 43264,
+      "sha256": "8d03609c95806a4cddf1a6b9a9b7fef7f31ece9b0bf42cebbbdcaf5d59190ffb"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/jev_recovery/recovery.py",
+      "bytes": 7058,
+      "sha256": "38881bf46c506853d8639836a47c71df7f1bad10156824f1a496ae2f2e2c7e97"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/jev_recovery/stage.py",
+      "bytes": 1638,
+      "sha256": "1d8f7275f8e6bff70c8a83e1fdcab5d89e884692038bd3a7026a8efc2c95298b"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/jev_boundary/candidates.py",
+      "bytes": 8982,
+      "sha256": "491f66959905263fc14b5fcb00dd311ab245d6dc50c6fad4b5e34c31f8a2f0d9"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/jev_boundary/selection.py",
+      "bytes": 2888,
+      "sha256": "9ba4f1a962afdcc1b46aea1449698219eac56708bfaa4c500b6814d0b0fd54e9"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/jev_boundary/stage.py",
+      "bytes": 1679,
+      "sha256": "9ee03cd2567bc0726a48fafe9ed60dc8e478a090408927cf4b49ef6301d3814e"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/segment_postprocess/segments.py",
+      "bytes": 17987,
+      "sha256": "a97f2a3cb10dd99abcf6b3c1ebd3a96453ba59346142d32ec006f5273450c252"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/core/tube_refine_localization/tube.py",
+      "bytes": 50259,
+      "sha256": "84c84a7b4ee77d532a6781e4813782c90e36666f29df7a52333b8de558b30574"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/config/jev.py",
+      "bytes": 4262,
+      "sha256": "6160a8cf189bd4b66a4d18470842938812f8da6e43b0232162fe2f1a58c76cf7"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/jev_vcl/backends.py",
+      "bytes": 3344,
+      "sha256": "b22f989d011e5697cd32e712e6222db35ba9c7c6c15201d31851d08a9a08542d"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/fastvcl/jev_vcl/client.py",
+      "bytes": 6873,
+      "sha256": "6817cbaab872b1dd70bd17adfbfefce81a27d7743f5178523e11d2362384443c"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/docs/JEV_VCL.md",
+      "bytes": 12734,
+      "sha256": "9eb5cdf91eef338dd17581ca1fd82a624977eb1512ba262d86101a8fbdb67e39"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/docs/JEV_VCL_MODULES.md",
+      "bytes": 8006,
+      "sha256": "046aa9357258a73b12579aa0770a2b66246d3006b19e4ff0854c76d067df0d94"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/docs/JEV_VCL_PARAMETER_REUSE.md",
+      "bytes": 7687,
+      "sha256": "4a5936e9b392a9376c38a0951250710911c20e118d110c0e6f30c985e57e13e9"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/ren_add/RECALL_ANALYSIS.md",
+      "bytes": 8663,
+      "sha256": "5ebc2765cee11e0e3ef0d368188c4aa1c76800e028b4beec7edf14c0e4584eb2"
+    },
+    {
+      "path": "/Users/gzhlaker/Documents/code/FastVCL/ren_add/GPU_PIPELINE_RESULTS.md",
+      "bytes": 69865,
+      "sha256": "07530657f0437b93225d0a8f5de84f51a1e690aa418560d3b5a31ea45cb2a9ab"
+    },
+    {
+      "path": "/Users/gzhlaker/Downloads/img_v3_0216s_7b6f3658-f655-46cf-840c-17dd0d89f80g.png",
+      "bytes": 2152842,
+      "sha256": "52d64c473e5fdb5fb50adb2ca922efeed5b5bb8bfa09567d4ff4fcc87f5ef744"
+    },
+    {
+      "path": "/Users/gzhlaker/Downloads/VCL指标调研 (1).xlsx",
+      "bytes": 24102,
+      "sha256": "ff05ed13c2583c03620f42a0b6fbd0c37d4905f596bd5853406b7b91f6928b2a"
+    }
+  ],
+  "workbook_records": 25,
+  "external_sources_checked": [
+    "https://docs.typesafe.ai/primitives",
+    "https://docs.typesafe.ai/api/system-one",
+    "https://docs.typesafe.ai/images",
+    "https://docs.typesafe.ai/confidence",
+    "https://github.com/transvcl/TransVCL",
+    "https://github.com/alipay/VCSL",
+    "https://arxiv.org/abs/2609.25845",
+    "https://arxiv.org/abs/2610.18615"
+  ],
+  "not_claimed": [
+    "Per-row run artifact verification for the 25 historical experiments",
+    "Real JEV or multimodal model accuracy",
+    "Current availability of complete original-video assets",
+    "Independent replication of remote GPU experiments",
+    "Complete literature-score verification for the survey workbook"
+  ]
+}

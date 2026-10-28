@@ -1,0 +1,21 @@
+{
+  "kind": "deterministic_scalar_manuscript_checks",
+  "benchmark_result": false,
+  "prototype_executed": false,
+  "checks_passed": 8,
+  "score_weights": {
+    "path": 0.7,
+    "anchor": 0.3
+  },
+  "weak_prefix_first_two": [
+    0.0,
+    -0.04999999999999993
+  ],
+  "two_copy_axis_ious": {
+    "A": 1.0,
+    "B": 0.0
+  },
+  "max_calls_per_pair": 16,
+  "grid_cells_64x64_stride4": 256,
+  "scope": "Formula-level checks only; no dataset, model call, or benchmark was run."
+}

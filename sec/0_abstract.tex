@@ -1,20 +1,20 @@
 \begin{abstract}
-Video copy localization identifies corresponding temporal intervals in a pair of untrimmed
-videos. With fixed pretrained frame descriptors, dense comparison scales with the temporal
-product even when only a few intervals are copied. We formulate \emph{FastVCL}, a
-sparse-to-tube localizer that separates candidate discovery from boundary refinement: mutual
-Top-$K_{\rm nn}$ correspondences propose temporal tracks, dual-axis support checks and gap splitting
-define finite tubes, and a zero-floored local dynamic program aligns only inside them. Fixed
-descriptors remain ambiguous on repeated textures and on copies split by weak evidence. We
-therefore ask whether a small budget of visual decisions helps at two points: before fitting,
-to remove doubtful anchors, and after alignment, to decide whether adjacent fragments belong
-to one continuous copy. Both stages query one shared pretrained/post-trained multimodal model,
-the \texttt{seltive model}, with per-item abstention, geometric gates, a shared pair budget
-and fallback of the affected item on uncertainty or failure. We state three research
-questions, controls against random and geometric selection, separate risk denominators for
-anchor deletion and wrong fusion, and an evaluation protocol that keeps core and augmented
-results apart. The branch uses an external model and original frames; no frozen benchmark
-result exists yet, so no accuracy or latency benefit is claimed.
-\TODO{EMPIRICAL RESULTS PENDING: populate accuracy, negative-pair false alarms and measured
-latency only from completed runs under the finalized protocol.}
+Video copy localization with fixed frame descriptors compares sparse anchors and refines a
+narrow band, which keeps cost sub-quadratic but makes two decisions safety-critical: whether a
+weak track is a real copy that strict matching missed, and where an admitted copy starts and
+ends. FastVCL answers both with discrete, fail-closed decisions from a pretrained decision
+interface. A strict branch (stride-4 mutual top-1 anchors, cosine 0.70, RANSAC, banded local
+dynamic programming) defines high-precision candidates. A shadow RANSAC pass over the same
+anchors exposes weak tracks; a hard geometric gate filters them; a probabilistic question
+estimates whether a track is a copy and admits it to the tube only above 0.75. Each segment,
+from either branch, receives at most five boundary candidates (keep, left, right, both, shrink)
+revalidated against local features; a multiple-choice question selects one at confidence 0.65
+or higher, and otherwise the original boundary is kept. The refined segments are then merged by
+a dual-axis deduplication, so one query interval that maps to two reference locations survives
+as two copies. The interface never outputs coordinates or segment scores; every
+output carries its source, and disabling the interface recovers the strict system. Historical
+no-JEV ablations show the strict setting's recall bottleneck (R 14.36, F1 24.91, versus R 31.15,
+F1 45.79 when relaxed), which motivates both decisions. The new decision ladder has not been
+run: we report the design, its invariants and a falsifiable protocol, and claim no accuracy or
+latency gain.
 \end{abstract}

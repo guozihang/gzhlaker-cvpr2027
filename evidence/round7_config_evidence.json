@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-28",
+  "scope": "Round-7 manuscript revision; frozen FastVCL add-jev branch and JEV stage defaults. No rerun, no model call, no benchmark.",
+  "fastvcl": {
+    "branch": "add-jev",
+    "head": "7c049599813de29b37adf94d07beccfd0b366a00",
+    "config": "configs/isc_only.yaml",
+    "stage": "layer1",
+    "feature": {"kind": "isc", "dim": 256, "stride": 4, "topk": 1, "min_cosine": 0.7, "mutual": true},
+    "ransac": {"residual": 4.0, "min_inliers": 5, "max_tracks": 8, "slope": [0.5, 2.0], "iterations": 2000, "confidence": 0.99},
+    "tube": {
+      "half_width": 12,
+      "boundary_margin": 2,
+      "min_duration_a": 3,
+      "min_duration_b": 4,
+      "min_segment_anchors": 2,
+      "min_local_cosine": 0.6,
+      "smooth_window": 3,
+      "extension_a": 16,
+      "reward_offset": 0.6,
+      "gap_penalty": 0.1,
+      "max_paths_per_tube": 4,
+      "max_low_quality_gap_a": 2,
+      "max_segments_per_pair": 64,
+      "dedupe_iou": 0.8,
+      "dedupe_iou_axis": "min",
+      "merge_overlapping": false,
+      "max_jump_indices": 8
+    },
+    "score": {"sim_weight": 0.7, "anchor_weight": 0.3, "default_anchor_spacing": 4.0, "anchor_support_cap": 1.0},
+    "signature": {"stride": 4, "topk": 1, "min_cosine": 0.7, "residual": 4.0, "min_inliers": 5, "max_tracks": 8, "max_gap_a": 24, "max_gap_b": 24, "min_span_a": 4.0, "min_span_b": 8.0},
+    "recovery": {"min_inliers": 3, "max_tracks": 12, "max_candidates": 8, "admission_probability": 0.75, "shadow_min": 3, "shadow_max_tracks": 12},
+    "gate": {"slope": [0.5, 2.0], "residual": 4.0, "min_unique_a": 3, "min_unique_b": 3, "max_query_gap": 24, "min_span_a": 4, "min_span_b": 8, "non_decreasing_b": true},
+    "boundary": {"enabled": true, "max_segments": 8, "min_choice_confidence": 0.65, "delta_a": [4, 8, 16], "option_types": ["keep", "left", "right", "both", "shrink"], "local_cosine": 0.6, "max_low_quality_gap_a": 2, "shrink_max_trim": 16},
+    "jev": {"model": "typesafe/jev-1.13", "endpoint": "env", "batch_mode": false, "timeout_seconds": 15, "max_retries": 1, "max_calls": 24, "recovery_shadow": 3, "recovery_max_candidates": 8},
+    "call_budget_per_pair": 16,
+    "code_order": [
+      "per-track tube segments",
+      "BoundaryStage.refine per track (fastvcl/core/localize.py:546-549)",
+      "merge_overlapping_segments + dedupe_segments (fastvcl/core/localize.py:492-499)"
+    ]
+  },
+  "paper": {
+    "repo": "gzhlaker_cvpr2027",
+    "staging": ".round7_paper",
+    "body_pages": 7,
+    "total_pages": 9,
+    "supplement_pages": 4,
+    "ladder_executed": false,
+    "historical_rows": 27,
+    "internal_rows": 24,
+    "external_rows": 3,
+    "note": "All F0-F3 and C1-C8 cells pending. Historical rows copied from evidence/round7_no_jev_experiments.csv and round7_workbook_audit.json."
+  }
+}
