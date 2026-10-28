@@ -32,13 +32,14 @@ them.
   (`fastvcl/core/localize.py:546-549`) before merge/dedupe (`localize.py:492-499`). The text,
   caption and figure say so, and the text records the consequence: a call can be spent on a
   segment that dedupe later collapses.
-- **Experiments rewritten as a protocol.** Table 1 keeps 24 internal no-JEV rows plus three
-  external baselines copied from the frozen workbook; Table 2 is the F0--F3 ladder with every
-  cell pending. RQ1--RQ3 falsifiers, controls C1--C8 and the metric definitions are stated;
-  no accuracy or latency gain is claimed.
-- **Figure regenerated.** `scripts/generate_round7_framework.py` draws three panels (strict,
-  recovery, boundary) and a merge bar after boundary choice; the disabled independent loose
-  sparse branch is no longer drawn.
+- **Experiments rewritten as a protocol.** Table 1 is the VCSL/VCDB main comparison (VCDB
+  left blank because it was not evaluated); Tables 2--3 are the recovery and boundary ablations,
+  every cell pending; Tables 4--5 are the historical single-factor VCSL runs. The 25-row
+  workbook transcription is in the supplement. RQ1--RQ3 falsifiers, controls C1--C8 and the
+  metric definitions are stated; no accuracy or latency gain is claimed.
+- **Figure regenerated.** `scripts/generate_round7_framework.py` draws (a) strict, (b) shadow
+  recovery, and (c) boundary choice before the dual-axis merge, in a plain serif style; the
+  disabled independent loose sparse branch is omitted and noted in the caption/figure note.
 - **Supplement rebuilt.** 4 pages: evidence grades, reference configuration, strict branch and
   DP, recovery gate, boundary construction, dedupe, historical diagnostics, ladder, evaluation
   protocol, reproducibility and limitations.
@@ -52,8 +53,8 @@ them.
   substitution warnings under XeTeX and PDF-version warnings for included figure PDFs remain
   non-fatal.
 - Pages were rendered and checked: main pages 1, 3, 6 and 7; supplement page 1. Tables and the
-  framework figure are not truncated. Table 1 uses scriptsize with `tabcolsep` 3.5pt and a
-  4.3cm description column; Table 2 uses five columns at footnotesize.
+  framework figure are not truncated. Tables 1--5 use footnotesize/scriptsize with fixed
+  `tabcolsep`; the supplement historical table is full width.
 - `git diff --check` passes.
 - All checks above are semantic, formula or read-only checks. None is a dataset, model, GPU or
   benchmark result.
@@ -114,9 +115,10 @@ On another machine, obtain the required Tectonic bundle normally before using
 - The FastVCL `add-jev` branch is at `7c04959` and implements the frozen pipeline used by the
   paper. The ladder (F0--F3, C1--C8) requires a JEV backend and the full split; neither was
   available, so no ladder row was run.
-- Table 1's internal rows come from `evidence/round7_no_jev_experiments.csv` and
-  `evidence/round7_workbook_audit.json`; the three external rows use different protocols and
-  are context only.
+- Tables 4--5 and the supplement table come from `evidence/round7_no_jev_experiments.csv` and
+  `evidence/round7_workbook_audit.json` (25 rows, VCSL test split). No external baseline is
+  tabulated: published numbers use different features, pair counts and metrics and were not
+  rerun under this protocol. VCDB was not evaluated.
 
 ## Files and regeneration
 

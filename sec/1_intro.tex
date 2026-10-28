@@ -33,10 +33,11 @@ treats two intervals as duplicates only when they overlap on \emph{both} axes. O
 different reference locations therefore survives as two copies.
 
 \paragraph{Why decisions rather than more matching.}
-The historical ablations in Section~\ref{sec:exp} show the trade-off directly. Relaxing the
-stride to 1 with two inliers raises recall from 14.36 to 31.15 and F1 from 24.91 to 45.79;
-per-frame argmax reaches recall 59.73 but precision collapses to 9.12, and TransVCL reaches
-R 40.19 at B 84.13 under its own protocol. More anchors thus buy recall, but they also multiply ambiguous matches on
+The historical ablations in Section~\ref{sec:exp} show the trade-off directly. Densifying the
+anchor grid from stride 4 to 1 at the same support raises recall from 14.36 to 31.15 and F1
+from 24.91 to 45.79 while precision falls from 93.94 to 86.33; per-frame argmax trades more
+precision for recall (R 56.23 at P 63.58) and is not a single-factor variant of the strict
+row. More anchors thus buy recall, but they also multiply ambiguous matches on
 repeated textures, logos and similar shots. A decision layer is attractive only if it can
 separate the additional true copies from the additional false ones at a cost far below dense
 matching. This is the hypothesis we formalize and test, not a result we assume.
@@ -44,11 +45,11 @@ matching. This is the hypothesis we formalize and test, not a result we assume.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/framework.pdf}
-\caption{\textbf{FastVCL overview.} A strict branch (top) discovers high-precision anchors,
-fits temporal tracks and refines a band with a local dynamic program. A shadow pass over the
-same anchors exposes weak tracks; a hard geometric gate filters them and a Noul question admits
-a track only above 0.75. Each segment, whatever its provenance, receives up to five boundary
-candidates revalidated with local features and a Choice question selects one; the refined
+\caption{\textbf{FastVCL overview.} (a) A strict branch discovers high-precision anchors, fits
+temporal tracks and refines a band with a local dynamic program. (b) A shadow pass over the same
+anchors exposes weak tracks; a hard geometric gate filters them and a Noul question admits a
+track only above 0.75. (c) Each segment from either branch receives up to five boundary
+candidates, revalidated with local features, and a Choice question selects one; the refined
 segments are then merged by dual-axis deduplication. The model never writes coordinates, and
 every output carries its source.}
 \label{fig:framework}
@@ -70,7 +71,7 @@ system is recovered exactly when the interface is disabled. (ii)~\emph{Mechanism
 shadow recovery with a Noul admission test, dual-axis dedupe that preserves multi-copy
 instances, and C0--C4 boundary candidates with feature revalidation and a Choice fallback.
 (iii)~\emph{Protocol:} a reproducible specification of the strict branch, a 27-row historical
-diagnostic (24 internal runs plus three external baselines), an F0--F3 ladder, eight controls,
+diagnostic (25 internal no-JEV runs), an F0--F3 ladder, eight controls,
 and multi-copy/boundary/cost metrics. The
 new ladder is specified but not yet executed; historical diagnostics motivate the design, and
 no accuracy or latency gain is claimed.

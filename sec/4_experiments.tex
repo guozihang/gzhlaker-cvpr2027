@@ -1,139 +1,196 @@
 \section{Experiments}
 \label{sec:exp}
 \subsection{Protocol and data}
-We use the VCSL benchmark~\cite{vcsl2022} with the official validation split (41,798 pairs;
-27,315 pairs contain no copy and form the false-alarm denominator) and the official
-evaluator for interval matching at tIoU $\ge0.5$. Frames are described by frozen ISC features
-($d{=}256$); no network is trained, and every JEV parameter is frozen. A prediction is a list
-of half-open interval pairs with scores; an empty list is a valid output, while a crash,
-timeout or out-of-memory event is an error and is never rewritten as empty. The prototype has
-no access to source videos or a verified frame-index map in this study, so the interface
-receives numeric track evidence only; visual evidence is a defined extension, not an executed
-condition.
+We evaluate on the VCSL benchmark~\cite{vcsl2022} with the official validation split
+(41,798 pairs; 27,315 pairs contain no copy and form the false-alarm denominator) and the
+official evaluator for interval matching at tIoU $\ge0.5$. Frames are described by frozen ISC
+features ($d{=}256$); no network is trained, and every decision parameter is frozen. A
+prediction is a list of half-open interval pairs with scores; an empty list is a valid output,
+while a crash, timeout or out-of-memory event is an error and is never rewritten as empty. The
+prototype has no access to source videos or a verified frame-index map in this study, so the
+interface receives numeric track evidence only; visual evidence is a defined extension, not an
+executed condition. The new ladder in Tables~\ref{tab:ladder-recovery} and
+\ref{tab:ladder-boundary} uses this validation protocol. The frozen workbook discussed in
+Section~\ref{sec:history} was recorded on the VCSL test split in earlier rounds; it is used only
+as a diagnostic and is never mixed into a ladder row.
 
 \paragraph{Metrics.}
-Accuracy is reported as pair-level precision, recall and F1 at tIoU $0.5$, plus a strict
-variant at $0.7$. Boundary quality is measured on true positives by exact endpoint match,
-within $\pm1$, $\pm2$ and $\pm4$ frames, and by mean absolute endpoint error. Multi-copy
-behaviour is measured by \emph{coverage} (fraction of ground-truth instances with at least two
-copies for which all copies are returned), \emph{extra copies} per pair and
+Accuracy is reported as pair-level precision ($P$), recall ($R$) and F1 at tIoU $0.5$, plus a
+strict variant at $0.7$. Boundary quality is measured on true positives by exact endpoint match,
+within $\pm1$, $\pm2$ and $\pm4$ frames, and by mean absolute endpoint error (in frames).
+Multi-copy behaviour is measured by \emph{coverage} (fraction of ground-truth instances with at
+least two copies for which all copies are returned), \emph{extra copies} per pair and
 \emph{strict-candidate retention} (fraction of strict segments that survive merging and
 deduplication). Cost is reported per pair as decision calls, prompt and completion tokens, and
-amortized and worst-case latency; peak memory is measured separately. All accuracy rows are
-computed on the same 41,798 pairs, and every JEV row uses batch size one.
+amortized and worst-case latency; peak memory is measured separately. Every ladder row uses
+batch size one and the same 41,798 pairs.
 
-\subsection{Historical sensitivity of the strict branch}
-Table~\ref{tab:history} collects 24 internal no-JEV runs plus three external baselines from previous rounds. They were
-produced by one frozen feature set and one evaluator, and they vary the anchor density,
-similarity threshold, RANSAC support, tube resolution, alignment mode and fusion rule. They
-are \emph{diagnostics}, not results of the new ladder: no shadow recovery, Noul admission,
-dual-axis dedupe or boundary choice is active in any of them, and no JEV call was made.
+\subsection{Main comparison}
+Table~\ref{tab:main} reports the measured strict row and the three ladder targets. The strict
+FastVCL row is the historical VCSL test-split run of Section~\ref{sec:history}. It is
+precision-heavy ($P{=}93.94$) and recall-poor ($R{=}14.36$): the failure mode that motivates
+shadow recovery is missed copies, not false alarms. F2, F1 and F3 are the target of the ladder
+and are marked pending. We do not tabulate external baselines: their published numbers use
+different feature sets, pair counts and metric definitions, and no controlled rerun under this
+protocol exists in the draft. We also did not evaluate VCDB: the frozen VCDB features and
+annotations were unavailable, so its cells are left blank rather than estimated from another
+protocol.
+
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Main comparison on VCSL and VCDB. $P$: pair precision, $R$: pair recall, F1 at tIoU
+$0.5$. The FastVCL strict row is the historical VCSL test run; F2, F1 and F3 are pending.
+External baselines are omitted because their published numbers use different features, pair
+counts and metrics and were not rerun here. VCDB was not evaluated (no frozen
+features/annotations), so its cells are deliberately blank, not zero.
+\label{tab:main}}
+\begin{tabular}{@{}l@{\hspace{0.4em}}cccccc@{}}
+\toprule
+& \multicolumn{3}{c}{VCSL} & \multicolumn{3}{c}{VCDB} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Method & $P$ & $R$ & F1 & $P$ & $R$ & F1 \\
+\midrule
+FastVCL strict (F0) & 93.94 & 14.36 & 24.91 & -- & -- & -- \\
+FastVCL recovery (F2) & \pending & \pending & \pending & -- & -- & -- \\
+FastVCL boundary (F1) & \pending & \pending & \pending & -- & -- & -- \\
+FastVCL full (F3) & \pending & \pending & \pending & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Component ablations}
+Tables~\ref{tab:ladder-recovery} and~\ref{tab:ladder-boundary} define the component ablations.
+Each row uses the same pairs, features and evaluator; only the listed stage changes. \textbf{F0
+(strict)} is the frozen branch of Section~\ref{sec:method} with no interface call. \textbf{F2a
+(gate only)} admits every track passing the hard gate without asking the model, which separates
+the value of the geometric gate from the value of the question. \textbf{F2 (recovery)} adds
+shadow RANSAC, the gate and Noul admission, but keeps original boundaries. \textbf{F1
+(boundary)} adds C0--C4 choice and dual-axis deduplication to F0. \textbf{F3 (full)} adds both.
+The controls are: C1, a deterministic rule on the same candidate evidence (admit when support
+$\ge3$ and residual $\le2$; choose the longest verified boundary); C2, random identifiers with
+the same call budget; C4, doubled decision budget; C5, boundary choice with recovery disabled;
+C6, a threshold sweep of $0.60$--$0.85$ for admission and $0.50$--$0.80$ for choice. C1, C2,
+C4, C5 and C6 are executable on the current prototype.
+
+No ladder row has been executed. Every cell below is a reporting slot and must be filled only
+from a completed run under the protocol above. We deliberately do not copy strict-branch
+numbers into F1--F3 cells, because recovery, dedupe and boundary stages can change both
+precision and recall.
+
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Recovery and admission ablation (VCSL validation, pending). FAR is the
+false-alarm rate on the 27,315 negative pairs; calls are decision-interface calls per pair
+(retries included). All cells are pending; the table is a template, not a result.
+\label{tab:ladder-recovery}}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+system & $P$ & $R$ & F1 & FAR & calls \\
+\midrule
+F0 strict & \pending & \pending & \pending & \pending & 0 \\
+F2a gate only & \pending & \pending & \pending & \pending & 0 \\
+F2 recovery (Noul) & \pending & \pending & \pending & \pending & \pending \\
+C1 rule & \pending & \pending & \pending & \pending & 0 \\
+C2 random & \pending & \pending & \pending & \pending & \pending \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[t]
 \centering\scriptsize
-\setlength{\tabcolsep}{3.5pt}
-\caption{Historical no-JEV runs on the VCSL validation split. $B$: pair precision, $R$:
-pair recall, F1, all at tIoU $0.5$. Rows 1--24 vary the strict branch; the last three are
-external VCSL baselines under a different protocol and are shown for context only. Values are
-percentages copied from the frozen workbook; no row was rerun for this draft.}
-\label{tab:history}
-\begin{tabular}{@{}r>{\raggedright\arraybackslash}p{4.3cm}rrr@{}}
+\setlength{\tabcolsep}{3pt}
+\caption{Boundary and deduplication ablation (VCSL validation, pending). `exact' is exact
+endpoint match on true positives; $\pm k$ allows a shift of at most $k$ frames; `err' is mean
+absolute endpoint error in frames; `ret.' is strict-candidate retention. All cells are pending.
+\label{tab:ladder-boundary}}
+\begin{tabular}{@{}l@{\hspace{0.4em}}cccccc@{}}
 \toprule
-\# & configuration & $B$ & $R$ & F1 \\
+system & exact & $\pm1$ & $\pm2$ & $\pm4$ & err & ret. \\
 \midrule
-1 & strict: s4, top1, cos.70, inl.$\ge$5 & 85.52 & 14.36 & 24.91 \\
-2 & same anchors, inlier $\ge2$ & 44.56 & 18.99 & 31.07 \\
-3 & reference-only anchors, inlier $\ge2$ & 37.55 & 19.37 & 29.52 \\
-4 & zero-inlier anchors & 33.44 & 18.79 & 28.30 \\
-5 & s4, top1, cos.7, inl.$\ge$2 & 41.80 & 11.31 & 22.76 \\
-6 & stride 4, top-2, inlier $\ge2$ & 40.87 & 19.06 & 30.26 \\
-7 & stride 1, top-1, inlier $\ge2$ & 36.44 & 31.15 & 45.79 \\
-8 & stride 1, top-1, inlier $\ge5$ & 62.27 & 9.76 & 20.07 \\
-9 & stride 4, top-2, inlier $\ge5$ & 83.73 & 8.81 & 16.52 \\
-10 & cosine 0.70, inlier $\ge2$ & 41.19 & 17.27 & 29.42 \\
-11 & cosine 0.80, inlier $\ge2$ & 31.15 & 19.81 & 30.10 \\
-12 & cosine 0.85, inlier $\ge2$ & 25.38 & 18.56 & 28.07 \\
-13 & layer-1 range 1 & 40.62 & 29.93 & 44.02 \\
-14 & layer-1 range 1, $d{=}1$ & 43.44 & 28.99 & 43.47 \\
-15 & layer-1 range 1, $d{=}2$ & 46.10 & 28.76 & 43.70 \\
-16 & layer-2, pad 8 & 31.28 & 30.45 & 39.14 \\
-17 & layer-2, pad 32 & 26.89 & 27.71 & 35.01 \\
-18 & layer-2, pad 64 & 26.47 & 25.63 & 32.58 \\
-19 & layer-2, interpolation & 40.63 & 30.36 & 42.27 \\
-20 & layer-2, interpolate + soft & 39.28 & 30.48 & 41.60 \\
-21 & per-frame argmax, stride 4 & 9.12 & 59.73 & 49.60 \\
-22 & per-frame argmax, stride 1 & 6.91 & 63.95 & 51.51 \\
-23 & per-frame argmax, stride 8 & 16.19 & 52.15 & 45.16 \\
-24 & simple sparse-to-band & 4.57 & 59.91 & 45.31 \\
+F0 strict & \pending & \pending & \pending & \pending & \pending & -- \\
+F1 choice & \pending & \pending & \pending & \pending & \pending & \pending \\
+F1 w/o dedupe & \pending & \pending & \pending & \pending & \pending & \pending \\
+C1 rule & \pending & \pending & \pending & \pending & \pending & \pending \\
+C2 random & \pending & \pending & \pending & \pending & \pending & \pending \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Historical sensitivity of the strict branch}
+\label{sec:history}
+The frozen workbook contains 25 no-JEV runs recorded on the VCSL test split in previous rounds.
+They share one feature set and one evaluator and vary a single factor at a time, so they are
+useful diagnostics for the design of the strict branch. They are not results of the new ladder:
+shadow recovery, Noul admission, dual-axis dedupe and boundary choice are inactive in every one
+of them, and no decision call was made. Tables~\ref{tab:anchor} and~\ref{tab:support} report the
+two groups that matter for the paper's motivation; the full transcription, including the
+combined-parameter runs, is in the supplement.
+
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Anchor supply on the VCSL test split (historical, no JEV). Rows change one factor of
+the strict branch; values are copied from the frozen workbook and were not rerun for this draft.
+\label{tab:anchor}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.15cm}ccc@{}}
+\toprule
+configuration & $P$ & $R$ & F1 \\
 \midrule
-25 & TransVCL~\cite{transvcl2023} (ext.) & 84.13 & 40.19 & 40.37 \\
-26 & DP baseline~\cite{vcsl2022} (ext.) & 29.16 & 41.84 & 46.75 \\
-27 & DTW baseline~\cite{vcsl2022} (ext.) & 42.38 & 35.62 & 45.42 \\
+strict: stride 4, top-1, cos 0.70 & 93.94 & 14.36 & 24.91 \\
+stride 2, otherwise identical & 89.04 & 25.96 & 40.20 \\
+stride 1, otherwise identical & 86.33 & 31.15 & 45.79 \\
+top-3 neighbours, stride 4 & 91.20 & 14.74 & 25.38 \\
+cosine 0.60, stride 4 & 93.77 & 15.83 & 27.09 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Support, alignment and aggregation on the VCSL test split (historical, no JEV). The
+last two rows use a looser anchor set and are not single-factor variants of the strict row.
+\label{tab:support}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.15cm}ccc@{}}
+\toprule
+configuration & $P$ & $R$ & F1 \\
+\midrule
+strict: inlier $\ge5$, DP, stride 4 & 93.94 & 14.36 & 24.91 \\
+inlier $\ge3$, same anchors & 89.93 & 21.97 & 35.31 \\
+inlier $\ge2$, same anchors & 89.13 & 24.07 & 37.90 \\
+no DP, per-frame argmax & 85.11 & 16.53 & 27.68 \\
+no tube, track to segment & 94.26 & 7.19 & 13.35 \\
+DP, s1, inl$\ge$2, cos .60 & 86.06 & 31.48 & 46.09 \\
+argmax, s1, inl$\ge$2, cos .60 & 63.58 & 56.23 & 59.68 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \paragraph{What the diagnostics motivate.}
 Three patterns are stable. First, the strict point is precision-heavy and recall-poor
-($B{=}85.52$, $R{=}14.36$): most of its errors are missed copies, not false alarms. Second,
-lowering the RANSAC support on the same anchors raises recall to 18.99 while precision falls
-to 44.56, which is exactly the trade-off a binary admission test must arbitrate. Third, the
-comparison is dominated by the evaluation protocol: per-frame argmax attains $B{=}9.12$ with
-$R{=}59.73$, and TransVCL reaches $R{=}40.19$ at $B{=}84.13$ under its own setting. A
-$B$--$R$ pair from one protocol therefore cannot be compared with another, which is why all
-ladder rows must share one protocol and one negative set.
-
-\subsection{Systems}
-\textbf{F0 (strict)} is the frozen branch of Section~\ref{sec:method} with no interface call.
-\textbf{F1 (boundary only)} adds dual-axis dedupe and C0--C4 choice to F0.
-\textbf{F2 (recovery only)} adds shadow RANSAC, the hard gate and Noul admission, but keeps
-original boundaries. \textbf{F3 (full)} adds both. We also run \textbf{F2a}, a gate-only
-variant that admits every track passing the hard gate without asking the model, to separate
-the value of the gate from the value of the question. The eight controls are: C1, a
-deterministic rule on the same candidate evidence (admit when support $\ge3$ and residual
-$\le2$; choose the longest verified boundary); C2, random identifiers with the same call
-budget; C3, the independent loose sparse branch; C4, doubled decision budget; C5, boundary
-choice with recovery disabled; C6, a threshold sweep of 0.60--0.85 for admission and
-0.50--0.80 for choice; C7, visual evidence in the state (defined but not executed here); and
-C8, prior/suffix stress pairs built by truncating the query before or after the copy. C1--C6
-and C8 are executable on the current prototype; C3 requires the optional loose branch, and C7
-requires source frames and a verified frame map.
-
-\subsection{Results}
-No ladder row has been executed. Table~\ref{tab:ladder} is the reporting template: every cell
-is marked pending and must be filled only from a completed run under the protocol above. We
-deliberately do not copy strict-branch numbers into F1--F3 cells, because the merge, dedupe and
-boundary stages can change both precision and recall.
-
-\begin{table}[t]
-\centering\footnotesize
-\caption{Planned ladder. Each row uses the same pairs, features and evaluator. A pair incurs at most
-16 calls (Section~\ref{sec:method}); latency and token cost are reported in the text. All
-cells are pending.}
-\label{tab:ladder}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-system & $B$ & $R$ & F1 & bd. exact \\
-\midrule
-F0 strict & \pending & \pending & \pending & \pending \\
-F1 boundary only & \pending & \pending & \pending & \pending \\
-F2 recovery only & \pending & \pending & \pending & \pending \\
-F2a gate only & \pending & \pending & \pending & \pending \\
-F3 full & \pending & \pending & \pending & \pending \\
-\bottomrule
-\end{tabular}
-\end{table}
+($P{=}93.94$, $R{=}14.36$); most of its errors are missed copies, not false alarms. Second,
+candidate supply is the main recall lever: densifying the anchor grid from stride 4 to 2 and 1
+raises recall from 14.36 to 25.96 and 31.15 while precision falls only from 93.94 to 89.04 and
+86.33; lowering the RANSAC support from 5 to 3 and 2 gives a smaller gain (21.97 and 24.07) at
+almost unchanged precision. Relaxing cosine alone (0.60) or adding neighbours (top-3) changes
+recall by less than 1.5 points. Third, the strongest historical configuration is per-frame
+argmax with a loose anchor set (row 33: $P{=}63.58$, $R{=}56.23$); it is recall-oriented at much
+lower precision and is not a single-factor variant of the strict row. The historical rows
+therefore identify the recall bottleneck rather than rank methods, which is why all ladder rows
+must share one protocol and one negative set.
 
 \paragraph{Pre-registered falsifiers.}
 For RQ1 we require F2 to improve recall by at least 0.5 points over F0 while increasing the
-false-alarm rate by at most 0.10 points and while beating C1 on the same candidate pool; if
-the gain disappears at equal call budget, the decision layer is not the cause. For RQ2 we
-require F1 (or F3 over F2) to improve exact boundary match by at least two points and to
-reduce mean endpoint error by at least 10\%, with strict-candidate retention at or above
-98\%. For RQ3 we require two-copy coverage of at least 95\% with no more than 0.2 extra copies
-per pair, and a measured per-pair cost below the strict branch's coarse matching cost. A
-failed falsifier is reported as a negative result; the design does not get to redefine the
-metric after seeing the numbers.
+false-alarm rate by at most 0.10 points and while beating C1 on the same candidate pool; if the
+gain disappears at equal call budget, the decision layer is not the cause. For RQ2 we require
+F1 (or F3 over F2) to improve exact boundary match by at least two points and to reduce mean
+endpoint error by at least 10\%, with strict-candidate retention at or above 98\%. For RQ3 we
+require two-copy coverage of at least 95\% with no more than 0.2 extra copies per pair, and a
+measured per-pair cost below the strict branch's coarse matching cost. A failed falsifier is
+reported as a negative result; the design does not get to redefine the metric after seeing the
+numbers.
 
 \subsection{Threats to validity}
 The historical table shares one feature set and one evaluator, but its rows differ in several
@@ -143,5 +200,5 @@ are uncalibrated rankings, and the 0.75/0.65 operating points were fixed before 
 tuned on it. Recovery cannot admit copies absent from the strict anchor pool, so F2's recall
 ceiling is the strict candidate pool's ceiling. Boundary labels are interval-level, not dense
 frame correspondences, so an exact match is evidence of a correct interval, not proof of a
-correct mapping inside it. Finally, batch size one and the absence of visual evidence bound
-the cost claims to this configuration.
+correct mapping inside it. VCDB is not evaluated, and the historical rows share one feature set
+and one evaluator. Batch size one bounds the cost claims to this configuration.

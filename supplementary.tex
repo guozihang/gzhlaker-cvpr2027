@@ -25,7 +25,7 @@ extra results section. We use four grades. \textsc{source-verified} means checke
 frozen code or a stored run record; \textsc{proposed} means specified but not executed;
 \textsc{implemented-unvalidated} means present in the reference implementation but not shown to
 help; \textsc{missing} means no evidence exists. No benchmark result for the F0--F3 ladder is
-reported in this draft. The 27 rows of Table~1 in the main paper are historical no-JEV runs
+reported in this draft. The 25 historical rows in Section~4.4 of the main paper (Tables~4 and~5) are
 copied from the frozen workbook; they were not rerun, and none of them uses recovery, the
 decision interface, boundary choice or dual-axis dedupe.
 
@@ -197,20 +197,63 @@ once to the union of main and recovered segments; the per-pair cap of 64 is appl
 \section{Historical diagnostics}
 \label{sec:s-hist}
 
-Table~1 of the main paper reproduces 24 internal no-JEV runs and three external baselines from
-the frozen workbook. The internal rows share one feature set, one evaluator and one protocol;
-they vary anchor density, similarity threshold, RANSAC support, tube resolution, alignment mode
-and fusion rule. They are diagnostics of the strict branch, not results of the new ladder:
-recovery, Noul admission, dual-axis dedupe and boundary choice are inactive in every one of
-them. The three external rows come from different protocols and are shown for context only; a
-$B$--$R$ pair from one protocol cannot be compared with another.
+The frozen workbook contains 25 no-JEV runs recorded on the VCSL test split in earlier rounds;
+Table~\ref{tab:s-hist} transcribes them without rerunning any row. The internal rows share one
+feature set and one evaluator. Rows 12--27 change one factor of the strict branch at a time;
+rows 29--38 combine a looser anchor set with alignment and aggregation choices, so they are a
+configuration study, not a set of single-factor causal claims. Recovery, Noul admission,
+dual-axis dedupe and boundary choice are inactive in every row, and no decision call was made.
+The F1 column is the value recorded in the workbook, not a recomputation from the rounded
+precision and recall.
 
-Three patterns are stable. First, the strict point is precision-heavy and recall-poor
-($B{=}85.52$, $R{=}14.36$). Second, lowering RANSAC support on the same anchors raises recall to
-$18.99$ while precision falls to $44.56$: exactly the trade-off a binary admission test must
-arbitrate. Third, the comparison is dominated by the evaluation protocol: per-frame argmax
-reaches $R{=}59.73$ at $B{=}9.12$, and TransVCL reaches $R{=}40.19$ at $B{=}84.13$ under its own
-setting. No row is rerun for this draft, and no historical row is silently promoted to an F-row.
+Three patterns are stable. First, the strict operating point (row 13) is precision-heavy and
+recall-poor ($P{=}93.94$, $R{=}14.36$). Second, candidate supply is the main recall lever:
+stride 2 and 1 (rows 21--22) raise recall to $25.96$ and $31.15$ while precision falls only to
+$89.04$ and $86.33$; lowering the RANSAC support (rows 23--24) gives $21.97$ and $24.07$ at
+almost unchanged precision. Third, the strongest no-JEV configuration is per-frame argmax with a
+loose anchor set (row 33: $P{=}63.58$, $R{=}56.23$), which is a recall-oriented baseline at a
+much lower precision; no historical row is promoted to an F-row.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\caption{Full transcription of the 25 historical no-JEV runs (VCSL test split). The Excel row
+number is kept for provenance; values are percentages. Rows 12--27 are single-factor variants of
+row 13; rows 29--38 combine factors. No row was rerun for this draft.}
+\label{tab:s-hist}
+\begin{tabular}{@{}r>{\raggedright\arraybackslash}p{8.2cm}rrr@{}}
+\toprule
+row & configuration & $P$ & $R$ & F1 \\
+\midrule
+12 & DP baseline, CPU & 93.94 & 14.36 & 24.91 \\
+13 & DP baseline, GPU & 93.94 & 14.36 & 24.91 \\
+15 & no DP, argmax & 85.11 & 16.53 & 27.68 \\
+16 & non-tube & 94.26 & 7.19 & 13.35 \\
+17 & non-tube-fully & 94.05 & 13.69 & 23.90 \\
+18 & cosine 0.60 & 93.77 & 15.83 & 27.09 \\
+19 & cosine 0.55 & 93.70 & 16.18 & 27.59 \\
+20 & cosine 0.50 & 93.70 & 16.38 & 27.89 \\
+21 & stride 2 & 89.04 & 25.96 & 40.20 \\
+22 & stride 1 & 86.33 & 31.15 & 45.79 \\
+23 & inlier $\ge3$ & 89.93 & 21.97 & 35.31 \\
+24 & inlier $\ge2$ & 89.13 & 24.07 & 37.90 \\
+25 & slope $[0.25,4.0]$ & 93.86 & 14.40 & 24.97 \\
+26 & min\_a\_span 2.0 & 93.94 & 14.36 & 24.92 \\
+27 & top-3 & 91.20 & 14.74 & 25.38 \\
+29 & DP, stride 2, inlier $\ge3$ & 87.07 & 29.65 & 44.24 \\
+30 & DP, stride 1, inlier $\ge2$ & 86.03 & 31.33 & 45.93 \\
+31 & DP, stride 1, inlier $\ge2$, cos 0.60 & 86.06 & 31.48 & 46.09 \\
+32 & non-tube, stride 1, inlier $\ge2$, cos 0.60 & 80.82 & 37.05 & 50.81 \\
+33 & argmax, stride 1, inlier $\ge2$, cos 0.60 & 63.58 & 56.23 & 59.68 \\
+34 & argmax, same anchors, variant B & 61.81 & 58.07 & 59.88 \\
+35 & argmax, same anchors, slope $[0.25,4.0]$ & 61.15 & 60.31 & 60.73 \\
+36 & argmax, cos 0.50, top-3, slope $[0.25,4.0]$ & 59.39 & 60.73 & 60.05 \\
+37 & argmax, cos 0.50, top-3, slope $[0.25,4.0]$ & 59.39 & 60.73 & 60.05 \\
+38 & non-tube-fully, cos 0.50, top-3, slope $[0.25,4.0]$ & 66.90 & 36.48 & 47.21 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \section{Planned ladder and controls}
 \label{sec:s-ladder}

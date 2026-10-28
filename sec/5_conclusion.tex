@@ -7,12 +7,11 @@ reuses the strict anchor set, so it can admit a copy that the strict support tes
 without inventing evidence; the Noul question arbitrates admission at 0.75. Dual-axis
 deduplication preserves one-query/many-reference copies, and the five boundary candidates are
 revalidated before a Choice question selects one at 0.65 confidence. The interface never
-writes coordinates or scores, every output is labelled with its provenance, and turning the
-interface off recovers the strict branch exactly.
+writes coordinates or scores, and every output carries its provenance.
 
 The historical diagnostics explain why the design is worth testing: the strict operating point
-has high precision but recall 14.36, and simply relaxing the support on the same anchors
-recovers five recall points at a large precision cost. Whether a decision layer can keep the
+has high precision but recall 14.36, and densifying the anchor grid from stride 4 to 1 raises
+recall to 31.15 while precision falls only to 86.33. Whether a decision layer can keep the
 recall while controlling the false alarms is the empirical question, and it is not answered
 here. The ladder, the eight controls and the falsifiers are specified, but no ladder row has
 been run; no accuracy, latency or cost advantage is claimed.
@@ -23,5 +22,5 @@ planned but disabled. The interface sees numeric evidence only, so a copy whose 
 visual rather than geometric is outside the current state. Probabilities are uncalibrated, the
 thresholds are operating points rather than certified risks, and batch size one bounds
 throughput. Boundary labels are interval-level, so endpoint accuracy is not dense
-correspondence accuracy. Until the ladder, the controls and full-cost measurements are
-complete, the contribution is an architecture and a protocol, not a benchmark result.
+correspondence accuracy. Until the ladder is run, the contribution is an architecture and a
+protocol, not a benchmark result.
