@@ -62,5 +62,4 @@
 <line x1="1565.0" y1="484" x2="1565.0" y2="502" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
 <line x1="1565.0" y1="564" x2="1565.0" y2="582" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
 <line x1="1565.0" y1="676" x2="1565.0" y2="694" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<text x="60" y="916" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="21" fill="#555555" text-anchor="start">The independent loose sparse branch is disabled in this version; the model never writes coordinates or scores.</text>
 </svg>
