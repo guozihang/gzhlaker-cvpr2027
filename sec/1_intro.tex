@@ -1,40 +1,75 @@
 \section{Introduction}
 \label{sec:intro}
 
-Video Copy Localization (VCL) aims to identify exact pairs of temporal intervals in which a query video and a reference video share duplicated content. Unlike video-level retrieval, VCL is a fine-grained pairwise localization problem: copied segments frequently undergo severe spatial and temporal transformations—including cropping, picture-in-picture overlays, re-encoding, and playback speed variations—requiring a system to accurately recover both the temporal boundaries and the underlying frame-to-frame alignment~\cite{vcsl2022,transvcl2023}.
+Video copy localization (VCL) identifies the temporal intervals shared by a query video and a
+reference video. Copies may be cropped, overlaid, re-encoded, or played at a different speed,
+making accurate boundaries essential~\cite{vcsl2022,transvcl2023}. In a large collection,
+retrieval supplies candidate pairs and localization resolves their copied intervals. We study
+this pairwise localization stage; searching the collection is outside the proposed localizer.
 
-To tackle these challenges, state-of-the-art VCL pipelines predominantly adopt a three-stage paradigm comprising a frame feature encoder, a learnable frame-to-frame similarity matrix, and a 2D object detector (or temporal alignment head) operating over the resulting correspondence map~\cite{vcsl2022,transvcl2023}. While applying object detection over dense similarity matrices captures complex temporal patterns with high accuracy, computing and processing full $M \times N$ correspondence maps for video sequences of lengths $M$ and $N$ incurs substantial quadratic overhead. Conversely, sparsifying the similarity matrix via strided anchor matching and band-limited dynamic programming reduces complexity to sub-quadratic levels, but introduces a fundamental precision--recall dilemma. Under a conservative operating point, strict anchor filtering yields high precision on clear copies yet prematurely discards short segments, heavily edited transitions, or weakly matching tracks before localization even begins. Simply relaxing anchor thresholds or densifying the correspondence grid recovers missed copies, but floods the detector with ambiguous false alarms triggered by repetitive textures, static logos, and visually similar background shots.
+Learned correspondence-map detectors encode frames, learn interactions between two sequences,
+and detect copied regions in a two-dimensional similarity map~\cite{spd2021,transvcl2023}.
+For sequences of lengths $M$ and $N$, a dense map contains $MN$ entries. Feature interaction
+and spatial detection add computation beyond constructing the map. Applying the full pipeline
+to every pair therefore spends substantial computation even on correspondences that follow a
+clear temporal trajectory.
+
+Geometric matching offers a complementary operating point. Direct descriptor similarities
+provide anchors, and robust line fitting recovers regular temporal alignments without a
+learned 2D detector. Weak correspondence, fragmented edits, and short copies can nevertheless
+fail to supply a reliable track. Historical experiments in Section~\ref{sec:history} illustrate
+the sensitivity to anchor density and support requirements. A single global setting trades
+the cost of admitting more correspondences against the risk of missing difficult copies.
+These records motivate adaptive computation but do not establish the new architecture's performance.
 
 \begin{figure*}[t]
 \centering
-% Uncomment the line below in your local CVPR project when figures/framework.pdf is present:
-% \includegraphics[width=\textwidth]{figures/framework.pdf}
-\colorbox{lightgray}{%
-  \parbox{\dimexpr\textwidth-2\fboxsep\relax}{%
-    \vspace{14pt}\centering
-    \textbf{\color{primary}[ Placeholder for \texttt{figures/framework.pdf} ]}\\[4pt]
-    \footnotesize (a) Feature Encoder \& Learnable Similarity Matrix with Object Detection $\rightarrow$ (b) Selective Track Recovery $\rightarrow$ (c) Selective Boundary Refinement \& Dual-Axis Deduplication
-    \vspace{14pt}%
-  }%
-}
-\caption{\textbf{Overview of FastVCL.} Built upon a frame feature encoder, a learnable similarity matrix, and a candidate tube detector, FastVCL introduces a confidence-aware selective model to resolve the efficiency--accuracy trade-off. (a) A primary detection branch identifies high-precision candidate tracks over the similarity matrix and refines local bands. (b) A shadow proposal pass exposes weak candidate tracks, filtering them through geometric constraints and a selective admission module to recover subtle copies without dense matching. (c) Candidate segments undergo selective discrete boundary refinement revalidated against local similarity features, followed by dual-axis deduplication to preserve one-to-many copy mappings.}
+\includegraphics[width=\textwidth]{figures/framework.pdf}
+\caption{\textbf{Policy-guided dual-pathway localization.} A lightweight front-end policy
+examines a compact input preview and selects one localization branch. The main branch jointly
+learns frame representations, a similarity map, and a 2D detector for difficult pairs. The
+acceleration branch uses direct descriptor similarity, anchors, and RANSAC alignment for
+regular pairs. Only the selected branch runs at inference; both return scored interval pairs.
+The diagram specifies the proposed architecture, not measured results.}
 \label{fig:framework}
 \end{figure*}
 
-\paragraph{Bridging Similarity Detection and Selective Modeling.}
-To break this efficiency--accuracy bottleneck, we observe that not all candidate regions in a similarity matrix require the same computational or decision depth. Clear matches and obvious background pairs can be resolved rapidly by standard sparse similarity detection, whereas ambiguous weak tracks and fuzzy segment endpoints require targeted verification. Motivated by this insight, we propose \textbf{FastVCL}, a fast and accurate VCL framework that integrates a confidence-aware \emph{selective model} directly into the classic feature encoder, learnable similarity matrix, and object detection pipeline (Figure~\ref{fig:framework}). Rather than exhaustively evaluating dense correspondence maps, FastVCL allocates computation selectively across two critical localization bottlenecks: (i) determining whether a weak temporal correspondence is a genuine copy missed by strict detection, and (ii) pinpointing where an admitted copy precisely starts and ends.
+\paragraph{Route before expensive localization.}
+We propose \textbf{FastVCL}, a policy-guided dual-pathway network that allocates computation
+at the input-pair level. A front-end policy processes a small preview and predicts whether
+the pair requires the high-capacity main branch. The main branch consists of a trainable
+frame encoder, a learnable similarity module, and a 2D object detector whose boxes encode
+copied temporal intervals. The acceleration branch directly matches frame descriptors,
+extracts anchors, and fits temporal tracks with Random Sample Consensus (RANSAC). It converts
+supported tracks into intervals without invoking the main branch's learned similarity module
+or detector. The branches are alternative localizers for a pair.
 
-\paragraph{Selective Track Recovery and Boundary Refinement.}
-Specifically, FastVCL extracts frame descriptors via a visual encoder and constructs a learnable similarity matrix to guide candidate tube detection. A primary high-precision branch identifies confident anchor tracks and refines narrow temporal bands via local alignment. In parallel, a lightweight shadow pass relaxes support constraints over the learned similarity representations to expose weak candidate tracks. Rather than admitting all relaxed proposals—which would severely degrade precision—a hard geometric gate eliminates physically inconsistent trajectories (e.g., invalid temporal slopes, excessive residuals, or structural gaps), and our selective model estimates track-level copy confidence. Following a fail-closed principle, only candidate tracks exceeding a calibrated selective threshold are admitted into the localization tube. Subsequently, for boundary localization, each candidate segment (from either the primary or recovery path) is paired with a compact set of discrete boundary hypotheses (keep, extend left/right/both, or shrink) revalidated against local similarity features. The selective module evaluates these hypotheses and updates the interval only when prediction confidence is high, safely falling back to the initial detector boundary otherwise. Finally, a dual-axis deduplication strategy merges overlapping tubes only when they coincide along both query and reference timelines, ensuring that a single query segment repeated across multiple reference locations is preserved as distinct copy instances.
+The policy learns which branch offers the better localization--cost trade-off. During
+training, both branches can be evaluated offline to obtain per-pair supervision; at inference,
+the decision uses only the preview. Difficulty is defined by the consequences of choosing a
+branch, rather than whether a pair is positive or negative. A simple negative pair may be
+inexpensive, while a repetitive background can require the main branch to avoid a false
+detection. A short copied segment can be difficult even when the remaining video is unedited.
+A validation-selected policy threshold controls main-branch utilization.
 
-\paragraph{Why Selective Decisions Over Dense Matching?}
-Our design is grounded in a clear empirical observation: indiscriminate densification of the similarity matrix is an inefficient way to buy recall. As shown in our empirical analysis, densifying the anchor grid from stride 4 to 1 more than doubles recall and substantially boosts F1, but simultaneously degrades precision and multiplies inference cost due to false matches on repetitive visual patterns. By coupling a learnable similarity detector with a selective verification and refinement head, FastVCL separates true weak copies from hard negatives at a fraction of the cost of dense matching. Furthermore, because the selective model operates over structured similarity and geometric evidence with a strict fail-closed fallback, it guarantees stable localization without hallucinating unconstrained coordinates.
+\paragraph{Assessing accuracy and efficiency together.}
+The acceleration branch still computes descriptor similarities, and fixed-stride sampling
+only reduces the constant multiplying $MN$. FastVCL targets savings from bypassing expensive
+learned processing on suitable pairs. Those savings must exceed preview and routing overhead.
+We therefore compare with always executing either branch and with random and deterministic
+routing at matched main-branch usage. This separates the learned policy's contribution from
+the benefit of merely running the main branch less often.
 
 \paragraph{Contributions.}
-In summary, our main contributions are three-fold:
+Our design has three components:
 \begin{itemize}
-\setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}
-    \item \textbf{Selective VCL Architecture:} We propose \textbf{FastVCL}, a unified video copy localization framework that seamlessly couples a frame feature encoder, a learnable similarity matrix, and correspondence-map object detection with a confidence-aware selective model, achieving sub-quadratic efficiency without sacrificing recall.
-    \item \textbf{Fail-Closed Track Recovery \& Boundary Refinement:} We design a two-stage selective mechanism comprising shadow track recovery and discrete boundary refinement, complemented by dual-axis deduplication to accurately capture weak, heavily edited, and one-to-many copy instances.
-    \item \textbf{State-of-the-Art Speed--Accuracy Trade-off:} Extensive experiments and diagnostic ablations on standard VCL benchmarks demonstrate that FastVCL achieves localization accuracy on par with state-of-the-art dense detectors while delivering a substantial inference speedup.
+\item A front-end policy that selects a complete localization pathway from a compact pair
+preview, supervised by localization error and computational cost.
+\item Complementary branches: an end-to-end trainable encoder--similarity--detector pathway
+for difficult correspondences, and a direct-similarity--anchor--RANSAC pathway for regular ones.
+\item An evaluation protocol covering localization quality, routing errors, branch utilization,
+and end-to-end latency, with historical diagnostics separated from new-system results.
 \end{itemize}
+The following sections specify the architecture and evaluation. The available records do
+not yet include trained-policy or dual-pathway benchmark runs; their result entries remain
+explicitly pending in Section~\ref{sec:exp}.

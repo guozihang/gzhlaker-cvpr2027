@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-08",
+  "overleaf_base_commit": "00ded7723b12ec811f65d76c0e184e952d1f83df",
+  "kind": "manuscript_consistency_audit",
+  "benchmark_result": false,
+  "training_executed": false,
+  "protected_title": "\\title{FastVCL: Policy-Guided Dual-Pathway Network for Fast Video Copy Localization}",
+  "title_sha256": "29400bbdc792fce86103793c7f9b88ca073b4174316aa053476b2b4fe7e83443",
+  "abstract_sha256": "59165b0458966037c10777911c9dbe98fad7bd23bfda7e85c5c0a7ca41622823",
+  "protected_title_and_abstract_unchanged": true,
+  "historical_rows_verified_against_csv": {
+    "sec/4_experiments.tex": 8,
+    "supplementary.tex": 25
+  },
+  "citation_keys_resolved": 10,
+  "local_labels_and_references_resolved": true,
+  "legacy_decision_pipeline_removed_from_current_manuscript": true,
+  "limitations": [
+    "No trained policy or complete dual-pathway implementation verified.",
+    "New benchmark and latency results are pending.",
+    "Historical workbook metrics are transcriptions, not run-verified results.",
+    "The unchanged abstract performance claims remain unsubstantiated."
+  ],
+  "builds": {
+    "main": {
+      "exit_code": 0,
+      "pages": 8,
+      "overfull_boxes": false,
+      "undefined_references_or_citations": false
+    },
+    "supplementary": {
+      "exit_code": 0,
+      "pages": 4,
+      "overfull_boxes": false,
+      "undefined_references_or_citations": false
+    }
+  },
+  "visual_review": {
+    "main_pages": [
+      1,
+      2,
+      6,
+      7
+    ],
+    "supplementary_pages": [
+      1,
+      2,
+      4
+    ]
+  },
+  "git_diff_check": "passed"
+}

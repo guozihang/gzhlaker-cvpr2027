@@ -1,205 +1,200 @@
 \section{Experiments}
 \label{sec:exp}
-\subsection{Protocol and data}
-We evaluate on the VCSL benchmark~\cite{vcsl2022} with the official validation split
-(41,798 pairs; 27,315 pairs contain no copy and form the false-alarm denominator) and the
-official evaluator for interval matching at tIoU $\ge0.5$. Frames are described by frozen ISC
-features ($d{=}256$); no network is trained, and every decision parameter is frozen. A
-prediction is a list of half-open interval pairs with scores; an empty list is a valid output,
-while a crash, timeout or out-of-memory event is an error and is never rewritten as empty. The
-prototype has no access to source videos or a verified frame-index map in this study, so the
-interface receives numeric track evidence only; visual evidence is a defined extension, not an
-executed condition. The new ladder in Tables~\ref{tab:ladder-recovery} and
-\ref{tab:ladder-boundary} uses this validation protocol. The frozen workbook discussed in
-Section~\ref{sec:history} was recorded on the VCSL test split in earlier rounds; it is used only
-as a diagnostic and is never mixed into a ladder row.
 
-\paragraph{Metrics.}
-Accuracy is reported as pair-level precision ($P$), recall ($R$) and F1 at tIoU $0.5$, plus a
-strict variant at $0.7$. Boundary quality is measured on true positives by exact endpoint match,
-within $\pm1$, $\pm2$ and $\pm4$ frames, and by mean absolute endpoint error (in frames).
-Multi-copy behaviour is measured by \emph{coverage} (fraction of ground-truth instances with at
-least two copies for which all copies are returned), \emph{extra copies} per pair and
-\emph{strict-candidate retention} (fraction of strict segments that survive merging and
-deduplication). Cost is reported per pair as decision calls, prompt and completion tokens, and
-amortized and worst-case latency; peak memory is measured separately. Every ladder row uses
-batch size one and the same 41,798 pairs.
+\subsection{Evaluation protocol and evidence status}
+The evaluation targets VCSL and VCDB~\cite{vcsl2022,jiang2014}. For each benchmark, training,
+validation, and test pairs must follow a frozen split manifest, with related video identities
+kept together when creating the policy's held-out training partition. Validation selects
+routing, matching, and output thresholds; test annotations are reserved for final reporting.
+Dataset revisions and added negative pairs must be identified explicitly.
+
+\paragraph{Current evidence.}
+The available experiment records describe an earlier geometric localizer with fixed ISC
+features. They contain no trained front-end policy, end-to-end main branch, or evaluation
+of the present dual-pathway system. Tables~\ref{tab:main}--\ref{tab:ablation} therefore specify
+the required comparisons and have no measured new-system results. In particular, comparable
+state-of-the-art accuracy and significant speedup, as stated in the abstract, remain to be
+substantiated by these runs. Historical values in Section~\ref{sec:history} are preserved as
+diagnostics and are not substituted into new-system cells.
+
+\paragraph{Accuracy and boundary metrics.}
+The primary report uses each benchmark's official evaluator and aggregation, recording its
+version and options. VCSL copy-overlap precision, recall, and F1 must not be relabeled as
+pair-classification accuracy or replaced by a different tIoU rule. As a separate diagnostic,
+one-to-one segment matching requires IoU of at least $0.5$ on each timeline; a stricter
+$0.7$ variant is reported separately. On matched segments, we report mean absolute error
+over all four endpoints and the fraction with all endpoints within one, two, and four
+sampled frames. These are conditional boundary statistics, accompanied by segment recall
+so that missing difficult copies cannot improve them invisibly.
+
+Negative-pair false-alarm rate is the fraction of annotated negative pairs receiving any
+prediction. Multi-copy recall counts individually matched annotated instances. Routing
+statistics include main utilization $\rho$, branch-conditioned quality, and the error increase
+relative to selecting the lower-error branch offline. Both positive and negative pairs are
+included; error events such as timeouts or out-of-memory failures are recorded separately
+rather than converted to empty predictions.
+
+\paragraph{Timing and resource accounting.}
+Primary latency is measured from input decoding through output serialization at batch size
+one on the same hardware and precision. We record mean, median, and 95th-percentile latency,
+throughput, peak device memory, and the components in Eq.~\ref{eq:cost}. GPU timing uses
+synchronization, documented warm-up, and repeated runs. A separate cached-feature experiment
+can isolate localization overhead, but its speedup is labeled accordingly. Both branch
+encoders and the policy preview are included in end-to-end measurements. Cache reuse,
+video decoding, input resolution, and sequence-length limits must be identical or explicitly
+accounted for in comparisons.
 
 \subsection{Main comparison}
-Table~\ref{tab:main} reports the measured strict row and the three ladder targets. The strict
-FastVCL row is the historical VCSL test-split run of Section~\ref{sec:history}. It is
-precision-heavy ($P{=}93.94$) and recall-poor ($R{=}14.36$): the failure mode that motivates
-shadow recovery is missed copies, not false alarms. F2, F1 and F3 are the target of the ladder
-and are marked pending. We do not tabulate external baselines: their published numbers use
-different feature sets, pair counts and metric definitions, and no controlled rerun under this
-protocol exists in the draft. We also did not evaluate VCDB: the frozen VCDB features and
-annotations were unavailable, so its cells are left blank rather than estimated from another
-protocol.
+We compare geometric baselines (HV, TN, DP, and DTW), correspondence-map detection (SPD and
+TransVCL), always-main, always-acceleration, and policy-guided FastVCL. Baselines require
+controlled reruns under the same split and evaluator; published values from other settings
+are not directly combined with new measurements. The always-main and always-acceleration
+systems use exactly the branch checkpoints/configurations used by the routed system and
+omit the unused policy. This comparison tests whether routing improves the achievable
+accuracy--latency operating point.
 
-\begin{table}[t]
-\centering\footnotesize
-\setlength{\tabcolsep}{3pt}
-\caption{Main comparison on VCSL and VCDB. $P$: pair precision, $R$: pair recall, F1 at tIoU
-$0.5$. The FastVCL strict row is the historical VCSL test run; F2, F1 and F3 are pending.
-External baselines are omitted because their published numbers use different features, pair
-counts and metrics and were not rerun here. VCDB was not evaluated (no frozen
-features/annotations), so its cells are deliberately blank, not zero.
-\label{tab:main}}
-\begin{tabular}{@{}l@{\hspace{0.4em}}cccccc@{}}
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{6pt}
+\caption{Planned main comparison. $P$, $R$, and F1 use the corresponding benchmark's official
+evaluator. Mean latency includes decoding, features, routing when applicable, localization,
+and output. Every dash is an unmeasured result, not zero. No row in this table has been run
+under the proposed protocol.}
+\label{tab:main}
+\begin{tabular}{@{}lcccccccc@{}}
 \toprule
-& \multicolumn{3}{c}{VCSL} & \multicolumn{3}{c}{VCDB} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-Method & $P$ & $R$ & F1 & $P$ & $R$ & F1 \\
+& \multicolumn{4}{c}{VCSL} & \multicolumn{4}{c}{VCDB}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Method & $P$ & $R$ & F1 & ms/pair & $P$ & $R$ & F1 & ms/pair\\
 \midrule
-FastVCL strict (F0) & 93.94 & 14.36 & 24.91 & -- & -- & -- \\
-FastVCL recovery (F2) & \pending & \pending & \pending & -- & -- & -- \\
-FastVCL boundary (F1) & \pending & \pending & \pending & -- & -- & -- \\
-FastVCL full (F3) & \pending & \pending & \pending & -- & -- & -- \\
+HV / TN / DP / DTW (each) & -- & -- & -- & -- & -- & -- & -- & --\\
+SPD & -- & -- & -- & -- & -- & -- & -- & --\\
+TransVCL & -- & -- & -- & -- & -- & -- & -- & --\\
+FastVCL always-main & -- & -- & -- & -- & -- & -- & -- & --\\
+FastVCL always-acceleration & -- & -- & -- & -- & -- & -- & -- & --\\
+FastVCL policy-guided & -- & -- & -- & -- & -- & -- & -- & --\\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-\subsection{Component ablations}
-Tables~\ref{tab:ladder-recovery} and~\ref{tab:ladder-boundary} define the component ablations.
-Each row uses the same pairs, features and evaluator; only the listed stage changes. \textbf{F0
-(strict)} is the frozen branch of Section~\ref{sec:method} with no interface call. \textbf{F2a
-(gate only)} admits every track passing the hard gate without asking the model, which separates
-the value of the geometric gate from the value of the question. \textbf{F2 (recovery)} adds
-shadow RANSAC, the gate and Noul admission, but keeps original boundaries. \textbf{F1
-(boundary)} adds C0--C4 choice and dual-axis deduplication to F0. \textbf{F3 (full)} adds both.
-The controls are: C1, a deterministic rule on the same candidate evidence (admit when support
-$\ge3$ and residual $\le2$; choose the longest verified boundary); C2, random identifiers with
-the same call budget; C4, doubled decision budget; C5, boundary choice with recovery disabled;
-C6, a threshold sweep of $0.60$--$0.85$ for admission and $0.50$--$0.80$ for choice. C1, C2,
-C4, C5 and C6 are executable on the current prototype.
+\subsection{Routing and component ablations}
+\paragraph{Does the policy select the right pairs?}
+Table~\ref{tab:routing} compares learned routing with two controls at matched main utilization.
+Random routing selects pairs without looking at their contents and is repeated over seeds.
+A deterministic rule uses preview-correlation ambiguity (the mean gap between the largest
+and second-largest valid row similarities), routing ambiguous pairs to the main branch.
+Its threshold is selected on validation data. Both controls include the same preview cost
+for the policy-isolation comparison; a random router without the preview is additionally
+timed as a deployment control.
 
-No ladder row has been executed. Every cell below is a reporting slot and must be filled only
-from a completed run under the protocol above. We deliberately do not copy strict-branch
-numbers into F1--F3 cells, because recovery, dedupe and boundary stages can change both
-precision and recall.
+An offline oracle chooses the lower error-plus-cost branch for each pair using ground truth.
+It is a diagnostic reference for routing regret, not an executable test-time method or a
+latency result. Sweeping $\eta$ traces the measured accuracy--latency curve; selection of a
+reported operating point is confined to validation. A useful policy should improve quality
+over matched-utilization controls and beat always-main latency after including its overhead.
 
 \begin{table}[t]
 \centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Recovery and admission ablation (VCSL validation, pending). FAR is the
-false-alarm rate on the 27,315 negative pairs; calls are decision-interface calls per pair
-(retries included). Accuracy cells are pending; the call counts for F0 and F2a are structural
-(zero interface calls). The table is a plan, not a result.
-\label{tab:ladder-recovery}}
-\begin{tabular}{@{}lccccc@{}}
+\caption{Routing comparison on VCSL (pending). $\rho$ is main-branch utilization; regret is
+mean excess localization error over the lower-error branch. Fixed utilization for the
+always-branch rows is structural, not measured.}
+\label{tab:routing}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-system & $P$ & $R$ & F1 & FAR & calls \\
+Routing & $\rho$ & F1 & ms/pair & regret\\
 \midrule
-F0 strict & \pending & \pending & \pending & \pending & 0 \\
-F2a gate only & \pending & \pending & \pending & \pending & 0 \\
-F2 recovery (Noul) & \pending & \pending & \pending & \pending & \pending \\
-C1 rule & \pending & \pending & \pending & \pending & 0 \\
-C2 random & \pending & \pending & \pending & \pending & \pending \\
+Always-main & 1 & -- & -- & --\\
+Always-acceleration & 0 & -- & -- & --\\
+Random, matched $\rho$ & -- & -- & -- & --\\
+Preview rule, matched $\rho$ & -- & -- & -- & --\\
+Learned policy & -- & -- & -- & --\\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\paragraph{Which components matter?}
+Table~\ref{tab:ablation} defines independent changes to the proposed system. Removing the
+ordered correlation preview tests whether global appearance alone predicts branch difficulty.
+Removing the cost term tests whether quality-only supervision overuses the main branch.
+Freezing the main encoder isolates adaptation of frame features; replacing learned similarity
+with direct cosine isolates correspondence learning. Removing RANSAC replaces geometric
+verification with contiguous monotone runs of mutual matches. Disabling the endpoint check
+measures the cost and boundary contribution of local resampling. Branch modifications use
+the same training partition and regenerate policy targets; a separately reported frozen-policy
+evaluation can reveal sensitivity to branch changes.
+
 \begin{table}[t]
-\centering\scriptsize
+\centering\footnotesize
 \setlength{\tabcolsep}{3pt}
-\caption{Boundary and deduplication ablation (VCSL validation, pending). `exact' is exact
-endpoint match on true positives; $\pm k$ allows a shift of at most $k$ frames; `err' is mean
-absolute endpoint error in frames; `ret.' is strict-candidate retention. All cells are pending.
-\label{tab:ladder-boundary}}
-\begin{tabular}{@{}l@{\hspace{0.4em}}cccccc@{}}
+\caption{Component ablations on VCSL (pending). Each row changes one component from full
+FastVCL. MAE is four-endpoint mean absolute error on matched instances, in sampled frames.}
+\label{tab:ablation}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-system & exact & $\pm1$ & $\pm2$ & $\pm4$ & err & ret. \\
+Variant & F1 & MAE & $\rho$ & ms/pair\\
 \midrule
-F0 strict & \pending & \pending & \pending & \pending & \pending & -- \\
-F1 choice & \pending & \pending & \pending & \pending & \pending & \pending \\
-F1 w/o dedupe & \pending & \pending & \pending & \pending & \pending & \pending \\
-C1 rule & \pending & \pending & \pending & \pending & \pending & \pending \\
-C2 random & \pending & \pending & \pending & \pending & \pending & \pending \\
+Full policy-guided system & -- & -- & -- & --\\
+Pooled preview only & -- & -- & -- & --\\
+Quality-only policy ($\lambda=0$) & -- & -- & -- & --\\
+Frozen main encoder & -- & -- & -- & --\\
+Direct cosine in main branch & -- & -- & -- & --\\
+Acceleration without RANSAC & -- & -- & -- & --\\
+Acceleration without endpoint check & -- & -- & -- & --\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Historical sensitivity of the strict branch}
+\subsection{Historical anchor diagnostics}
 \label{sec:history}
-The frozen workbook contains 25 no-JEV runs recorded on the VCSL test split in previous rounds.
-They share one feature set and one evaluator and vary a single factor at a time, so they are
-useful diagnostics for the design of the strict branch. They are not results of the new ladder:
-shadow recovery, Noul admission, dual-axis dedupe and boundary choice are inactive in every one
-of them, and no decision call was made. Tables~\ref{tab:anchor} and~\ref{tab:support} report the
-two groups that matter for the paper's motivation; the full transcription, including the
-combined-parameter runs, is in the supplement.
+The frozen workbook contains 25 reported runs of an earlier fixed-feature system on the VCSL
+test split. Table~\ref{tab:history} preserves selected values; the supplement transcribes all
+25 rows. Prediction files, run configurations, and evaluation logs have not been reconciled
+for every row. Values are therefore historical reported metrics, not controlled reruns of
+the proposed branches. Most selected rows include a tube and dynamic program, which the
+new acceleration pathway does not use.
 
 \begin{table}[t]
 \centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Anchor supply on the VCSL test split (historical, no JEV). Rows change one factor of
-the strict branch; values are copied from the frozen workbook and were not rerun for this draft.
-\label{tab:anchor}}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.15cm}ccc@{}}
+\setlength{\tabcolsep}{4pt}
+\caption{Historical VCSL diagnostics from the workbook, in percent. Row IDs retain provenance.
+Rows are not results of the current main branch, acceleration branch, or policy.}
+\label{tab:history}
+\begin{tabular}{@{}rlrrr@{}}
 \toprule
-configuration & $P$ & $R$ & F1 \\
+Row & Configuration & $P$ & $R$ & F1\\
 \midrule
-strict: stride 4, top-1, cos 0.70 & 93.94 & 14.36 & 24.91 \\
-stride 2, otherwise identical & 89.04 & 25.96 & 40.20 \\
-stride 1, otherwise identical & 86.33 & 31.15 & 45.79 \\
-top-3 neighbours, stride 4 & 91.20 & 14.74 & 25.38 \\
-cosine 0.60, stride 4 & 93.77 & 15.83 & 27.09 \\
+13 & Strict, stride 4, inliers 5 & 93.94 & 14.36 & 24.91\\
+21 & Stride 2 & 89.04 & 25.96 & 40.20\\
+22 & Stride 1 & 86.33 & 31.15 & 45.79\\
+23 & Inliers 3 & 89.93 & 21.97 & 35.31\\
+24 & Inliers 2 & 89.13 & 24.07 & 37.90\\
+15 & No DP, argmax & 85.11 & 16.53 & 27.68\\
+17 & Direct track-to-segment & 94.05 & 13.69 & 23.90\\
+33 & Argmax, relaxed anchors & 63.58 & 56.23 & 59.68\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
-\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Support, alignment and aggregation on the VCSL test split (historical, no JEV). The
-last two rows use a looser anchor set and are not single-factor variants of the strict row.
-\label{tab:support}}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.15cm}ccc@{}}
-\toprule
-configuration & $P$ & $R$ & F1 \\
-\midrule
-strict: inlier $\ge5$, DP, stride 4 & 93.94 & 14.36 & 24.91 \\
-inlier $\ge3$, same anchors & 89.93 & 21.97 & 35.31 \\
-inlier $\ge2$, same anchors & 89.13 & 24.07 & 37.90 \\
-no DP, per-frame argmax & 85.11 & 16.53 & 27.68 \\
-no tube, track to segment & 94.26 & 7.19 & 13.35 \\
-DP, s1, inl$\ge$2, cos .60 & 86.06 & 31.48 & 46.09 \\
-argmax, s1, inl$\ge$2, cos .60 & 63.58 & 56.23 & 59.68 \\
-\bottomrule
-\end{tabular}
-\end{table}
+The strict recorded setting is precision-heavy and recall-poor. Densifying its anchor grid
+from stride 4 to 1 changes recall from 14.36 to 31.15 and precision from 93.94 to 86.33.
+Reducing the inlier requirement also increases recall. Row 33 changes several settings
+together and cannot isolate the effect of replacing DP. These observations suggest that
+one geometric operating point is unlikely to suit every pair. They do not show which pairs
+a learned policy would route correctly. Workbook elapsed times have ambiguous scope and
+hardware provenance, so they are not used to calculate an inference speedup.
 
-\paragraph{What the diagnostics motivate.}
-Three patterns are stable. First, the strict point is precision-heavy and recall-poor
-($P{=}93.94$, $R{=}14.36$); most of its errors are missed copies, not false alarms. Second,
-candidate supply is the main recall lever: densifying the anchor grid from stride 4 to 2 and 1
-raises recall from 14.36 to 25.96 and 31.15 while precision falls only from 93.94 to 89.04 and
-86.33; lowering the RANSAC support from 5 to 3 and 2 gives a smaller gain (21.97 and 24.07) at
-almost unchanged precision. Relaxing cosine alone (0.60) or adding neighbours (top-3) changes
-recall by less than 1.5 points. Third, the strongest historical configuration is per-frame
-argmax with a loose anchor set (row 33: $P{=}63.58$, $R{=}56.23$); it is recall-oriented at much
-lower precision and is not a single-factor variant of the strict row. The historical rows
-therefore identify the recall bottleneck rather than rank methods, which is why all ladder rows
-must share one protocol and one negative set.
+\subsection{Failure analysis and validity}
+We stratify results by copy duration, speed change, edit severity, repeated content, and
+sequence length wherever annotations support those categories. The main questions are whether
+the preview misses short copies, whether regular pairs receive unnecessary main computation,
+and whether acceleration increases false alarms on repetitive backgrounds. Qualitative
+examples must include routing failures and both branches' offline predictions, with the
+latter clearly distinguished from deployed computation.
 
-\paragraph{Pre-registered falsifiers.}
-For RQ1 we require F2 to improve recall by at least 0.5 points over F0 while increasing the
-false-alarm rate by at most 0.10 points and while beating C1 on the same candidate pool; if the
-gain disappears at equal call budget, the decision layer is not the cause. For RQ2 we require
-F1 (or F3 over F2) to improve exact boundary match by at least two points and to reduce mean
-endpoint error by at least 10\%, with strict-candidate retention at or above 98\%. For RQ3 we
-require two-copy coverage of at least 95\% with no more than 0.2 extra copies per pair, and a
-measured per-pair cost below the strict branch's coarse matching cost. A failed falsifier is
-reported as a negative result; the design does not get to redefine the metric after seeing the
-numbers.
-
-\subsection{Threats to validity}
-The historical table shares one feature set and one evaluator, but its rows differ in several
-factors at once, so it identifies the recall bottleneck rather than isolating a cause. The
-ladder is not run, and its expected effect sizes are hypotheses. The interface's probabilities
-are uncalibrated rankings, and the 0.75/0.65 operating points were fixed before the ladder, not
-tuned on it. Recovery cannot admit copies absent from the strict anchor pool, so F2's recall
-ceiling is the strict candidate pool's ceiling. Boundary labels are interval-level, not dense
-frame correspondences, so an exact match is evidence of a correct interval, not proof of a
-correct mapping inside it. VCDB is not evaluated, and the historical rows share one feature set
-and one evaluator. Batch size one bounds the cost claims to this configuration.
+A speedup claim requires measured net latency savings, and competitive accuracy requires a
+controlled comparison at the same evaluator and split. Neither follows from historical
+anchor diagnostics. Policy errors may shift under new editing styles or duration distributions.
+Cached features cannot substantiate end-to-end encoder training or raw-video latency.
+Exact endpoints also depend on the sampling rate and timestamp map. These limits remain
+until the pending training and benchmark runs are completed.

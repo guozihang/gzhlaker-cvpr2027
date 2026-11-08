@@ -1,181 +1,182 @@
 \section{Method}
 \label{sec:method}
 
-\subsection{Overview and Problem Formulation}
-Given a query video $A$ with $M$ sampled frames and a reference video $B$ with
-$N$ sampled frames, Video Copy Localization (VCL) aims to predict a set of
-temporal interval pairs $\mathcal{S} = \{[a_s, a_e) \times [b_s, b_e)\}$ that
-identify duplicated segments across the two sequences. As illustrated in
-Figure~\ref{fig:framework}, \textbf{FastVCL} unifies the classic three-stage VCL
-architecture---comprising a frame feature encoder $\Phi_{\rm enc}$, a learnable
-similarity matrix $\mathbf{S} \in \mathbb{R}^{M \times N}$, and a
-correspondence-map object detector---with a confidence-aware selective model
-$\mathcal{M}_{\rm sel}$.
+\subsection{Problem formulation and architecture}
+Given sampled videos $A=(a_i)_{i=0}^{M-1}$ and $B=(b_j)_{j=0}^{N-1}$, the output is a set
+$\mathcal S=\{([a_s,a_e),[b_s,b_e),q)\}$ of scored interval pairs. Endpoints satisfy
+$0\le a_s<a_e\le M$ and $0\le b_s<b_e\le N$ on the original sampled timelines. A timestamp
+map converts indices to video time. An empty set denotes no detected copy; multiple intervals
+can represent repeated copies.
 
-Specifically, $\Phi_{\rm enc}$ maps frames into $d$-dimensional embeddings
-$\mathbf{F}^A \in \mathbb{R}^{M \times d}$ and $\mathbf{F}^B \in \mathbb{R}^{N
-\times d}$, from which a learnable similarity head computes pairwise affinity
-scores $S_{i,j}$. Rather than evaluating dense $M \times N$ correspondence maps
-in full, FastVCL operates on a strided anchor grid ($s{=}4$, retaining original
-frame indices as coordinates) and splits localization into a fast primary
-detection branch and a selective refinement loop:
-\begin{enumerate}
-\setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}
-    \item A \textbf{primary tube detection branch} identifies high-precision
-    candidate segments $\mathcal{S}_{\rm main}$ over sparse anchors and refines
-    local correspondence bands.
-    \item A \textbf{selective track recovery branch} exposes weak candidate
-    trajectories via a relaxed shadow pass, filtering them through a geometric
-    gate and querying $\mathcal{M}_{\rm sel}$ to admit genuine subtle copies
-    $\mathcal{S}_{\rm rec}$.
-    \item A \textbf{selective boundary refinement module} generates five
-    discrete endpoint hypotheses per segment in $\mathcal{S}_{\rm main} \cup
-    \mathcal{S}_{\rm rec}$, updating boundaries via $\mathcal{M}_{\rm sel}$
-    under a fail-closed rule before merging duplicates via \textbf{dual-axis
-    deduplication}.
-\end{enumerate}
-
-\subsection{Sparse Similarity and Primary Tube Detection}
-\paragraph{Learnable Similarity and Anchor Proposals.}
-To avoid quadratic $O(MN)$ matching overhead, we first evaluate pairwise
-affinities $S_{i,j}$ on a stride-$s$ grid ($s{=}4$). For each query grid index
-$i$, we retrieve the mutual top-1 reference index $j$ satisfying $S_{i,j} \ge
-\tau_{\rm anc}$ ($\tau_{\rm anc}{=}0.70$). This produces a sparse correspondence
-set $\mathcal{A} = \{(i_k, j_k)\}$ requiring only $1/s^2$ of dense matrix
-evaluations. Over $\mathcal{A}$, a RANSAC trajectory detector fits linear
-temporal mappings $j \approx \sigma i + \beta$ with slope $\sigma \in [0.5,
-2.0]$ (covering $0.5\times$ to $2\times$ playback speed variations) and retains
-high-confidence tracks supported by at least $N_{\rm min}^{\rm strict}{=}5$
-inliers.
-
-\paragraph{Band-Limited Detection and Local Alignment.}
-Each detected trajectory spanning query frames $[a_0, a_1]$ instantiates a
-narrow 2D detection tube over $[a_0 - m, a_1 + m]$ ($m{=}2$) restricted to
-reference indices $|j - (\sigma i + \beta)| \le W_{\rm half}$ ($W_{\rm
-half}{=}12$). Within this local correspondence band, our detection head resolves
-fine-grained frame alignment via a continuity-preserving dynamic program:
+FastVCL has a policy $\pi_\theta$, a main localizer $\mathcal F_{\rm m}$, and an acceleration
+localizer $\mathcal F_{\rm a}$. For a compact preview $z(A,B)$, the policy produces
+$p_{\rm m}=\pi_\theta(z)\in[0,1]$. With validation-selected threshold $\eta$,
 \begin{equation}
-\begin{aligned}
-H(i,j) = r(i,j) + \max_{(\Delta i, \Delta j) \in \mathcal{D}}
-\bigl[&H(i - \Delta i, j - \Delta j) \\[-3pt]
-&- \lambda_g (\Delta i + \Delta j - 2)\bigr]
-\end{aligned}
-\label{eq:dp}
+r=\mathbb{1}[p_{\rm m}\ge\eta],\qquad
+\mathcal S=\begin{cases}
+\mathcal F_{\rm m}(A,B),&r=1,\\
+\mathcal F_{\rm a}(A,B),&r=0.
+\end{cases}
+\label{eq:route}
 \end{equation}
-when a valid predecessor exists in the original frame index space, and $H(i,j) =
-\max\{0, r(i,j)\}$ otherwise, where $r(i,j) = S_{i,j} - \tau_{\rm dp}$
-($\tau_{\rm dp}{=}0.60$), $\lambda_g{=}0.1$, and $\mathcal{D} =
-\{(1,1),(1,2),(2,1)\}$. Decoupling continuation from initialization is key to
-robust detection: a cell with a valid predecessor retains its accumulated score
-even if $H(i,j)$ dips below zero, preventing isolated degraded frames from
-fragmenting a continuous copy track, whereas unanchored cells are lower-bounded
-by zero so background noise cannot initiate spurious tubes.
+Only one localizer executes per pair at inference. A missing or non-finite policy score
+selects the main branch and is logged. A valid low score selects acceleration even if it
+subsequently finds no anchors; there is no unreported second main-branch pass. The following
+specifies the proposed network and training procedure, not an already trained implementation.
 
-\paragraph{Tube Extraction and Detection Score.}
-We extract up to four alignment paths per tube by iteratively tracing back from
-the highest-scoring cell and masking visited coordinates, allowing shifted or
-repeated alignments within the same band to be detected as separate candidates.
-Contiguous runs of strong correspondence ($S_{i,j} \ge 0.60$, bridging at most
-two weak query frames and trimming weak tails) that span at least three query
-frames, four reference frames, and two distinct track anchors form candidate
-segments $[a_s, a_e) \times [b_s, b_e)$. Each detected segment is assigned a
-detection confidence score combining path affinity and anchor density:
+\subsection{Front-end policy network}
+\label{sec:policy}
+\paragraph{A bounded preview.}
+The policy uniformly samples at most $K$ low-resolution frames per video. A lightweight
+encoder $\psi_\phi$ produces normalized descriptors $u_i,v_j\in\mathbb R^{d_p}$.
+Short videos are padded with validity masks. From the small map $C_{ij}=u_i^\top v_j$,
+we form
 \begin{equation}
-q = \alpha \cdot \overline{S}_{\rm path} + (1 - \alpha) \cdot \min\!\left(1,
-\frac{n_{\rm anchors}}{\max(1,\, L / \bar{\Delta})}\right),
-\label{eq:score}
+z=\bigl[\operatorname{pool}(U),\operatorname{pool}(V),
+\operatorname{vec}(\widetilde C),\ell_A,\ell_B\bigr],
+\label{eq:preview}
 \end{equation}
-where $\overline{S}_{\rm path} \in [0, 1]$ is the mean smoothed similarity along
-the alignment path, $n_{\rm anchors}$ is the number of supporting anchors, $L$
-is the query duration, $\bar{\Delta}{=}4$ is the nominal anchor spacing, and
-$\alpha{=}0.7$.
+where pooling is a masked temporal mean, $\widetilde C$ contains the masked correlation map
+and its validity mask, and $\ell_A=\log(1+M)$, $\ell_B=\log(1+N)$. An MLP followed by a
+sigmoid produces $p_{\rm m}$. The ordered correlation map retains coarse continuity and
+competing matches that pooled video descriptors alone would discard. Its size is bounded
+by $K^2$, independently of $MN$.
 
-\subsection{Selective Track Recovery}
-\paragraph{Shadow Proposal Generation and Geometric Gating.}
-While strict support filtering ($N_{\rm min}^{\rm strict}{=}5$) guarantees high
-precision in $\mathcal{S}_{\rm main}$, short or heavily edited copies often
-yield fewer surviving anchors. Rather than densifying the entire similarity
-matrix, we run a shadow RANSAC pass over the same sparse anchor pool
-$\mathcal{A}$ with the support requirement relaxed to $N_{\rm min}^{\rm
-shadow}{=}3$ (discarding tracks identical to $\mathcal{S}_{\rm main}$ and ranking
-the rest by independent support and span). Before invoking the selective model,
-every shadow track must pass a deterministic geometric gate: slope $\sigma \in
-[0.5, 2.0]$, at least three distinct coordinates per axis, monotonic reference
-ordering, per-anchor residual $\le 4$ frames, maximum consecutive query gap $\le
-24$ frames, and minimum span of $4 \times 8$ frames. Geometrically inconsistent
-proposals are rejected immediately with zero model overhead.
+The preview uses neither ground truth nor full-localizer outputs at inference. In particular,
+the main similarity map is not computed to decide whether to skip it. Preview decoding,
+including seeking into compressed videos, is part of routing overhead. The supplement gives
+an initial design for $K$, resolution, encoder, and MLP; these choices remain to be validated.
 
-\paragraph{Fail-Closed Selective Admission.}
-Surviving shadow trajectories are encoded into structured geometric-similarity
-descriptors---comprising trajectory slope, intercept, support counts, temporal
-spans, gap distribution, residual statistics, and anchor coordinates---and fed
-into our selective model $\mathcal{M}_{\rm sel}$. Operating as a binary
-verification head, $\mathcal{M}_{\rm sel}$ estimates the probability $p_{\rm
-copy} \in [0, 1]$ that the weak trajectory corresponds to a true copy. Following
-a strict fail-closed rule, a track is routed to the band-limited alignment head
-(Eq.~\ref{eq:dp}) to produce a recovered segment in $\mathcal{S}_{\rm rec}$ only
-if $p_{\rm copy} \ge \gamma_{\rm adm}$ ($\gamma_{\rm adm}{=}0.75$); otherwise,
-it is discarded.
-
-\subsection{Selective Discrete Boundary Refinement}
-\paragraph{Multi-Scale Boundary Hypotheses.}
-Sparse anchor sampling and local band smoothing can leave residual imprecision
-at segment start and end frames. For each candidate segment in $\mathcal{S}_{\rm
-main} \cup \mathcal{S}_{\rm rec}$, we project its endpoints through the fitted
-linear trajectory and densely re-evaluate local similarity profiles from
-$\mathbf{S}$ to construct five discrete boundary hypotheses: \texttt{C0} (keep
-initial detector endpoints), \texttt{C1} (extend left), \texttt{C2} (extend
-right), \texttt{C3} (extend both), and \texttt{C4} (shrink weak exterior edges).
-Extensions are evaluated across step sizes $\{4, 8, 16\}$ and are admissible
-only when the projected trajectory aligns within one frame of the original
-endpoint and every added frame satisfies $S_{i,j} \ge 0.60$, preventing
-extensions from bleeding into adjacent unrelated shots. Shrinking trims only
-weak boundary runs (up to 16 frames per side) while preserving all duration and
-anchor support constraints.
-
-\paragraph{Confidence-Aware Hypothesis Selection.}
-When multiple boundary hypotheses are admissible, we summarize each candidate's
-local evidence---mean and median similarity, supported frame ratio, gap and
-residual statistics, and interior-to-exterior boundary contrast---and query the
-selective model $\mathcal{M}_{\rm sel}$ via a five-way classification head.
-$\mathcal{M}_{\rm sel}$ predicts a probability distribution $\{P(\texttt{C}_k)\}_{k=0}^4$
-along with an overall decision confidence. The segment boundary is updated to
-$\texttt{C}_{k^*}$ ($k^* = \arg\max_k P(\texttt{C}_k)$) if and only if
-$\min(\text{conf}, P(\texttt{C}_{k^*})) \ge \gamma_{\rm bnd}$ ($\gamma_{\rm
-bnd}{=}0.65$); otherwise, the module falls back to \texttt{C0} while preserving
-the detection score $q$ (Eq.~\ref{eq:score}). Because $\mathcal{M}_{\rm sel}$
-selects strictly among pre-validated geometric candidates without regressing
-unconstrained coordinates, its worst-case fallback is guaranteed not to degrade
-the primary detector's localization boundary.
-
-\subsection{Dual-Axis Deduplication and Complexity}
-\paragraph{Dual-Axis Merging.}
-After boundary refinement, we merge $\mathcal{S}_{\rm main}$ and
-$\mathcal{S}_{\rm rec}$ to remove redundant detections. Standard 1D or
-product-IoU suppression erroneously collapses valid one-to-many copy patterns
-(e.g., a single query clip repeated at two distinct reference timestamps yields
-$\mathrm{IoU}_A{=}1$ but $\mathrm{IoU}_B{=}0$). We therefore define duplicate
-suppression strictly over the joint 2D temporal correspondence space:
+\paragraph{Learning branch preference.}
+Let $\ell_b(A,B)$ be branch $b$'s localization error against training annotations and let
+$c_b(A,B)$ be its profiled cost divided by a fixed positive reference cost,
+$b\in\{{\rm m},{\rm a}\}$. Both branches use the same error definition, penalizing missed
+copies, unmatched predictions, and interval misalignment (supplement).
+Offline evaluations define
 \begin{equation}
-\mathrm{dup}(u,v) = \bigl[\mathrm{IoU}_A(u,v) \ge \theta_{\rm iou}\bigr] \land
-\bigl[\mathrm{IoU}_B(u,v) \ge \theta_{\rm iou}\bigr],
-\label{eq:dedupe}
+y^*=\mathbb{1}\!\left[\ell_{\rm m}+\lambda c_{\rm m}
+<\ell_{\rm a}+\lambda c_{\rm a}\right],
+\label{eq:policy-target}
 \end{equation}
-with $\theta_{\rm iou}{=}0.80$. Whenever $\mathrm{dup}(u,v)$ holds, only the
-higher-scoring segment is retained. This dual-axis criterion is the minimal rule
-that collapses shifted duplicate tubes while preserving all one-to-many and
-many-to-one copy instances.
+where $\lambda\ge0$ controls the cost penalty and ties select acceleration. The policy and
+preview encoder minimize binary cross-entropy:
+\begin{equation}
+\mathcal L_{\rm policy}=-y^*\log p_{\rm m}-(1-y^*)\log(1-p_{\rm m}).
+\label{eq:policy-loss}
+\end{equation}
+Targets use frozen branch checkpoints on a held-out portion of the training split, avoiding
+in-sample estimates from the main branch's fitting data. Costs may depend on sequence length
+and are profiled on training data. Validation selects $\lambda$ and $\eta$ for the desired
+accuracy--latency operating point. The score predicts branch preference, not a calibrated
+probability that a pair contains a copy.
 
-\paragraph{Computational Efficiency and Structural Guarantees.}
-By construction, FastVCL satisfies three key structural properties: (i)
-\emph{coordinate safety}, as all endpoints originate from validated similarity
-paths rather than free-form regression; (ii) \emph{geometric pre-gating}, which
-eliminates implausible trajectories prior to selective inference; and (iii)
-\emph{fail-closed execution}, where low-confidence selective predictions revert
-seamlessly to the high-precision primary detector. Computationally, primary
-sparse matching requires $MN/s^2$ similarity evaluations and $O(L \cdot W)$
-band operations ($W{=}25$) per track, while selective recovery and boundary
-refinement introduce at most a small bounded number of lightweight queries (up
-to 8 track admissions and 8 boundary selections per pair). Consequently, FastVCL
-captures subtle and heavily edited copies with state-of-the-art accuracy while
-maintaining sub-quadratic inference speed.
+\subsection{High-capacity main branch}
+\label{sec:main-branch}
+\paragraph{Trainable representations and similarity.}
+The main encoder $\Phi_\omega$ maps frames to $F^A,F^B$. A trainable interaction module
+$G_\xi$ adds temporal context and exchanges information across sequences, producing
+$H^A,H^B$. Learned projections give normalized vectors $\widehat h_i^A,\widehat h_j^B$
+and the differentiable affinity
+\begin{equation}
+S^{\rm m}_{ij}=\operatorname{sigmoid}
+\bigl(\kappa(\widehat h_i^A)^\top\widehat h_j^B+b_0\bigr),
+\label{eq:main-sim}
+\end{equation}
+with learned positive scale $\kappa$ and bias $b_0$. The main branch adapts representations
+and correspondence scores to localization supervision and processes the full valid
+correspondence domain; padded cells are masked.
+
+\paragraph{2D detection of copied intervals.}
+A convolutional detector $D_\nu$ consumes $S^{\rm m}$ and predicts objectness and rectangles.
+Query time is the vertical axis and reference time the horizontal axis. A normalized box
+$(x_s,y_s,x_e,y_e)$ decodes to $[My_s,My_e)\times[Nx_s,Nx_e)$ before conversion to valid
+timeline endpoints. Multiple boxes represent multiple copies. A rectangle specifies the
+intervals without requiring a single affine frame correspondence throughout its interior.
+
+Training matches predicted boxes to annotated intervals and combines objectness loss,
+normalized endpoint regression, and generalized box IoU loss~\cite{rezatofighi2019giou}:
+\begin{equation}
+\mathcal L_{\rm main}=\mathcal L_{\rm obj}
++\lambda_{\rm box}\mathcal L_1+\lambda_{\rm iou}\mathcal L_{\rm GIoU}.
+\label{eq:main-loss}
+\end{equation}
+Regression applies to matched boxes; unmatched detector locations receive background
+objectness targets. Gradients pass through the detector, similarity module, interaction module,
+and frame encoder, making this branch end-to-end trainable. Segment labels supervise boxes,
+not dense frame correspondence. Cached-feature experiments must be reported separately
+because they cannot train the image encoder end to end.
+
+\subsection{Lightweight acceleration branch}
+\label{sec:acceleration}
+\paragraph{Direct similarity and anchors.}
+A fixed pretrained encoder $\Phi_{\rm a}$, or its cached features, provides normalized
+descriptors without the main interaction module. Their direct cosine similarity is
+$S^{\rm a}_{ij}=(f_i^A)^\top f_j^B$. For stride $s$, grids
+$I_s=\{0,s,2s,\ldots\}\cap[0,M)$ and $J_s$ define the evaluated frame pairs. Anchors are
+mutual top-1 matches exceeding $\tau_{\rm anc}$:
+\begin{equation}
+\begin{split}
+\mathcal A=\{(i,j):\;&j=\argmax_{v\in J_s}S^{\rm a}_{iv},\quad
+i=\argmax_{u\in I_s}S^{\rm a}_{uj},\\
+&S^{\rm a}_{ij}\ge\tau_{\rm anc}\}.
+\end{split}
+\label{eq:anchors}
+\end{equation}
+Ties use the smaller timeline index. Tiled computation maintains row and column maxima
+without storing the complete map. Grid subsampling reduces similarity evaluations; it does
+not retroactively reduce feature-extraction cost for already cached descriptors.
+
+\paragraph{RANSAC temporal alignment.}
+RANSAC fits $j=\sigma i+\beta$. A track needs at least $n_{\min}$ inliers, slope in
+$[\sigma_{\min},\sigma_{\max}]$, and residuals at most $\epsilon$. Accepted inliers are
+removed before searching for another track. Within a track, anchors are sorted by query time
+and split at gaps above $g_{\max}$ or violations of reference ordering. Supported runs yield
+intervals from their first and last matched indices, with an exclusive upper endpoint one
+sample beyond the last match.
+
+A bounded endpoint check searches at most $s-1$ unsampled query positions beyond each end,
+following the fitted line within residual tolerance. Extension stops when no valid reference
+match reaches $\tau_{\rm anc}$ or an axis limit is reached. Reference endpoints are updated
+from the accepted matches, whose mean cosine supplies the segment score. This local check
+reduces sampling imprecision but cannot guarantee exact endpoints. No 2D detector, learned
+similarity head, or dynamic program runs in this branch.
+
+Segments must meet minimum duration and support constraints on both timelines. Duplicate
+suppression retains the higher-score segment only when query IoU and reference IoU both
+exceed $\tau_{\rm dup}$. The same interval-validity and duplicate rules apply to main outputs.
+Disjoint reference occurrences of the same query interval can therefore survive, subject to
+the output cap. Predictions come from the selected branch only; scores are not fused across
+pathways.
+
+\subsection{Training schedule and inference cost}
+\label{sec:cost}
+First, optimize the main localizer and fix the acceleration configuration. Second, freeze
+both branches, generate preference targets on held-out training pairs, and train the policy.
+Third, select the policy and output-score thresholds on validation data, then freeze the
+system for testing. Both branches run offline to generate training targets, but only the
+selected branch runs at inference. This schedule requires no gradient through RANSAC or
+the hard routing action.
+
+For pair $x$, let $T_{\rm p}$ include preview construction and policy inference,
+$T_{\rm m},T_{\rm a}$ include branch features and localization, and $T_{\rm out}$ include
+final interval conversion and serialization:
+\begin{equation}
+T(x)=T_{\rm p}(x)+r(x)T_{\rm m}(x)
++(1-r(x))T_{\rm a}(x)+T_{\rm out}(x).
+\label{eq:cost}
+\end{equation}
+With main utilization $\rho=\Pr(r=1)$, expected branch cost is
+$\rho\,\mathbb E[T_{\rm m}\mid r=1]+(1-\rho)\mathbb E[T_{\rm a}\mid r=0]$.
+Conditional means matter because routing can depend on length and difficulty.
+Savings over always-main require
+\begin{equation}
+\mathbb E[(1-r)(T_{\rm m}-T_{\rm a})]>\mathbb E[T_{\rm p}]
+\label{eq:break-even}
+\end{equation}
+under identical input/output accounting. Accurate routing alone does not guarantee speedup.
+
+The preview map has at most $K^2$ cells; the acceleration grid has
+$\lceil M/s\rceil\lceil N/s\rceil$ cells. Main matching remains dense. For fixed $s$,
+acceleration matching is still $O(MN)$: FastVCL targets lower expected runtime through
+conditional computation and smaller constants, not a sub-quadratic worst-case bound.
+End-to-end speedup must include the actual branch encoders and decoding.

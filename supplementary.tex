@@ -1,226 +1,223 @@
 % Supplementary material -- separate entry point.
-% Build: tectonic supplementary.tex
 \documentclass[10pt,twocolumn,letterpaper]{article}
-
 \usepackage[review]{cvpr}
 \input{preamble}
-
 \definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
 \usepackage[breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
-
 \def\confName{CVPR}
 \def\confYear{2027}
-
-\title{Supplementary Material for FastVCL: Recovering Missed Copies and Refining Boundaries with Structured Decisions}
+\title{Supplementary Material for FastVCL: Policy-Guided Dual-Pathway Network for Fast Video Copy Localization}
 \author{Anonymous submission}
-
 \begin{document}
 \maketitle
 
-\section{Scope and evidence grades}
-\label{sec:s-scope}
+\section{Scope and implementation status}
+This supplement details the policy-guided architecture, training targets, measurement protocol,
+and historical evidence. The main paper's title and abstract describe the intended system.
+No trained checkpoint or benchmark run of that complete system is present in the available
+records. The design choices below are a proposed reference specification, not a source-verified
+description of an implemented dual-pathway network.
 
-This supplement records what was verified, what is proposed, and what is missing. It is not an
-extra results section. We use four grades. \textsc{source-verified} means checked against the
-frozen code or a stored run record; \textsc{proposed} means specified but not executed;
-\textsc{implemented-unvalidated} means present in the reference implementation but not shown to
-help; \textsc{missing} means no evidence exists. No benchmark result for the F0--F3 ladder is
-reported in this draft. The 25 historical rows in Section~4.4 of the main paper (Tables~4 and~5) are
-copied from the frozen workbook; they were not rerun, and none of them uses recovery, the
-decision interface, boundary choice or dual-axis dedupe.
+The earlier fixed-feature prototype and its workbook support historical diagnostics only.
+Its post-anchor verification and alignment stages are not the front-end policy and trainable
+detector proposed here. The present acceleration branch uses direct similarity, anchors,
+RANSAC, and bounded endpoint checks; the historical DP configurations are not equivalent.
+These distinctions prevent earlier measurements from being assigned to the new method.
 
-\section{Reference configuration}
+\section{Reference design and configuration}
 \label{sec:s-config}
-
-Table~\ref{tab:s-hyper} lists every parameter of the frozen branch and of the two decision
-stages. Values are development operating points, not fitted constants; the threshold sweep in
-C6 varies only admission and choice thresholds. Lengths and gaps are in original frame indices
-unless stated otherwise.
+Table~\ref{tab:s-config} provides initial settings for implementation. Preview settings are
+design choices; geometric settings are starting points informed by the older prototype.
+None is an empirically selected optimum for the proposed architecture. Main encoder,
+interaction module, and detector capacities must be frozen before evaluating the system;
+their exact backbones and training hyperparameters remain unresolved.
 
 \begin{table*}[t]
-\centering
-\caption{Reference configuration of the frozen pipeline (feature-index units).}
-\label{tab:s-hyper}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}p{0.15\linewidth}p{0.78\linewidth}@{}}
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Proposed reference configuration. These are initial design settings, not a trained
+or evaluated configuration. Timeline units refer to sampled frames, not raw-video frames.}
+\label{tab:s-config}
+\begin{tabular}{@{}p{0.21\linewidth}p{0.73\linewidth}@{}}
 \toprule
-Group & Value \\
+Component & Specification / status\\
 \midrule
-Feature & frozen ISC, $d{=}256$; stride 4; mutual top-1; cosine $\ge 0.70$; no multi-scale,
-no independent phases; anchor cap 20{,}000 \\
-RANSAC & residual 4.0; inliers $\ge 5$; tracks $\le 8$; slope $\in[0.5,2]$;
-2{,}000 iterations; confidence 0.99; unweighted least squares, refit on inliers \\
-Band & half width 12; extension 16; boundary margin 2; query frame gap $\le 24$;
-query span $\ge 4$; reference span $\ge 8$ \\
-Alignment & local DP steps $(1,1),(1,2),(2,1)$ in original indices; reward offset 0.6;
-gap penalty 0.1; smoothing window 3; $\le 4$ paths; $\le 64$ segments per pair \\
-Extraction & strong row: smoothed cosine $\ge 0.6$; at most 2 consecutive weak frames;
-min 3 query and 4 reference frames; $\ge 2$ anchors \\
-Dedupe & duplicate iff $\mathrm{IoU}_A\ge0.8$ \emph{and} $\mathrm{IoU}_B\ge0.8$;
-axis statistic min; higher score kept; merge-overlap off \\
-Recovery & same anchors; inliers $\ge 3$; tracks $\le 12$; $\le 8$ candidates;
-residual 4.0; span 4/8; gap 24; query support $\ge 3$ \\
-Admission & Noul; $p_{\rm copy}\ge0.75$; visual evidence null; at most 24 calls;
-timeout 15\,s; one retry \\
-Boundary & at most 8 segments per pair; deltas $\{4,8,16\}$; local cosine $\ge 0.6$;
-shrink trim $\le 16$ per side; $\le 2$ weak frames; Choice $\ge 0.65$ \\
+Policy preview & At most $K=16$ uniform frames/video, resized to $112\times112$; explicit padding masks\\
+Preview encoder & Three $3\times3$ stride-2 convolution layers, channels 32/64/128, ReLU,
+spatial mean pooling, descriptor normalization; proposed, untrained\\
+Policy head & Temporal means, ordered $16\times16$ correlations and mask, two log lengths;
+770-dimensional input; MLP $770\to128\to1$, ReLU then sigmoid\\
+Main branch & Trainable image encoder, temporal/cross-video feature interaction, learned
+similarity, convolutional 2D detector; exact capacity and initialization pending\\
+Main supervision & Objectness plus matched normalized endpoint and generalized IoU losses;
+loss weights, optimizer, schedule, and seeds to be frozen in the run manifest\\
+Acceleration features & Fixed pretrained frame descriptors; initial cached-feature study:
+ISC, $d=256$; encoder identity/cost required for raw-video evaluation\\
+Anchor matching & Initial stride 4; mutual top-1; cosine $\ge0.70$; deterministic tie breaking\\
+RANSAC & Initial residual $\le4$, support $\ge5$, slope $[0.5,2]$, at most 8 tracks;
+2,000 iterations; fixed seed; refit using inliers\\
+Track conversion & Split at query gaps $>24$ or non-monotone reference order;
+minimum query/reference duration 3/4; at least 2 anchors per segment\\
+Endpoint check & At most $s-1$ query samples per side; reference search within residual
+tolerance; cosine threshold equal to the anchor threshold\\
+Post-processing & Initial duplicate threshold 0.8 on both timelines; higher score retained;
+at most 64 segments/pair; thresholds selected on validation\\
+Routing & Cost weight $\lambda$ and main threshold $\eta$ selected on validation;
+missing/non-finite policy output selects main and is logged\\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\section{Strict sparse-to-tube branch}
-\label{sec:s-strict}
+\paragraph{Preview construction.}
+For length $L$, sample $k=\min(K,L)$ indices uniformly over $[0,L-1]$, retaining the original
+order and including both endpoints when $k>1$. Invalid padded positions contribute neither
+to means nor to correlations. Their correlations are zero-filled, and their masks remain
+visible to the MLP. The input dimension is $2d_p+2K^2+2=770$ for the initial design.
+The policy may miss a short copy between sampled positions, so $K$ is a quality--cost
+parameter to ablate, not a coverage guarantee. Video decoding and seeking cost are measured.
 
-\paragraph{Anchor grid.} Frames are embedded on a stride-$s{=}4$ grid. For a query grid point
-$i$ we keep its mutual top-1 reference point $j$ when $\cos(\mathbf f^A_i,\mathbf f^B_j)\ge0.70$.
-No second scale or phase is used, so the anchor set is exactly the one the frozen main branch
-produces.
+\paragraph{Main-branch supervision.}
+Each interval annotation maps to a normalized rectangle
+$(b_s/N,a_s/M,b_e/N,a_e/M)$. A reproducible reference assignment is one-to-one matching of
+predicted and annotated boxes using a fixed weighted sum of normalized endpoint distance
+and generalized IoU cost. Objectness targets are one for matched predictions and zero for
+unmatched predictions; box losses apply only to matches. Negative pairs train background
+objectness with zero box loss. Assignment weights, detector output resolution, box
+parameterization, and loss normalization belong in the eventual implementation manifest.
+This assignment is distinct from the official benchmark evaluator.
 
-\paragraph{Tracks.} A RANSAC line $j\approx\sigma i+\beta$ is accepted with at least five
-inliers, slope in $[0.5,2]$, and residual at most four frames per anchor. Up to eight tracks are
-kept. The slope range covers half-speed to double-speed copies; it is a hard validity range,
-not a tuned prior.
-
-\paragraph{Band.} For a track spanning query frames $[a_0,a_1]$, the tube covers
-$[a_0-2,a_1+2]$, and for each query frame $i$ the columns $j$ with
-$|j-(\sigma i+\beta)|\le12$. A cell is usable only when $j\in[0,N)$ and the frame pair has a
-computed similarity. Cells outside the band are never scored.
-
-\paragraph{Local DP.} Let $r(i,j)=\cos(\mathbf f^A_i,\mathbf f^B_j)-0.6$ and
-$\mathcal D=\{(1,1),(1,2),(2,1)\}$. For a legal predecessor
-$(i-\Delta i,j-\Delta j)$ with $\Delta i,\Delta j$ measured in original frames,
+\section{Cost-aware policy supervision}
+\label{sec:s-targets}
+Let $P_b$ be branch $b$'s predictions after its frozen output threshold, and $G$ the annotated
+interval pairs. Define interval agreement
 \begin{equation}
-\begin{aligned}
-H(i,j)={}&r(i,j)+\max_{(\Delta i,\Delta j)\in\mathcal D}\\
-&\bigl[H(i-\Delta i,j-\Delta j)-0.1(\Delta i+\Delta j-2)\bigr],
-\end{aligned}
-\label{eq:s-dp}
+u(p,g)=\min\{\mathrm{IoU}_A(p,g),\mathrm{IoU}_B(p,g)\}.
 \end{equation}
-and $H(i,j)=\max\{0,r(i,j)\}$ when no predecessor exists; illegal cells have $H{=}0$. The
-asymmetry is intentional: a legal predecessor keeps its continuation even when the accumulated
-value is negative, so a single weak frame does not restart a copy, while an isolated cell must
-start from non-negative evidence. Legality is checked on the actual index difference, not on
-the band's column offset, because the band samples the original axes irregularly.
+Construct a maximum-cardinality one-to-one matching $\mathcal M_b$ using edges with
+$u\ge0.5$, breaking cardinality ties by maximum total $u$, then stable indices. Let
+$U_P$ and $U_G$ be the unmatched prediction and annotation counts. The reference training
+error is
+\begin{equation}
+\ell_b=
+\frac{U_P+U_G+\sum_{(p,g)\in\mathcal M_b}(1-u(p,g))}
+{\max(1,|P_b|+|G|)}.
+\label{eq:s-error}
+\end{equation}
+This quantity lies in $[0,1]$, equals zero for empty predictions on a negative pair, and
+equals one for missed positives with no predictions or nonempty predictions on a negative
+pair. It is a supervision surrogate, not the official benchmark metric. Its normalization
+can affect preferences on multi-copy pairs, so native benchmark metrics remain decisive.
 
-\paragraph{Extraction.} The argmax cell is traced through the predecessor table stored during
-the forward pass, so the traceback is an exact replay. After a path is extracted its cells are
-blocked and the program is solved again, up to four paths per tube. A strong row has smoothed
-cosine at least 0.6; strong runs may bridge at most two weak query frames. Leading and trailing
-weak frames are trimmed, endpoints come from actual matched nodes, and a segment must span at
-least three query and four reference frames with at least two anchors. The score of
-Eq.~(2) in the main paper depends only on the path and the track and is preserved by every
-later stage.
+Both branch costs are divided by the same positive training-set reference cost, such as
+mean always-main latency. For each held-out training pair, choose main iff
+$\ell_{\rm m}+\lambda c_{\rm m}<\ell_{\rm a}+\lambda c_{\rm a}$; choose acceleration on a tie.
+If main is both cheaper and more accurate, it is preferred for every nonnegative $\lambda$.
+When main is more accurate but more expensive, it is preferred only when its error reduction
+exceeds the weighted extra cost. This target does not assume main wins on every hard pair.
 
-\section{Shadow recovery}
-\label{sec:s-recovery}
+\paragraph{Split discipline.}
+Partition the training split into branch-fitting and policy-supervision subsets with no
+video-identity overlap. Fit the main branch only on the former. On the latter, record both
+branches' predictions, errors, and costs before fitting the preview encoder and policy.
+Validation selects the operating point; the test split contributes no labels or profiling
+targets to learning. If data are insufficient for a disjoint holdout, use cross-fitting with
+explicit folds and never silently substitute in-sample branch errors.
 
-\paragraph{What changes.} Recovery reuses the strict anchor set verbatim. RANSAC is rerun with
-the inlier requirement lowered from five to three and the track cap raised from eight to twelve;
-cosine threshold, stride, mutual top-1 rule and slope range are unchanged. Tracks whose anchor
-set equals a strict track's are discarded. Survivors are ranked by independent support
-($\min$ of distinct query and reference coordinates), confidence, span and coordinates; at most
-eight continue.
+\paragraph{Inference contract.}
+The deployed predictor has no access to $G$, $\ell_{\rm m}$, $\ell_{\rm a}$, or outputs from
+the unselected branch. Offline oracle choices are used only for supervision or diagnostic
+evaluation. A thresholded policy makes one routing decision, and the selected branch makes
+all interval predictions. If its execution fails, record an error. An empty set from a
+successful acceleration run is a valid prediction, even when it is wrong.
 
-\paragraph{Hard gate.} Table~\ref{tab:s-gate} lists the checks. Every failure is deterministic,
-recorded with a reason, and never reaches the model. The gate runs before the admission
-question, so a malformed track cannot be rescued by a high probability.
+\section{Temporal geometry and output semantics}
+All anchor coordinates remain in the original sampled-frame index system after grid
+subsampling. RANSAC slopes and residuals are measured in that system. For each retained
+track, least-squares refitting uses inlier anchors; gap splitting and monotonicity checks
+produce supported runs. Multiple accepted tracks can represent multiple copied occurrences.
 
-\begin{table}[h]
-\centering
-\caption{Hard gate for a recovery candidate.}
-\label{tab:s-gate}
-\footnotesize
-\begin{tabular}{@{}l@{}}
-\toprule
-Check \\
-\midrule
-finite slope and intercept; slope $\in[0.5,2]$ \\
-all anchors inside $[0,M)\times[0,N)$ \\
-$\ge 3$ distinct query and $\ge 3$ distinct reference coordinates \\
-reference coordinates non-decreasing with query order \\
-per-anchor slope residual $\le 4$ frames \\
-consecutive query gap $\le 24$ \\
-query span $\ge 4$; reference span $\ge 8$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+For an endpoint check, enumerate successive query positions outside the run, stopping after
+$s-1$ positions. At each position, search valid reference indices within the residual
+tolerance of the fitted line and retain the highest-cosine match if it reaches the threshold
+and preserves order. Ties use the smaller reference index. Stop that side at the first
+failure. An interval's exclusive endpoint is one sample beyond its last accepted match.
+The score is the mean cosine of the run's inlier anchors and accepted endpoint matches.
+This is local geometric refinement, not learned boundary selection.
 
-\paragraph{Admission.} The Noul state contains pair identifiers, slope, intercept, support
-counts, spans, gap statistics, residual statistics and the anchor list; visual evidence is
-explicitly null. The model returns $p_{\rm copy}$, and the track is sent to the tube only when
-$p_{\rm copy}\ge0.75$. A missing, malformed or timed-out answer drops the candidate. A recovered
-segment differs from a strict one only in its support and its provenance tag; the tube is the
-same frozen aligner. Recovery never deletes a strict segment by itself: both enter the same
-merge, which happens after boundary choice.
+Detector outputs and geometric outputs share the same interval representation. Round lower
+endpoints down and upper endpoints up, clip to valid axes, and reject degenerate intervals.
+For a supplied sampling map $t_0,\ldots,t_L$, with $t_L$ the terminal video boundary,
+$[i_s,i_e)$ maps to $[t_{i_s},t_{i_e})$. Report seconds only when this map is verified.
 
-\section{Boundary choice}
-\label{sec:s-boundary}
+Sort candidates by score, breaking ties lexicographically by endpoints, and suppress a
+lower-score candidate iff both axis IoUs with a retained candidate reach $\tau_{\rm dup}$.
+Apply the output cap afterwards. This preserves disjoint reference occurrences, but the
+anchor rule, track cap, and segment cap can still limit multiplicity. No recall guarantee
+follows from the duplicate rule.
 
-\paragraph{Candidates.} Boundary choice is applied to each segment produced by a track, in
-track order, at most eight segments per pair, \emph{before} merging. For a segment with query
-interval $[s,e)$ and fitted map $f_r$, five candidates are constructed:
-\texttt{C0} keep; \texttt{C1} extend left; \texttt{C2} extend right; \texttt{C3} extend both;
-\texttt{C4} shrink to the strongly matched interior. An extension of length
-$\delta\in\{4,8,16\}$ (smallest verifying value) is admitted only when the mapped endpoints
-stay within one frame of the original reference endpoints and every added query frame has a
-finite local cosine of at least 0.6. Shrink removes only weak edge runs, at most 16 frames per
-side, and never an interior prefix. Every non-\texttt{C0} candidate must satisfy the duration
-and support constraints and contain at most two consecutive weak query frames.
+\section{Measurement and ablation details}
+\paragraph{Full cost.}
+For each pair log preview decoding, preview encoding/policy, selected-branch decoding and
+features, similarity construction, detection or RANSAC, post-processing, and serialization.
+Do not count reused frames twice; describe the cache and sharing policy. Report raw-video
+and cached-feature measurements separately. If only cached ISC features are available,
+neither end-to-end training of the image encoder nor raw-video speedup has been evaluated.
 
-\paragraph{Evidence and question.} Each candidate carries mean and median cosine, supported
-fraction, matched query/reference counts, independent support, gap statistics, residual and
-inside/outside contrast. The Choice state lists the five descriptions with this evidence; the
-model returns one identifier and a confidence. The choice is accepted only when
-$\min(\text{confidence},p_{\text{chosen}})\ge0.65$; otherwise the original boundary is kept and
-the record is marked as a fallback. The model never writes endpoints and the segment score is
-unchanged.
+The expected cost uses branch-conditional means because routing and runtime can be correlated.
+The net saving over always-main is
+$\mathbb E[(1-r)(T_{\rm m}-T_{\rm a})]-\mathbb E[T_{\rm p}]$ under equal output accounting.
+At $\rho=1$, routing adds overhead to always-main; at $\rho=0$, it adds overhead to
+always-acceleration. A successful policy must earn that overhead through better allocation.
 
-\paragraph{Ordering and budget.} Because each track is refined independently, boundary choice
-runs before dual-axis dedupe. Two segments that dedupe later collapses can therefore both be
-judged, and a call can be spent on a duplicate. Dedupe keeps the higher-score survivor, so the
-loss is bounded by score ties; we report the number of segments judged before dedupe and the
-number of calls, rather than assuming a duplicate-free budget.
+\paragraph{Routing controls.}
+For matched-utilization controls, fix the target usage on validation and report achieved test
+usage rather than retuning thresholds on test labels. The deterministic rule averages
+the difference between the largest and second-largest valid similarities per preview row.
+If fewer than two valid reference positions exist, route to main. Repeat random routing
+over documented seeds and report variation. Include preview cost in policy-isolation
+comparisons, and additionally report the random baseline without preview as a deployment
+alternative. The oracle requires both outputs and ground truth and has no deployment latency.
 
-\section{Dual-axis deduplication}
-\label{sec:s-dedupe}
+\paragraph{Regret and failure reporting.}
+For each pair, localization regret is
+$\ell_{r(x)}-\min(\ell_{\rm m},\ell_{\rm a})\ge0$, evaluated offline. Cost-aware regret uses
+the corresponding error-plus-cost objective and its oracle. Report these separately:
+a cost-efficient action may intentionally have positive localization regret. Report
+under-routing (acceleration selected when main has lower error), over-routing, and false
+alarms with denominators. Annotation-derived strata such as copy duration are for analysis
+only, not policy inputs.
 
-For segments $u,v$ let $\mathrm{IoU}_A$ and $\mathrm{IoU}_B$ be the intersection-over-union of
-their query and reference intervals. We call them duplicates iff
-$\mathrm{IoU}_A\ge0.8$ and $\mathrm{IoU}_B\ge0.8$. The conjunction is what preserves
-multiplicity: a query interval mapped to two different reference locations overlaps perfectly
-on $A$ but not on $B$, so both survive; the symmetric case survives on the other axis. Using
-the product or the query-only overlap would collapse such pairs. When two segments do
-duplicate, the higher-score one is kept and its provenance is recorded. The rule is applied
-once to the union of main and recovered segments; the per-pair cap of 64 is applied afterwards.
+\paragraph{Reproducibility manifest.}
+Every measured row requires code and checkpoint hashes, split and video IDs, sampling maps,
+feature encoder identity, training/validation settings, routing threshold, score thresholds,
+all geometric parameters, evaluator version/options, hardware/software versions, timing
+scope, random seeds, predictions, and complete run logs. Errors and exclusions must be
+reported with their counts. No pending cell can be filled from a partial or incompatible run.
 
 \section{Historical diagnostics}
 \label{sec:s-hist}
+Table~\ref{tab:s-hist} preserves the 25 workbook rows. The CSV and workbook audit in
+\texttt{evidence/round7\_no\_jev\_experiments.csv} and
+\texttt{evidence/round7\_workbook\_audit.json} retain source cells and audit flags.
+These rows report the VCSL test split and fixed ISC features, but individual predictions,
+configuration identities, and evaluator logs have not all been verified. The CPU/GPU
+label conflict in row 12, ambiguous alignment descriptions in rows 33--35, and timing
+differences among otherwise similarly described rows prevent stronger causal conclusions.
 
-The frozen workbook contains 25 no-JEV runs recorded on the VCSL test split in earlier rounds;
-Table~\ref{tab:s-hist} transcribes them without rerunning any row. The internal rows share one
-feature set and one evaluator. Rows 12--27 change one factor of the strict branch at a time;
-rows 29--38 combine a looser anchor set with alignment and aggregation choices, so they are a
-configuration study, not a set of single-factor causal claims. Recovery, Noul admission,
-dual-axis dedupe and boundary choice are inactive in every row, and no decision call was made.
-The F1 column is the value recorded in the workbook, not a recomputation from the rounded
-precision and recall.
-
-Three patterns are stable. First, the strict operating point (row 13) is precision-heavy and
-recall-poor ($P{=}93.94$, $R{=}14.36$). Second, candidate supply is the main recall lever:
-stride 2 and 1 (rows 21--22) raise recall to $25.96$ and $31.15$ while precision falls only to
-$89.04$ and $86.33$; lowering the RANSAC support (rows 23--24) gives $21.97$ and $24.07$ at
-almost unchanged precision. Third, the strongest no-JEV configuration is per-frame argmax with a
-loose anchor set (row 33: $P{=}63.58$, $R{=}56.23$), which is a recall-oriented baseline at a
-much lower precision; no historical row is promoted to an F-row.
+The F1 column is copied from the workbook rather than recomputed from rounded precision and
+recall. Rows labeled as one-setting changes are historical configuration descriptions;
+they are not proof of a controlled rerun. No historical row contains the current front-end
+policy or trainable main detector, and no elapsed workbook duration is used as current
+per-pair latency.
 
 \begin{table*}[t]
 \centering
-\scriptsize
+\small
 \setlength{\tabcolsep}{4pt}
-\caption{Full transcription of the 25 historical no-JEV runs (VCSL test split). The Excel row
-number is kept for provenance; values are percentages. Rows 12--27 are single-factor variants of
-row 13; rows 29--38 combine factors. No row was rerun for this draft.}
+\caption{Historical workbook transcription (25 runs, VCSL test split). Values are reported
+percentages, not new measurements. Row IDs preserve source provenance. Rows 12--27 are
+recorded as single-setting variants; later rows combine changes. Full prediction/configuration
+reconciliation remains outstanding. None evaluates the current dual-pathway network.}
 \label{tab:s-hist}
 \begin{tabular}{@{}r>{\raggedright\arraybackslash}p{8.2cm}rrr@{}}
 \toprule
@@ -255,86 +252,10 @@ row & configuration & $P$ & $R$ & F1 \\
 \end{tabular}
 \end{table*}
 
-\section{Planned ladder and controls}
-\label{sec:s-ladder}
-
-Table~\ref{tab:s-ladder} defines the systems. The ladder is a reporting template; every cell is
-pending and must be filled only from a complete run under the protocol of Section~4 of the main
-paper. We deliberately do not copy strict-branch numbers into F1--F3 cells, because merge,
-dedupe and boundary change both precision and recall.
-
-\begin{table}[h]
-\centering
-\caption{Planned systems and controls.}
-\label{tab:s-ladder}
-\footnotesize
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{@{}p{0.24\linewidth}p{0.68\linewidth}@{}}
-\toprule
-System & Components \\
-\midrule
-F0 strict & frozen branch, both stages disabled \\
-F1 boundary & F0 + dual-axis dedupe + C0--C4 choice \\
-F2 recovery & F0 + shadow RANSAC + gate + Noul, original boundaries \\
-F2a gate only & F2 with every gate-passing track admitted, no model \\
-F3 full & F1 + F2 \\
-C1 rule & deterministic admit if support $\ge3$ and residual $\le2$ \\
-C2 random & random identifiers with the same call budget \\
-C3 loose sparse & independent loose sparse branch (needs branch + frame map) \\
-C4 doubled budget & twice the per-pair call budget \\
-C5 boundary only & F0 + boundary choice, recovery disabled \\
-C6 threshold sweep & admission 0.60--0.85, choice 0.50--0.80 \\
-C7 visual evidence & defined but not executed \\
-C8 stress & prefix/suffix stress built by truncating query or copy \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Falsifiers.} RQ1 requires F2 to improve recall by at least 0.5 points over F0 while
-raising the false-alarm rate by at most 0.10 points, and to beat C1 on the same candidate pool.
-RQ2 requires F1 to improve exact boundary accuracy by at least 2 points and reduce mean endpoint
-error by at least 10\% over F0, while retaining at least 98\% of strict segments. RQ3 requires
-two-copy coverage of at least 95\% with at most 0.2 extra copies per pair, and a measured cost
-below strict coarse matching. A failed falsifier is reported as a failure.
-
-\section{Evaluation protocol}
-\label{sec:s-eval}
-
-\paragraph{Data.} VCSL validation, 41{,}798 pairs, of which 27{,}315 are negative. Metrics are
-computed at tIoU 0.5; the historical diagnostics span the same evaluator. All JEV rows use batch
-size one so that a call is a per-pair decision, not a batched score.
-
-\paragraph{Metrics.} Pair precision $B$, pair recall $R$ and $F1$; boundary exact, $\pm1$,
-$\pm2$, $\pm4$ and mean endpoint error; multi-copy coverage, extra copies per pair and strict
-retention; decision calls per pair, tokens and wall-clock latency, with feature time and memory
-reported separately. A $B$--$R$ pair is always reported with its protocol, because the same
-system can look strong under one evaluator and weak under another.
-
-\paragraph{Cost.} The strict branch performs $MN/s^2$ coarse comparisons and, per track,
-$O(L\cdot W)$ band cells with $W{=}25$. Recovery adds one RANSAC pass over the same anchors and
-at most eight binary questions; boundary choice adds at most eight five-way questions. With
-$B{=}1$ a pair incurs at most 16 calls. Token and latency accounting includes retries and
-failed calls.
-
-\section{Reproducibility and limitations}
-\label{sec:s-repro}
-
-\paragraph{Reproducibility.} The reference implementation is the public FastVCL code base at
-the frozen commit used for the configuration table; thresholds are read from the configuration
-file, not hard-coded in the text. The main paper and this supplement are built from the same
-repository. The historical rows are copied from the stored workbook without editing; the new
-ladder is specified in enough detail to be rerun, but it has not been executed.
-
-\paragraph{Limitations.} (i)~No benchmark evidence for the new stages exists in this draft; the
-ladder is a protocol, not a result. (ii)~Recovery cannot exceed the strict anchor pool, so a
-copy absent from that pool is unreachable. (iii)~Boundary choice runs before dedupe, so part of
-the budget can be spent on duplicates; the alternative order is a code change we did not make.
-(iv)~Visual evidence is defined but not executed, so nothing here tests whether frames would
-help. (v)~The historical diagnostics are single-workbook numbers and are not independently
-reproduced.
-
-\paragraph{Ethics.} The method localizes copies of user videos; it does not identify people or
-retrieve originals beyond the provided reference. The interface sees numeric evidence, not
-frames, in the version studied. No new dataset was collected.
-
+\section{Outstanding evidence}
+The proposed policy needs training and held-out routing evaluation; the main branch needs
+an implemented trainable encoder, similarity module, detector, and checkpoint. Both VCSL
+and VCDB comparisons need complete controlled runs, verified timestamp maps, and matching
+timing scopes. The historical local prototype cannot supply these results. The abstract's
+accuracy and speedup statements remain unverified until this evidence is available.
 \end{document}

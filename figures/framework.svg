@@ -1,65 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="930" viewBox="0 0 1800 930">
-<defs><marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/></marker></defs>
-<rect width="1800" height="930" fill="white"/>
-<text x="60" y="44" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="28" font-weight="bold" fill="#1a1a1a" text-anchor="start">(a) Strict branch</text>
-<text x="60" y="474" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="28" font-weight="bold" fill="#1a1a1a" text-anchor="start">(b) Shadow recovery</text>
-<text x="1390" y="44" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="28" font-weight="bold" fill="#1a1a1a" text-anchor="start">(c) Boundary and merge</text>
-<rect x="60" y="78" width="1230" height="78" rx="2" ry="2" fill="#eef2f7" stroke="#3d5a73" stroke-width="2"/>
-<text x="675.0" y="109.8" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">frozen ISC features (d = 256); stride-4</text>
-<text x="675.0" y="142.2" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">mutual top-1 anchors, cos ≥ 0.70</text>
-<rect x="60" y="172" width="1230" height="58" rx="2" ry="2" fill="#eef2f7" stroke="#3d5a73" stroke-width="2"/>
-<text x="675.0" y="210.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">RANSAC tracks: ≥ 5 inliers, slope ∈ [0.5, 2]</text>
-<rect x="60" y="244" width="1230" height="58" rx="2" ry="2" fill="#eef2f7" stroke="#3d5a73" stroke-width="2"/>
-<text x="675.0" y="282.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">tube: ±12 frames around the fit</text>
-<rect x="60" y="316" width="1230" height="58" rx="2" ry="2" fill="#eef2f7" stroke="#3d5a73" stroke-width="2"/>
-<text x="675.0" y="354.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">local dynamic program (≤ 4 paths)</text>
-<rect x="60" y="388" width="1230" height="52" rx="2" ry="2" fill="#eef2f7" stroke="#3d5a73" stroke-width="2"/>
-<text x="675.0" y="423.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">S_main (strict segments)</text>
-<line x1="675.0" y1="158" x2="675.0" y2="174" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="675.0" y1="230" x2="675.0" y2="246" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="675.0" y1="302" x2="675.0" y2="318" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="675.0" y1="374" x2="675.0" y2="390" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<rect x="60" y="500" width="1230" height="58" rx="2" ry="2" fill="#eef4ee" stroke="#4a6b52" stroke-width="2"/>
-<text x="675.0" y="538.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">same anchors (no new matches)</text>
-<rect x="60" y="574" width="1230" height="58" rx="2" ry="2" fill="#eef4ee" stroke="#4a6b52" stroke-width="2"/>
-<text x="675.0" y="612.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">shadow RANSAC: ≥ 3 inliers, ≤ 12 tracks</text>
-<rect x="60" y="646" width="1230" height="78" rx="2" ry="2" fill="#eef4ee" stroke="#4a6b52" stroke-width="2"/>
-<text x="675.0" y="677.8" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">hard gate: slope, bounds, support,</text>
-<text x="675.0" y="710.2" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">residuals ≤ 4, gaps ≤ 24</text>
-<rect x="60" y="740" width="1230" height="58" rx="2" ry="2" fill="#eef4ee" stroke="#4a6b52" stroke-width="2"/>
-<text x="675.0" y="778.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">Noul p(copy) ≥ 0.75 → same tube and aligner</text>
-<rect x="60" y="814" width="1230" height="52" rx="2" ry="2" fill="#eef4ee" stroke="#4a6b52" stroke-width="2"/>
-<text x="675.0" y="849.0" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="25" fill="#1a1a1a" text-anchor="middle">S_rec (recovered segments)</text>
-<line x1="675.0" y1="560" x2="675.0" y2="576" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="675.0" y1="632" x2="675.0" y2="648" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="675.0" y1="726" x2="675.0" y2="742" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="675.0" y1="800" x2="675.0" y2="816" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="1330" y1="212" x2="1330" y2="840" stroke="#333333" stroke-width="2.2"/>
-<line x1="1290" y1="414" x2="1331" y2="414" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="1290" y1="840" x2="1331" y2="840" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<circle cx="1330" cy="414" r="4.5" fill="#333333"/>
-<circle cx="1330" cy="840" r="4.5" fill="#333333"/>
-<line x1="1330" y1="212" x2="1388" y2="212" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<rect x="1390" y="170" width="350" height="84" rx="2" ry="2" fill="#f7f1ea" stroke="#7a5c42" stroke-width="2"/>
-<text x="1565.0" y="205.3" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="23" fill="#1a1a1a" text-anchor="middle">C0–C4 boundary candidates</text>
-<text x="1565.0" y="235.2" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="23" fill="#1a1a1a" text-anchor="middle">per segment</text>
-<rect x="1390" y="278" width="350" height="104" rx="2" ry="2" fill="#f7f1ea" stroke="#7a5c42" stroke-width="2"/>
-<text x="1565.0" y="309.3" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="22" fill="#1a1a1a" text-anchor="middle">revalidate on local features:</text>
-<text x="1565.0" y="337.9" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="22" fill="#1a1a1a" text-anchor="middle">cos ≥ 0.6, support,</text>
-<text x="1565.0" y="366.5" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="22" fill="#1a1a1a" text-anchor="middle">≤ 2 weak frames</text>
-<rect x="1390" y="406" width="350" height="76" rx="2" ry="2" fill="#f7f1ea" stroke="#7a5c42" stroke-width="2"/>
-<text x="1565.0" y="437.3" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="23" fill="#1a1a1a" text-anchor="middle">Choice min(conf, p) ≥ 0.65</text>
-<text x="1565.0" y="467.2" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="23" fill="#1a1a1a" text-anchor="middle">else keep C0</text>
-<rect x="1390" y="506" width="350" height="56" rx="2" ry="2" fill="#f7f1ea" stroke="#7a5c42" stroke-width="2"/>
-<text x="1565.0" y="542.3" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="23" fill="#1a1a1a" text-anchor="middle">refined segments</text>
-<rect x="1390" y="586" width="350" height="88" rx="2" ry="2" fill="#f2f2f2" stroke="#444444" stroke-width="2"/>
-<text x="1565.0" y="623.6" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="22" fill="#1a1a1a" text-anchor="middle">union → dual-axis dedupe</text>
-<text x="1565.0" y="652.2" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="22" fill="#1a1a1a" text-anchor="middle">IoU_A ≥ 0.8 and IoU_B ≥ 0.8</text>
-<rect x="1390" y="698" width="350" height="64" rx="2" ry="2" fill="#f2f2f2" stroke="#444444" stroke-width="2"/>
-<text x="1565.0" y="738.3" font-family="DejaVu Serif, Times New Roman, Times, serif" font-size="23" fill="#1a1a1a" text-anchor="middle">S: ≤ 64 segments per pair</text>
-<line x1="1565.0" y1="256" x2="1565.0" y2="274" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="1565.0" y1="384" x2="1565.0" y2="402" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="1565.0" y1="484" x2="1565.0" y2="502" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="1565.0" y1="564" x2="1565.0" y2="582" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
-<line x1="1565.0" y1="676" x2="1565.0" y2="694" stroke="#333333" stroke-width="2.2" marker-end="url(#arrow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="570" viewBox="0 0 1800 570">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#444"/></marker></defs>
+<rect width="1800" height="570" fill="white"/>
+<text x="30" y="42" font-family="Times New Roman, Times, serif" font-size="31" font-weight="bold" fill="#222" text-anchor="start">(a) Front-end policy</text>
+<text x="820" y="42" font-family="Times New Roman, Times, serif" font-size="31" font-weight="bold" fill="#222" text-anchor="start">(b) High-capacity main branch</text>
+<text x="820" y="345" font-family="Times New Roman, Times, serif" font-size="31" font-weight="bold" fill="#222" text-anchor="start">(c) Lightweight acceleration branch</text>
+<rect x="30" y="220" width="160" height="112" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="2"/>
+<text x="110.0" y="267.68" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">Query A</text>
+<text x="110.0" y="301.48" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">Reference B</text>
+<rect x="235" y="199" width="225" height="154" rx="5" fill="#edf4ee" stroke="#53765a" stroke-width="2"/>
+<text x="347.5" y="251.75" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Compact preview</text>
+<text x="347.5" y="284.25" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Sample frames</text>
+<text x="347.5" y="316.75" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Encode + correlate</text>
+<rect x="510" y="220" width="210" height="112" rx="5" fill="#edf4ee" stroke="#53765a" stroke-width="2"/>
+<text x="615.0" y="267.68" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">Policy network</text>
+<text x="615.0" y="301.48" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">Choose a branch</text>
+<polyline points="190,276 235,276" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="460,276 510,276" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="820" y="87" width="220" height="112" rx="5" fill="#edf1f8" stroke="#506c90" stroke-width="2"/>
+<text x="930.0" y="134.68" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">Trainable</text>
+<text x="930.0" y="168.48000000000002" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">frame encoder</text>
+<rect x="1090" y="87" width="230" height="112" rx="5" fill="#edf1f8" stroke="#506c90" stroke-width="2"/>
+<text x="1205.0" y="134.68" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">Learnable</text>
+<text x="1205.0" y="168.48000000000002" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">similarity matrix</text>
+<rect x="1370" y="87" width="190" height="112" rx="5" fill="#edf1f8" stroke="#506c90" stroke-width="2"/>
+<text x="1465.0" y="134.68" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">2D object</text>
+<text x="1465.0" y="168.48000000000002" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="middle">detector</text>
+<polyline points="1040,143 1090,143" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="1320,143 1370,143" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1190" y="236" font-family="Times New Roman, Times, serif" font-size="25" fill="#506c90" text-anchor="middle">Jointly trained with localization supervision</text>
+<rect x="820" y="380" width="220" height="112" rx="5" fill="#faf1e8" stroke="#97724e" stroke-width="2"/>
+<text x="930.0" y="428.0" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Fixed descriptors</text>
+<text x="930.0" y="460.5" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Direct similarity</text>
+<rect x="1090" y="380" width="230" height="112" rx="5" fill="#faf1e8" stroke="#97724e" stroke-width="2"/>
+<text x="1205.0" y="428.0" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Anchor</text>
+<text x="1205.0" y="460.5" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">candidates</text>
+<rect x="1370" y="380" width="190" height="112" rx="5" fill="#faf1e8" stroke="#97724e" stroke-width="2"/>
+<text x="1465.0" y="428.0" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">RANSAC</text>
+<text x="1465.0" y="460.5" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Track intervals</text>
+<polyline points="1040,436 1090,436" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="1320,436 1370,436" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="720,276 770,276 770,143 820,143" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="720,276 770,276 770,436 820,436" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="770" y="116" font-family="Times New Roman, Times, serif" font-size="24" fill="#222" text-anchor="middle">Hard</text>
+<text x="770" y="477" font-family="Times New Roman, Times, serif" font-size="24" fill="#222" text-anchor="middle">Regular</text>
+<rect x="1610" y="220" width="165" height="112" rx="5" fill="#f5f5f5" stroke="#666" stroke-width="2"/>
+<text x="1692.5" y="268.0" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">Copied</text>
+<text x="1692.5" y="300.5" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="middle">interval pairs</text>
+<polyline points="1560,143 1590,143 1590,248 1610,248" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="1560,436 1590,436 1590,304 1610,304" fill="none" stroke="#444" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="30" y="414" font-family="Times New Roman, Times, serif" font-size="26" fill="#222" text-anchor="start">Inference: execute one branch per pair.</text>
+<text x="30" y="452" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="start">Training: compare both branches offline</text>
+<text x="30" y="484" font-family="Times New Roman, Times, serif" font-size="25" fill="#222" text-anchor="start">to supervise the policy with error and cost.</text>
+<text x="900" y="548" font-family="Times New Roman, Times, serif" font-size="24" fill="#555" text-anchor="middle">All pathways are a proposed design; no benchmark results are depicted.</text>
 </svg>
