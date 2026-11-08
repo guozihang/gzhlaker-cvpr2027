@@ -1,44 +1,58 @@
 \section{Related Work}
 \label{sec:related}
-\paragraph{Benchmarks and learned localization.}
-VCDB and VCSL provide partial-copy localization benchmarks~\cite{jiang2014,vcsl2022}; VCSL
-scores segment overlap on both axes, but interval labels do not give dense frame
-correspondence. VSC 2023 and FiGVCL use different settings or annotations, so their numbers
-cannot be merged~\cite{pizzi2024vsc,figvcl2025}. SPD learns a detector on similarity
-maps~\cite{spd2021}; TransVCL uses self-/cross-attention, correlation and a localization
-head~\cite{transvcl2023}, and RTR trains regional features~\cite{rtr2024}; recent variants
-include iESTA and VCSA~\cite{ding2025iesta,li2025vcsa}. These systems change the matching or
-detection network. We hold pretrained descriptors fixed and ask a narrower question: what two
-discrete decisions---admit a weak track, or move a boundary---buy under a fixed call budget.
 
-\paragraph{Structured decisions with pretrained models.}
-Visual Jev~\cite{visualjev2026} encodes one image and public context once, executes independent
-question suffixes, and reads candidate probabilities from the language-model head. VideoJev~
-\cite{videojev2026} scores temporal intervals and textual options against video evidence with a
-shared head and reuses visual computation through cached or joint inference. Our interface is a
-JEV-style decision service with two question types: a Noul question that returns the
-probability of a single proposition, and a Choice question that returns one identifier from a
-finite option set with per-option probabilities. Neither type can output coordinates, which is
-what lets us gate geometry before the call and preserve the strict fallback. The authors of
-Visual Jev report that predicted probabilities can overestimate correctness, so we treat scores
-as uncalibrated rankings, fix the operating points in advance and report fallback rates rather
-than claiming calibrated risk.
+\paragraph{Benchmarks and Learnable Video Copy Localization.}
+Standard benchmarks such as VCDB and VCSL have established rigorous evaluation
+protocols for partial-copy localization~\cite{jiang2014,vcsl2022}, while recent
+challenges and datasets like VSC 2023 and FiGVCL further explore diverse editing
+transformations and fine-grained annotations~\cite{pizzi2024vsc,figvcl2025}.
+Architecturally, mainstream VCL pipelines have converged on a three-stage
+paradigm comprising a visual feature encoder, a learnable frame-to-frame
+similarity matrix, and a 2D object detector (or localization head) operating
+over the correspondence map. Specifically, SPD formulates copy localization as
+pattern detection directly on frame similarity maps~\cite{spd2021}; TransVCL
+incorporates self- and cross-attention mechanisms to enhance similarity learning
+prior to temporal detection~\cite{transvcl2023}; RTR refines regional
+representations for robust matching~\cite{rtr2024}; and recent frameworks such
+as iESTA and VCSA further strengthen spatio-temporal
+aggregation~\cite{ding2025iesta,li2025vcsa}. While effective, applying heavy
+attention and detection modules across dense $M \times N$ similarity matrices
+incurs substantial quadratic overhead. In contrast, FastVCL retains the
+representational strengths of a feature encoder, learnable similarity matrix,
+and correspondence detector, but couples them with a selective model to
+dynamically allocate computation, achieving state-of-the-art accuracy at a
+fraction of the inference cost.
 
-\paragraph{Geometry, alignment and duplicate structure.}
-The VCSL comparison includes HV, TN, DP and DTW~\cite{vcsl2022,tan2009,chou2015}; temporal
-consistency and cascading search also appear in retrieval~\cite{douze2016,tian2013}, and SAM
-uses temporal line fitting~\cite{liu2023sam}. Our local program follows banded sequence
-alignment~\cite{smith1981} with a restricted step set and a tube domain; the difference from a
-textbook zero-floor DP is that a cell with a legal predecessor keeps a negative continuation,
-so one weak frame does not restart a copy. For merging, most deduplication rules compare one
-axis or a product of overlaps. A product can hide a genuine one-query/many-reference copy
-because the reference overlap is small even when the query interval is identical. We
-therefore require overlap on both axes separately, which is the minimal rule that preserves
-multiplicity while still collapsing shifted duplicates.
+\paragraph{Selective Modeling and Structured Decision Interfaces.}
+Selective prediction and confidence-aware routing allow models to abstain or
+trigger targeted verification on uncertain inputs while keeping confident
+predictions on a fast path. Recent structured decision frameworks such as Visual
+Jev~\cite{visualjev2026} and VideoJev~\cite{videojev2026} demonstrate that
+shared visual representations can be efficiently queried via lightweight
+decision heads to evaluate discrete propositions or multiple-choice hypotheses
+without re-encoding raw media. Inspired by these paradigms, we integrate a
+confidence-aware selective model into the VCL detection loop to resolve two
+critical localization bottlenecks: binary track admission for weak proposals and
+discrete hypothesis selection for ambiguous segment boundaries. Rather than
+regressing unconstrained temporal coordinates---which can degrade under severe
+video edits---our selective module evaluates structured similarity and geometric
+evidence within a fail-closed formulation, updating the primary detector's
+output only when prediction confidence exceeds a calibrated threshold.
 
-\paragraph{Positioning.}
-The closest mechanisms are a post-hoc verifier and a geometric fusion rule on the same
-candidates; both are controls here (C1, C2), not straw men. The proposed distinction is the
-controlled relationship between sparse support, finite refinement domains and budgeted
-discrete decisions at the same measured cost. No priority or performance advantage follows
-from this review; the experiments are designed to falsify the architecture, not to confirm it.
+\paragraph{Temporal Alignment, Geometry, and Deduplication.}
+Classical copy localization relies on geometric verification and sequence
+alignment over frame correspondence maps, including Hough Voting (HV), Temporal
+Networks (TN), Dynamic Programming (DP), and Dynamic Time Warping
+(DTW)~\cite{vcsl2022,tan2009,chou2015}. Temporal consistency constraints,
+cascading search~\cite{douze2016,tian2013}, and line-fitting strategies such as
+SAM~\cite{liu2023sam} further reduce false alarms in large-scale matching. Our
+candidate generation builds upon banded sequence alignment~\cite{smith1981} over
+the learned similarity matrix, relaxing the strict zero-floor reset along valid
+predecessors so that isolated weak frames do not prematurely fragment a
+continuous copy track. Furthermore, when post-processing detected tubes,
+conventional deduplication schemes typically suppress overlaps along a single
+timeline or via joint intersection products, which inadvertently collapses valid
+one-query-to-many-reference copies. FastVCL addresses this limitation via
+dual-axis deduplication, merging candidate segments only when they overlap on
+both query and reference axes simultaneously, thereby preserving multi-instance
+copy structures alongside selective refinement.

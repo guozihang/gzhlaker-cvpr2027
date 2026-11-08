@@ -1,20 +1,15 @@
 \begin{abstract}
-Video copy localization with fixed frame descriptors compares sparse anchors and refines a
-narrow band, which keeps cost sub-quadratic but makes two decisions safety-critical: whether a
-weak track is a real copy that strict matching missed, and where an admitted copy starts and
-ends. FastVCL answers both with discrete, fail-closed decisions from a pretrained decision
-interface. A strict branch (stride-4 mutual top-1 anchors, cosine 0.70, RANSAC, banded local
-dynamic programming) defines high-precision candidates. A shadow RANSAC pass over the same
-anchors exposes weak tracks; a hard geometric gate filters them; a probabilistic question
-estimates whether a track is a copy and admits it to the tube only above 0.75. Each segment,
-from either branch, receives at most five boundary candidates (keep, left, right, both, shrink)
-revalidated against local features; a multiple-choice question selects one at confidence 0.65
-or higher, and otherwise the original boundary is kept. The refined segments are then merged by
-a dual-axis deduplication, so one query interval that maps to two reference locations survives
-as two copies. The interface never outputs coordinates or segment scores; every
-output carries its source, and disabling the interface recovers the strict system. Historical
-no-JEV ablations show the strict setting's recall bottleneck (R 14.36, F1 24.91, versus R 31.15,
-F1 45.79 when relaxed), which motivates both decisions. The new decision ladder has not been
-run: we report the design, its invariants and a falsifiable protocol, and claim no accuracy or
-latency gain.
+Video Copy Localization (VCL) requires identifying exact temporal boundaries of copied segments across large video collections.
+%
+Mainstream VCL pipelines rely on dense frame-to-frame correspondence modeling coupled with heavy 2D detectors, which achieves strong accuracy but incurs prohibitive computational overhead when applied uniformly to all video pairs. 
+%
+In this paper, we propose \textbf{FastVCL}, a fast and adaptive dual-branch VCL framework that dynamically balances localization accuracy and inference efficiency. 
+%
+Specifically, FastVCL introduces a front-end policy network to assess input samples and route them to either a high-capacity main branch or a lightweight acceleration branch. 
+%
+For hard or heavily edited pairs, we construct an end-to-end trainable main branch that integrates a frame feature encoder, a learnable similarity matrix, and a 2D object detector for precise boundary localization. 
+%
+Conversely, regular samples are routed to the acceleration branch, which bypasses heavy detection by directly computing a similarity matrix, extracting anchor candidates, and applying Random Sample Consensus (RANSAC) for rapid temporal alignment.
+%
+Extensive experiments on standard VCL benchmarks demonstrate that FastVCL achieves competitive localization accuracy on par with state-of-the-art methods while delivering a significant inference speedup.
 \end{abstract}

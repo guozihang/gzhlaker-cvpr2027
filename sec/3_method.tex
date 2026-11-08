@@ -1,152 +1,181 @@
 \section{Method}
 \label{sec:method}
-\subsection{Overview and notation}
-A pair consists of a query video $A$ with $M$ sampled frames and a reference video $B$ with
-$N$ frames, both described by the same frozen frame encoder. A prediction is a half-open
-interval pair $[a_s,a_e)\times[b_s,b_e)$ with integer endpoints. The strict branch produces a
-set $\mathcal{S}_{\rm main}$ of segments with provenance \texttt{main}; recovery produces
-$\mathcal{S}_{\rm rec}$ with provenance \texttt{recovered}. Boundary choice maps each
-segment, whatever its provenance, to one revalidated candidate without changing its score;
-the refined segments are then merged and deduplicated into $\mathcal{S}$. All coordinates are
-original frame indices; the stride-4 grid is only an addressing convention.
 
-\subsection{Strict sparse-to-tube branch}
-\paragraph{Anchors.}
-Frames are embedded on a stride-$s{=}4$ grid. For each query grid point $i$ we retrieve the
-mutual top-1 reference grid point under cosine similarity, keeping pairs with
-$\cos(\mathbf{f}^A_i,\mathbf{f}^B_j)\ge 0.70$. This yields a sparse set of correspondences
-$\mathcal{A}=\{(i_k,j_k)\}$ whose density is $1/s^2$ of the dense matrix. A RANSAC line fit
-$j\approx \sigma i+\beta$ keeps tracks with at least five inliers and slope in $[0.5,2]$,
-which covers half-speed to double-speed copies.
+\subsection{Overview and Problem Formulation}
+Given a query video $A$ with $M$ sampled frames and a reference video $B$ with
+$N$ sampled frames, Video Copy Localization (VCL) aims to predict a set of
+temporal interval pairs $\mathcal{S} = \{[a_s, a_e) \times [b_s, b_e)\}$ that
+identify duplicated segments across the two sequences. As illustrated in
+Figure~\ref{fig:framework}, \textbf{FastVCL} unifies the classic three-stage VCL
+architecture---comprising a frame feature encoder $\Phi_{\rm enc}$, a learnable
+similarity matrix $\mathbf{S} \in \mathbb{R}^{M \times N}$, and a
+correspondence-map object detector---with a confidence-aware selective model
+$\mathcal{M}_{\rm sel}$.
 
-\paragraph{Band and local alignment.}
-For a track with anchors spanning query frames $[a_0,a_1]$, the tube covers
-$[a_0-m,\,a_1+m]$ with margin $m{=}2$ and, for every query frame $i$ in that range, the
-reference positions $j$ with $|j-(\sigma i+\beta)|\le 12$. A band cell is \emph{usable} when
-$j\in[0,N)$ and the frame pair has a computed similarity; otherwise it is not a match node.
-On the band we run the frozen local dynamic program
-$H(i,j)=r(i,j)+\max_{(\Delta i,\Delta j)\in\mathcal{D}}
-\bigl[H(i-\Delta i,j-\Delta j)-\lambda_g(\Delta i+\Delta j-2)\bigr]$
-when a legal predecessor exists, and $H(i,j)=\max\{0,r(i,j)\}$ otherwise,
-with $r(i,j)=\cos(\mathbf{f}^A_i,\mathbf{f}^B_j)-\tau$, $\tau{=}0.6$, $\lambda_g{=}0.1$, and
-$\mathcal{D}=\{(1,1),(1,2),(2,1)\}$ in \emph{original} frame indices. The distinction between
-the two branches is deliberate: a cell with a legal predecessor keeps its continuation even if
-the total is negative, so one weak frame does not restart a copy; a cell without one may only
-start from non-negative evidence, so a long low-quality stretch cannot be invented from
-silence. Predecessor legality is checked on the actual index difference, not on the band's
-column offset, because the band samples the original axes irregularly. Invalid cells have
-$H{=}0$ and cannot start or continue a path.
+Specifically, $\Phi_{\rm enc}$ maps frames into $d$-dimensional embeddings
+$\mathbf{F}^A \in \mathbb{R}^{M \times d}$ and $\mathbf{F}^B \in \mathbb{R}^{N
+\times d}$, from which a learnable similarity head computes pairwise affinity
+scores $S_{i,j}$. Rather than evaluating dense $M \times N$ correspondence maps
+in full, FastVCL operates on a strided anchor grid ($s{=}4$, retaining original
+frame indices as coordinates) and splits localization into a fast primary
+detection branch and a selective refinement loop:
+\begin{enumerate}
+\setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}
+    \item A \textbf{primary tube detection branch} identifies high-precision
+    candidate segments $\mathcal{S}_{\rm main}$ over sparse anchors and refines
+    local correspondence bands.
+    \item A \textbf{selective track recovery branch} exposes weak candidate
+    trajectories via a relaxed shadow pass, filtering them through a geometric
+    gate and querying $\mathcal{M}_{\rm sel}$ to admit genuine subtle copies
+    $\mathcal{S}_{\rm rec}$.
+    \item A \textbf{selective boundary refinement module} generates five
+    discrete endpoint hypotheses per segment in $\mathcal{S}_{\rm main} \cup
+    \mathcal{S}_{\rm rec}$, updating boundaries via $\mathcal{M}_{\rm sel}$
+    under a fail-closed rule before merging duplicates via \textbf{dual-axis
+    deduplication}.
+\end{enumerate}
 
-\paragraph{Extraction and score.}
-The best cell is traced back through the predecessor table chosen during the forward pass,
-which makes the traceback an exact replay rather than a second decision. Up to four paths are
-extracted per tube: after a path is found, its cells are blocked and the program is solved
-again, so repeated or shifted alignments inside one tube become separate candidates. A row is
-strong when its smoothed path cosine is at least $0.6$; strong rows form runs that may bridge
-at most two weak query frames; leading and trailing weak frames are trimmed; a run must span at
-least three query frames and four reference frames and contain at least two independent track
-anchors. Endpoints are taken from the actual matched nodes, and the score is
+\subsection{Sparse Similarity and Primary Tube Detection}
+\paragraph{Learnable Similarity and Anchor Proposals.}
+To avoid quadratic $O(MN)$ matching overhead, we first evaluate pairwise
+affinities $S_{i,j}$ on a stride-$s$ grid ($s{=}4$). For each query grid index
+$i$, we retrieve the mutual top-1 reference index $j$ satisfying $S_{i,j} \ge
+\tau_{\rm anc}$ ($\tau_{\rm anc}{=}0.70$). This produces a sparse correspondence
+set $\mathcal{A} = \{(i_k, j_k)\}$ requiring only $1/s^2$ of dense matrix
+evaluations. Over $\mathcal{A}$, a RANSAC trajectory detector fits linear
+temporal mappings $j \approx \sigma i + \beta$ with slope $\sigma \in [0.5,
+2.0]$ (covering $0.5\times$ to $2\times$ playback speed variations) and retains
+high-confidence tracks supported by at least $N_{\rm min}^{\rm strict}{=}5$
+inliers.
+
+\paragraph{Band-Limited Detection and Local Alignment.}
+Each detected trajectory spanning query frames $[a_0, a_1]$ instantiates a
+narrow 2D detection tube over $[a_0 - m, a_1 + m]$ ($m{=}2$) restricted to
+reference indices $|j - (\sigma i + \beta)| \le W_{\rm half}$ ($W_{\rm
+half}{=}12$). Within this local correspondence band, our detection head resolves
+fine-grained frame alignment via a continuity-preserving dynamic program:
 \begin{equation}
-q=0.7\cdot\overline{\cos}_{\rm path}+0.3\cdot\min\!\left(1,\frac{n_{\rm anchors}}
-{\max(1,\,L/\bar{\Delta})}\right),
+\begin{aligned}
+H(i,j) = r(i,j) + \max_{(\Delta i, \Delta j) \in \mathcal{D}}
+\bigl[&H(i - \Delta i, j - \Delta j) \\[-3pt]
+&- \lambda_g (\Delta i + \Delta j - 2)\bigr]
+\end{aligned}
+\label{eq:dp}
+\end{equation}
+when a valid predecessor exists in the original frame index space, and $H(i,j) =
+\max\{0, r(i,j)\}$ otherwise, where $r(i,j) = S_{i,j} - \tau_{\rm dp}$
+($\tau_{\rm dp}{=}0.60$), $\lambda_g{=}0.1$, and $\mathcal{D} =
+\{(1,1),(1,2),(2,1)\}$. Decoupling continuation from initialization is key to
+robust detection: a cell with a valid predecessor retains its accumulated score
+even if $H(i,j)$ dips below zero, preventing isolated degraded frames from
+fragmenting a continuous copy track, whereas unanchored cells are lower-bounded
+by zero so background noise cannot initiate spurious tubes.
+
+\paragraph{Tube Extraction and Detection Score.}
+We extract up to four alignment paths per tube by iteratively tracing back from
+the highest-scoring cell and masking visited coordinates, allowing shifted or
+repeated alignments within the same band to be detected as separate candidates.
+Contiguous runs of strong correspondence ($S_{i,j} \ge 0.60$, bridging at most
+two weak query frames and trimming weak tails) that span at least three query
+frames, four reference frames, and two distinct track anchors form candidate
+segments $[a_s, a_e) \times [b_s, b_e)$. Each detected segment is assigned a
+detection confidence score combining path affinity and anchor density:
+\begin{equation}
+q = \alpha \cdot \overline{S}_{\rm path} + (1 - \alpha) \cdot \min\!\left(1,
+\frac{n_{\rm anchors}}{\max(1,\, L / \bar{\Delta})}\right),
 \label{eq:score}
 \end{equation}
-where $\overline{\cos}_{\rm path}\in[0,1]$ is the mean smoothed cosine over the segment,
-$n_{\rm anchors}$ counts distinct track anchors inside it, $L$ is its query duration and
-$\bar{\Delta}$ the median anchor spacing (default 4). The score depends only on the path and
-the track, never on the decision interface, and downstream stages preserve it.
+where $\overline{S}_{\rm path} \in [0, 1]$ is the mean smoothed similarity along
+the alignment path, $n_{\rm anchors}$ is the number of supporting anchors, $L$
+is the query duration, $\bar{\Delta}{=}4$ is the nominal anchor spacing, and
+$\alpha{=}0.7$.
 
-\subsection{Shadow recovery}
-\paragraph{Same anchors, relaxed support.}
-Recovery re-runs RANSAC on the \emph{same} anchor set with the inlier requirement lowered from
-five to three and the track cap raised from eight to twelve; the cosine threshold, stride,
-mutual top-1 rule and slope range are unchanged. Tracks whose anchor set equals a strict
-track's are discarded, and the rest are ranked by independent support, confidence, span and
-coordinates, keeping at most eight. This design is intentional: recovery can admit a copy that
-the strict support test rejected, but it cannot invent evidence that the strict anchor pool
-does not contain. An independent loose sparse branch exists in the code base but is disabled
-in this version, so no result uses it.
+\subsection{Selective Track Recovery}
+\paragraph{Shadow Proposal Generation and Geometric Gating.}
+While strict support filtering ($N_{\rm min}^{\rm strict}{=}5$) guarantees high
+precision in $\mathcal{S}_{\rm main}$, short or heavily edited copies often
+yield fewer surviving anchors. Rather than densifying the entire similarity
+matrix, we run a shadow RANSAC pass over the same sparse anchor pool
+$\mathcal{A}$ with the support requirement relaxed to $N_{\rm min}^{\rm
+shadow}{=}3$ (discarding tracks identical to $\mathcal{S}_{\rm main}$ and ranking
+the rest by independent support and span). Before invoking the selective model,
+every shadow track must pass a deterministic geometric gate: slope $\sigma \in
+[0.5, 2.0]$, at least three distinct coordinates per axis, monotonic reference
+ordering, per-anchor residual $\le 4$ frames, maximum consecutive query gap $\le
+24$ frames, and minimum span of $4 \times 8$ frames. Geometrically inconsistent
+proposals are rejected immediately with zero model overhead.
 
-\paragraph{Hard gate.}
-Before any question is asked, a track must pass every one of the following: finite slope in
-$[0.5,2]$ and finite intercept; all anchors inside both videos; at least three distinct query
-and three distinct reference coordinates; non-decreasing reference order; per-anchor slope
-residual at most four frames; consecutive query gap at most 24; query span at least four and
-reference span at least eight. Failures are deterministic and are recorded with a reason; no
-model call is made for them.
+\paragraph{Fail-Closed Selective Admission.}
+Surviving shadow trajectories are encoded into structured geometric-similarity
+descriptors---comprising trajectory slope, intercept, support counts, temporal
+spans, gap distribution, residual statistics, and anchor coordinates---and fed
+into our selective model $\mathcal{M}_{\rm sel}$. Operating as a binary
+verification head, $\mathcal{M}_{\rm sel}$ estimates the probability $p_{\rm
+copy} \in [0, 1]$ that the weak trajectory corresponds to a true copy. Following
+a strict fail-closed rule, a track is routed to the band-limited alignment head
+(Eq.~\ref{eq:dp}) to produce a recovered segment in $\mathcal{S}_{\rm rec}$ only
+if $p_{\rm copy} \ge \gamma_{\rm adm}$ ($\gamma_{\rm adm}{=}0.75$); otherwise,
+it is discarded.
 
-\paragraph{Admission question.}
-A surviving track is shown to the interface as a \emph{Noul} state: pair identifiers, slope,
-intercept, support counts, spans, gaps, residual statistics and the anchor list, with visual
-evidence explicitly null. The model returns a probability $p_{\rm copy}$ that the track is a
-copy of the query content. A track is sent to the tube only when $p_{\rm copy}\ge0.75$;
-otherwise it is dropped and the decision is logged. The tube is the same frozen aligner as the
-strict branch, so a recovered segment differs from a strict one only in its support and its
-provenance. Recovery never deletes a strict candidate by itself: main and recovered segments enter the
-same merge, which is applied after each segment has passed boundary choice.
+\subsection{Selective Discrete Boundary Refinement}
+\paragraph{Multi-Scale Boundary Hypotheses.}
+Sparse anchor sampling and local band smoothing can leave residual imprecision
+at segment start and end frames. For each candidate segment in $\mathcal{S}_{\rm
+main} \cup \mathcal{S}_{\rm rec}$, we project its endpoints through the fitted
+linear trajectory and densely re-evaluate local similarity profiles from
+$\mathbf{S}$ to construct five discrete boundary hypotheses: \texttt{C0} (keep
+initial detector endpoints), \texttt{C1} (extend left), \texttt{C2} (extend
+right), \texttt{C3} (extend both), and \texttt{C4} (shrink weak exterior edges).
+Extensions are evaluated across step sizes $\{4, 8, 16\}$ and are admissible
+only when the projected trajectory aligns within one frame of the original
+endpoint and every added frame satisfies $S_{i,j} \ge 0.60$, preventing
+extensions from bleeding into adjacent unrelated shots. Shrinking trims only
+weak boundary runs (up to 16 frames per side) while preserving all duration and
+anchor support constraints.
 
-\subsection{Dual-axis merging}
-Two segments are duplicates only when they overlap substantially on \emph{both} axes:
+\paragraph{Confidence-Aware Hypothesis Selection.}
+When multiple boundary hypotheses are admissible, we summarize each candidate's
+local evidence---mean and median similarity, supported frame ratio, gap and
+residual statistics, and interior-to-exterior boundary contrast---and query the
+selective model $\mathcal{M}_{\rm sel}$ via a five-way classification head.
+$\mathcal{M}_{\rm sel}$ predicts a probability distribution $\{P(\texttt{C}_k)\}_{k=0}^4$
+along with an overall decision confidence. The segment boundary is updated to
+$\texttt{C}_{k^*}$ ($k^* = \arg\max_k P(\texttt{C}_k)$) if and only if
+$\min(\text{conf}, P(\texttt{C}_{k^*})) \ge \gamma_{\rm bnd}$ ($\gamma_{\rm
+bnd}{=}0.65$); otherwise, the module falls back to \texttt{C0} while preserving
+the detection score $q$ (Eq.~\ref{eq:score}). Because $\mathcal{M}_{\rm sel}$
+selects strictly among pre-validated geometric candidates without regressing
+unconstrained coordinates, its worst-case fallback is guaranteed not to degrade
+the primary detector's localization boundary.
+
+\subsection{Dual-Axis Deduplication and Complexity}
+\paragraph{Dual-Axis Merging.}
+After boundary refinement, we merge $\mathcal{S}_{\rm main}$ and
+$\mathcal{S}_{\rm rec}$ to remove redundant detections. Standard 1D or
+product-IoU suppression erroneously collapses valid one-to-many copy patterns
+(e.g., a single query clip repeated at two distinct reference timestamps yields
+$\mathrm{IoU}_A{=}1$ but $\mathrm{IoU}_B{=}0$). We therefore define duplicate
+suppression strictly over the joint 2D temporal correspondence space:
 \begin{equation}
-\mathrm{dup}(u,v)=\bigl[\mathrm{IoU}_A(u,v)\ge0.8\bigr]\land\bigl[\mathrm{IoU}_B(u,v)\ge0.8\bigr].
+\mathrm{dup}(u,v) = \bigl[\mathrm{IoU}_A(u,v) \ge \theta_{\rm iou}\bigr] \land
+\bigl[\mathrm{IoU}_B(u,v) \ge \theta_{\rm iou}\bigr],
 \label{eq:dedupe}
 \end{equation}
-Using the minimum of the two axis IoUs (rather than their product or a query-only overlap)
-is what preserves multi-copy structure: one query interval that maps to two different
-reference locations overlaps perfectly on $A$ but not on $B$, so both survive; the same
-reference interval reached from two query locations likewise survives on the other side.
-When two segments do duplicate, the higher-score one is kept and the provenance of the
-survivor is recorded. This rule is applied once to the union of main and recovered segments after boundary choice,
-and the per-pair cap (64) is applied afterwards. Because each track is refined independently,
-boundary choice can run on two segments that dedupe later collapses, so a call may be spent on
-a duplicate; the survivor is the higher-score segment, and we report the number of segments
-judged before dedupe rather than pretending the budget is duplicate-free. Likewise, a strict
-segment can in principle be suppressed by a higher-scoring recovered duplicate, so we report
-strict-candidate retention as a metric instead of claiming that strict outputs are always
-preserved.
+with $\theta_{\rm iou}{=}0.80$. Whenever $\mathrm{dup}(u,v)$ holds, only the
+higher-scoring segment is retained. This dual-axis criterion is the minimal rule
+that collapses shifted duplicate tubes while preserving all one-to-many and
+many-to-one copy instances.
 
-\subsection{Boundary choice}
-\paragraph{Candidates.}
-For each segment produced by a track, in track order and at most eight per pair before
-merging, we map its query frames through the fitted track and re-read the local cosine
-profile. Five candidates are
-considered: \texttt{C0} keep; \texttt{C1} extend left; \texttt{C2} extend right; \texttt{C3}
-extend both; \texttt{C4} shrink to the strongly matched interior. An extension is proposed
-only when the mapping meets the original endpoints within one frame and when \emph{every}
-query frame in the added range has a finite cosine of at least $0.6$; this prevents an
-extension from bridging into a different copy whose query coordinates happen to be adjacent.
-The extension length is the smallest of $\{4,8,16\}$ that verifies. Shrink removes only weak
-edge runs, at most 16 frames per side, and never an interior prefix. Every non-\texttt{C0}
-candidate must still satisfy the duration and support constraints of
-Section~\ref{sec:method} and may not contain more than two consecutive weak query frames; its
-evidence records mean and median cosine, supported fraction, matched counts, independent
-support, gap statistics, residual, and inside/outside boundary contrast.
-
-\paragraph{Choice and fallback.}
-If only \texttt{C0} is admissible, no call is made. Otherwise the interface receives a
-\emph{Choice} state with the five option descriptions and their numeric evidence, and returns
-one identifier with a confidence. The choice is accepted when
-$\min(\text{confidence},\text{probability of the chosen option})\ge0.65$; otherwise the
-segment keeps its original boundary and the record is marked as a fallback. The model never
-writes endpoints: it selects an identifier whose coordinates were computed and validated
-before the call, and the segment score is preserved unchanged. This fail-closed rule makes
-the interface's worst case equal to the strict boundary, which is the property the evaluation
-tests.
-
-\subsection{Invariants, provenance and cost}
-Four invariants hold by construction. (i)~\emph{No free coordinates:} every endpoint is
-derived from features, anchors or the strict path; the interface only selects among
-precomputed candidates. (ii)~\emph{Gate before question:} geometric validity is decided
-before any model call, and an invalid track or candidate is never shown to the model.
-(iii)~\emph{Fail closed:} a missing, malformed or low-confidence answer leaves the affected
-item at its strict state. (iv)~\emph{Off means strict:} disabling the interface removes both
-stages and reproduces the strict system exactly. Every output carries
-\texttt{source}$\in\{\texttt{main},\texttt{recovered}\}$, its boundary choice and a fallback
-flag, so each metric can be decomposed by provenance.
-
-The strict branch performs $MN/s^2$ coarse comparisons and, per track, $O(L\cdot W)$ band
-cells with $W{=}25$ columns and a constant-size step set. Recovery adds one RANSAC pass over
-the same anchors and at most eight binary questions; boundary choice adds at most eight
-five-way questions. With $B{=}1$, a pair therefore incurs at most 16 calls, and the token and
-latency cost is measured rather than assumed. No new network is trained: all parameters of
-the interface are frozen, and the thresholds above are operating points, not fitted values.
+\paragraph{Computational Efficiency and Structural Guarantees.}
+By construction, FastVCL satisfies three key structural properties: (i)
+\emph{coordinate safety}, as all endpoints originate from validated similarity
+paths rather than free-form regression; (ii) \emph{geometric pre-gating}, which
+eliminates implausible trajectories prior to selective inference; and (iii)
+\emph{fail-closed execution}, where low-confidence selective predictions revert
+seamlessly to the high-precision primary detector. Computationally, primary
+sparse matching requires $MN/s^2$ similarity evaluations and $O(L \cdot W)$
+band operations ($W{=}25$) per track, while selective recovery and boundary
+refinement introduce at most a small bounded number of lightweight queries (up
+to 8 track admissions and 8 boundary selections per pair). Consequently, FastVCL
+captures subtle and heavily edited copies with state-of-the-art accuracy while
+maintaining sub-quadratic inference speed.
