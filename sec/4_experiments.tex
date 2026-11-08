@@ -53,6 +53,15 @@ systems use exactly the branch checkpoints/configurations used by the routed sys
 omit the unused policy. This comparison tests whether routing improves the achievable
 accuracy--latency operating point.
 
+\paragraph{Separating representation and routing effects.}
+A feature-matched diagnostic supplies identical fixed descriptors to the main branch's
+downstream modules and the acceleration matcher. Retrain its policy and report cached-feature
+timing separately from the full system with its trainable main encoder. This isolates
+downstream localization and routing from encoder adaptation. Both conditions retain the
+same pair manifest, evaluator, and controls, while stating their different training and
+timing scopes. An advantage with shared cached features does not establish raw-video speedup;
+the latter must include both encoders and actual cache availability.
+
 \begin{table*}[t]
 \centering\small
 \setlength{\tabcolsep}{6pt}
@@ -145,6 +154,24 @@ Acceleration without endpoint check & -- & -- & -- & --\\
 \end{tabular}
 \end{table}
 
+\paragraph{Selecting a reproducible operating point.}
+Choose an admissible F1 decrease $\delta$ relative to always-main before inspecting test
+results. Among a prespecified set of policy thresholds, select the one with the lowest
+validation mean latency subject to that tolerance. If none satisfies the constraint,
+report that no acceptable routed operating point was found. Freeze the selected threshold,
+branch score thresholds, and model weights for the test set. Report both the validation
+target utilization and the achieved test utilization: a change in the difficulty distribution
+can change the branch mixture even when the threshold is fixed. Comparisons at matched
+utilization use the same rule for selecting control thresholds, rather than choosing the
+best control separately for each test pair.
+
+For uncertainty estimates, repeat training or routing seeds where applicable and resample
+video-identity groups rather than treating pairs sharing a video as independent. Report
+paired differences in accuracy and latency using the same resampled groups for competing
+systems. A small average speedup accompanied by a large tail-latency increase should remain
+visible through the 95th-percentile statistic. These analyses assess the stability of an
+observed trade-off; they do not supply missing performance measurements.
+
 \subsection{Historical anchor diagnostics}
 \label{sec:history}
 The frozen workbook contains 25 reported runs of an earlier fixed-feature system on the VCSL
@@ -185,6 +212,35 @@ a learned policy would route correctly. Workbook elapsed times have ambiguous sc
 hardware provenance, so they are not used to calculate an inference speedup.
 
 \subsection{Failure analysis and validity}
+\paragraph{Preview and sampling sensitivity.}
+Vary the preview frame count $K$ and acceleration stride $s$ separately before examining
+their interaction. Increasing $K$ supplies the policy with more temporal observations but
+does not densify acceleration anchors. Reducing $s$ increases matching work after routing
+but adds no evidence to the policy's initial branch decision. For each
+setting, report routing errors by annotated copy duration, achieved utilization, native
+localization metrics, and the preview/matching components of latency. This distinguishes
+insufficient routing evidence from insufficient geometric evidence. Any comparison that
+changes the acceleration configuration regenerates its branch-preference targets.
+
+The cost weight $\lambda$ and decision threshold $\eta$ also serve different roles:
+$\lambda$ determines which branch is preferable in the training labels, while $\eta$
+changes how confidently the learned policy must prefer main at inference. Sweep the former
+through separately trained policies and the latter with each policy held fixed. Report the
+always-main and always-acceleration endpoints with their actual costs, since neither needs
+preview execution. A routed curve that approaches an endpoint still pays preview overhead.
+
+\paragraph{Workload and feature reuse.}
+Measure a cold-input setting and a separately labeled reuse setting where video descriptors
+may already be cached. In the latter, identify which encoder produced each cache: frozen
+acceleration descriptors cannot automatically replace the adapted main encoder's features.
+Report cache-hit rates, feature-loading cost, and preview availability, including their
+dependence on repeated video identities. Amortization across many pairs must use a stated
+workload, not assume that all features are free. The primary batch-size-one result describes
+pair latency; grouped processing by selected branch can have different throughput and
+queueing costs. Report that regime separately if implemented, keeping the per-pair routing
+decision fixed.
+
+\paragraph{Failure categories.}
 We stratify results by copy duration, speed change, edit severity, repeated content, and
 sequence length wherever annotations support those categories. The main questions are whether
 the preview misses short copies, whether regular pairs receive unnecessary main computation,

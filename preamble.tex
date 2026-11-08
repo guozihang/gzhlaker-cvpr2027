@@ -2,6 +2,10 @@
 %% The document class and cvpr.sty are loaded in main.tex; this file only adds
 %% packages, math macros and the visible TODO marker.
 
+% The CVPR style selects the legacy Times family. Use its native encoding
+% under both pdfLaTeX and XeTeX instead of substituting TU/ptm with another font.
+\usepackage[OT1]{fontenc}
+
 % ---------------------------------------------------------------------------
 % Layout / tables / algorithms
 % ---------------------------------------------------------------------------

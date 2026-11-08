@@ -1,6 +1,6 @@
 # Build record and current draft status
 
-Last checked: **2026-11-08 — policy-guided dual-pathway revision**.
+Last checked: **2026-11-08 — eight-page body, excluding references**.
 
 The current manuscript follows the Overleaf title and abstract from commit
 00ded7723b12ec811f65d76c0e184e952d1f83df. The title command and entire abstract file
@@ -31,14 +31,18 @@ training settings, checkpoints, and new evaluation runs remain outstanding.
 
 | Entry point | Exit | Pages | Layout |
 |---|---|---|---|
-| main.tex | 0 | 8 | body and references end on page 7; LLM statement on page 8 |
+| main.tex | 0 | 10 | body pages 1–8; references page 9; LLM statement page 10 |
 | supplementary.tex | 0 | 4 | configuration, supervision, evaluation details, historical table |
 
 - Tectonic 0.17.0, cached XeTeX build; both entry points compile.
 - No overfull boxes, undefined references, or undefined citations.
-- Existing nonfatal package UTF-8/font-substitution warnings remain. Figure PDF 1.7 exceeds
+- The preamble explicitly selects OT1 encoding for the template's Times family, eliminating
+  the main paper's XeTeX font substitution. Font size, margins, and the CVPR style are unchanged.
+- Nonfatal package UTF-8 warnings remain; the supplement retains a Courier substitution
+  warning for file-path text. Figure PDF 1.7 exceeds
   the engine's default PDF 1.5 setting and produces a nonfatal inclusion warning.
-- Main pages 1, 2, 6, and 7 and supplement pages 1, 2, and 4 were visually reviewed.
+- The main paper's title, algorithm, final body page, and reference boundary were visually
+  reviewed. Auxiliary-file page labels independently confirm body end 8 and reference start 9.
 - Protected-content equality, citation keys, local references, and historical values were
   checked; see [the audit](evidence/policy_revision_audit.json).
 - Git whitespace validation passes.
@@ -52,7 +56,7 @@ Run from the repository root:
 
 ~~~bash
 python3 scripts/generate_policy_framework.py
-TECTONIC_CACHE_DIR=.home/Library/Caches/TectonicProject.Tectonic tectonic --only-cached --keep-logs main.tex
+TECTONIC_CACHE_DIR=.home/Library/Caches/TectonicProject.Tectonic tectonic --only-cached --keep-logs --keep-intermediates main.tex
 TECTONIC_CACHE_DIR=.home/Library/Caches/TectonicProject.Tectonic tectonic --only-cached --keep-logs supplementary.tex
 git diff --check
 ~~~
@@ -73,4 +77,8 @@ framework. Use [generate_policy_framework.py](scripts/generate_policy_framework.
   59165b0458966037c10777911c9dbe98fad7bd23bfda7e85c5c0a7ca41622823
 
 See [revision notes](evidence/policy_revision_notes.md) for design changes and verified
-reference sources. Official template files and formatting parameters were not modified.
+reference sources. The body expansion adds branch-error and routing-regret definitions,
+policy dimensions, detector supervision details, inference pseudocode, memory analysis,
+and stronger experimental controls. Official template files, font sizes, and margins
+were not modified. The font-encoding declaration makes the existing Times selection work
+under both pdfLaTeX and XeTeX; it does not select a different typeface.

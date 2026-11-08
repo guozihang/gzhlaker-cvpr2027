@@ -47,11 +47,33 @@ the main similarity map is not computed to decide whether to skip it. Preview de
 including seeking into compressed videos, is part of routing overhead. The supplement gives
 an initial design for $K$, resolution, encoder, and MLP; these choices remain to be validated.
 
+\paragraph{Reference policy instantiation.}
+The initial design uses $K=16$ frames at $112\times112$, three stride-2 convolution
+layers with 32/64/128 channels, ReLU, and spatial mean pooling. Two temporal means,
+the correlation map and mask, and two lengths give 770 inputs to a $770\to128\to1$ MLP.
+These are reproducible starting dimensions, not measured optima; capacity ablations
+include each variant's preview cost.
+
 \paragraph{Learning branch preference.}
 Let $\ell_b(A,B)$ be branch $b$'s localization error against training annotations and let
 $c_b(A,B)$ be its profiled cost divided by a fixed positive reference cost,
 $b\in\{{\rm m},{\rm a}\}$. Both branches use the same error definition, penalizing missed
 copies, unmatched predictions, and interval misalignment (supplement).
+For completeness, let $P_b$ be a branch's predictions and $G$ the annotated interval pairs.
+Define $u(p,g)=\min\{\mathrm{IoU}_A(p,g),\mathrm{IoU}_B(p,g)\}$ and form a one-to-one
+matching $\mathcal M_b$ over pairs with $u\ge0.5$, maximizing cardinality first and total
+agreement second. With unmatched prediction and annotation counts $U_P,U_G$, we use
+\begin{equation}
+\ell_b=\frac{U_P+U_G+\sum_{(p,g)\in\mathcal M_b}(1-u(p,g))}
+{\max(1,|P_b|+|G|)}.
+\label{eq:branch-error}
+\end{equation}
+The normalization bounds $\ell_b$ in $[0,1]$. Correctly returning no copies on a negative
+pair gives zero error; missing every annotated copy or returning any copies on a negative
+pair gives one. The matching term distinguishes accurate intervals from marginal matches.
+This is a common training surrogate for comparing branches, not a replacement for the
+benchmark evaluator. In particular, its treatment of negative pairs emphasizes whether a
+false alarm occurs, while the evaluation also records the number of false copies.
 Offline evaluations define
 \begin{equation}
 y^*=\mathbb{1}\!\left[\ell_{\rm m}+\lambda c_{\rm m}
@@ -70,6 +92,24 @@ and are profiled on training data. Validation selects $\lambda$ and $\eta$ for t
 accuracy--latency operating point. The score predicts branch preference, not a calibrated
 probability that a pair contains a copy.
 
+\paragraph{What a routing mistake costs.}
+Define the per-pair branch objective $J_b=\ell_b+\lambda c_b$ and margin
+$\Delta=J_{\rm a}-J_{\rm m}$. The target in Eq.~\ref{eq:policy-target} selects main exactly
+when $\Delta>0$. For any binary routing action $r$, the excess objective is
+\begin{equation}
+J_{r}-\min(J_{\rm m},J_{\rm a})
+=|\Delta|\,\mathbb{1}[r\ne y^*],
+\label{eq:regret}
+\end{equation}
+where $J_r=rJ_{\rm m}+(1-r)J_{\rm a}$. This identity follows by considering the sign of
+$\Delta$; ties have zero regret. It explains why routing accuracy alone is insufficient:
+choosing the wrong branch on an almost indifferent pair matters less than missing a pair
+where main substantially improves localization. The reference policy uses unweighted
+cross-entropy, while evaluation reports both action error and objective regret. A policy
+with high action accuracy can still be poor if its errors concentrate on large-margin
+pairs. The margin is available only during offline supervision or analysis; the deployed
+policy must infer branch preference from the preview.
+
 \subsection{High-capacity main branch}
 \label{sec:main-branch}
 \paragraph{Trainable representations and similarity.}
@@ -85,6 +125,22 @@ S^{\rm m}_{ij}=\operatorname{sigmoid}
 with learned positive scale $\kappa$ and bias $b_0$. The main branch adapts representations
 and correspondence scores to localization supervision and processes the full valid
 correspondence domain; padded cells are masked.
+
+\paragraph{Correspondence structure and repeated copies.}
+The learned map differs from direct cosine matching in two places: temporal interaction
+changes the descriptors using surrounding frames, and localization gradients adapt their
+projections and affinity scale. Thus a locally ambiguous frame can be interpreted in the
+context of its neighboring sequence. The elementwise sigmoid does not normalize each row
+into a mutually exclusive distribution over reference frames. This allows one query frame
+to support several separated reference occurrences, an important possibility when a clip
+is repeated. The map alone does not guarantee that the detector returns every occurrence;
+that depends on training, output thresholds, and suppression.
+
+An annotated interval rectangle is not treated as a dense matrix of positive frame matches.
+Its interior contains frame pairs at different relative times, most of which need not
+correspond. We therefore train the map through the interval detector rather than labeling
+every cell inside a copied rectangle as positive. This preserves the distinction between
+segment supervision and exact alignment supervision.
 
 \paragraph{2D detection of copied intervals.}
 A convolutional detector $D_\nu$ consumes $S^{\rm m}$ and predicts objectness and rectangles.
@@ -105,6 +161,14 @@ objectness targets. Gradients pass through the detector, similarity module, inte
 and frame encoder, making this branch end-to-end trainable. Segment labels supervise boxes,
 not dense frame correspondence. Cached-feature experiments must be reported separately
 because they cannot train the image encoder end to end.
+
+\paragraph{Assignment and negative pairs.}
+One-to-one assignment minimizes a fixed combination of normalized endpoint distance
+and generalized IoU cost. Matched predictions receive positive objectness targets and
+box supervision; unmatched predictions receive background targets. Negative pairs have
+zero regression loss. Normalize box losses by at least one matched instance, record
+objectness normalization separately, and freeze assignment weights across comparisons.
+This training assignment does not replace the benchmark's independent evaluator.
 
 \subsection{Lightweight acceleration branch}
 \label{sec:acceleration}
@@ -148,14 +212,45 @@ Disjoint reference occurrences of the same query interval can therefore survive,
 the output cap. Predictions come from the selected branch only; scores are not fused across
 pathways.
 
+\begin{algorithm}[t]
+\caption{FastVCL inference for one video pair}
+\label{alg:inference}
+\begin{algorithmic}[1]
+\Require Videos $A,B$; trained policy and main branch; fixed acceleration settings; threshold $\eta$
+\Ensure Scored interval pairs $\mathcal S$ and selected route $r$
+\State $z\gets\operatorname{Preview}(A,B)$
+\State $p_{\rm m}\gets\pi_\theta(z)$
+\If{$p_{\rm m}$ is missing or non-finite}
+    \State $r\gets1$; record policy fallback
+\Else
+    \State $r\gets\mathbb{1}[p_{\rm m}\ge\eta]$
+\EndIf
+\If{$r=1$}
+    \State $(F^A,F^B)\gets\Phi_\omega(A,B)$
+    \State $S^{\rm m}\gets\operatorname{LearnedSimilarity}(G_\xi(F^A,F^B))$
+    \State $\mathcal P\gets\operatorname{DecodeBoxes}(D_\nu(S^{\rm m}))$
+\Else
+    \State $(f^A,f^B)\gets\Phi_{\rm a}(A,B)$
+    \State $\mathcal A\gets\operatorname{MutualAnchors}(f^A,f^B,s,\tau_{\rm anc})$
+    \State $\mathcal T\gets\operatorname{RANSACTracks}(\mathcal A)$
+    \State $\mathcal P\gets\operatorname{SplitAndCheckEndpoints}(\mathcal T,f^A,f^B)$
+\EndIf
+\State $\mathcal S\gets\operatorname{ValidateAndDeduplicate}(\mathcal P)$
+\State \Return $(\mathcal S,r)$
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Training schedule and inference cost}
 \label{sec:cost}
-First, optimize the main localizer and fix the acceleration configuration. Second, freeze
-both branches, generate preference targets on held-out training pairs, and train the policy.
-Third, select the policy and output-score thresholds on validation data, then freeze the
-system for testing. Both branches run offline to generate training targets, but only the
-selected branch runs at inference. This schedule requires no gradient through RANSAC or
-the hard routing action.
+First, optimize the main localizer and fix the acceleration configuration and branch-specific
+output-score thresholds using validation data. Second, freeze both branches, generate
+preference targets on held-out training pairs, and train the policy. Third, select the policy
+threshold on validation data, then freeze the system for testing. A subsequent change to a
+branch checkpoint or score threshold requires regenerating the policy targets: the detector's
+objectness and the acceleration branch's cosine score are not interchangeable, and changing
+their cutoffs changes both errors in Eq.~\ref{eq:policy-target}. Both branches run offline
+to generate targets, but only the selected branch runs at inference
+(Algorithm~\ref{alg:inference}). No gradient through RANSAC or the routing action is required.
 
 For pair $x$, let $T_{\rm p}$ include preview construction and policy inference,
 $T_{\rm m},T_{\rm a}$ include branch features and localization, and $T_{\rm out}$ include
@@ -180,3 +275,14 @@ $\lceil M/s\rceil\lceil N/s\rceil$ cells. Main matching remains dense. For fixed
 acceleration matching is still $O(MN)$: FastVCL targets lower expected runtime through
 conditional computation and smaller constants, not a sub-quadratic worst-case bound.
 End-to-end speedup must include the actual branch encoders and decoding.
+
+\paragraph{Matching memory and track overhead.}
+Let $M_s=\lceil M/s\rceil$, $N_s=\lceil N/s\rceil$, and use similarity tiles of size
+$b_A\times b_B$. Maintaining each row's and column's best score and index requires
+$O(M_s+N_s)$ auxiliary storage, so matching workspace is
+$O(b_A b_B+M_s+N_s)$ excluding descriptors. Mutual matching is recovered after all tiles
+have been visited. This reduces peak map memory without reducing the total number of
+similarities. If $I$ RANSAC trials inspect at most $|\mathcal A|$ anchors for each of
+$R$ retained tracks, a conservative fitting bound is $O(RI|\mathcal A|)$.
+Accordingly, track caps and tile dimensions must be reported alongside stride; a smaller
+map alone does not describe the acceleration branch's full resource use.

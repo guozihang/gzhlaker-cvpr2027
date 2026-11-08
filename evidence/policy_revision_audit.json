@@ -24,9 +24,15 @@
   "builds": {
     "main": {
       "exit_code": 0,
-      "pages": 8,
+      "pages": 10,
       "overfull_boxes": false,
-      "undefined_references_or_citations": false
+      "undefined_references_or_citations": false,
+      "body_pages": 8,
+      "body_end_page": 8,
+      "references_start_page": 9,
+      "llm_statement_page": 10,
+      "font": "template Times with OT1 encoding",
+      "font_substitution": false
     },
     "supplementary": {
       "exit_code": 0,
@@ -38,9 +44,9 @@
   "visual_review": {
     "main_pages": [
       1,
-      2,
-      6,
-      7
+      5,
+      8,
+      9
     ],
     "supplementary_pages": [
       1,
@@ -48,5 +54,8 @@
       4
     ]
   },
-  "git_diff_check": "passed"
+  "git_diff_check": "passed",
+  "body_expansion_base_commit": "1874fea378d08656bc09b528170e016ef32a37c7",
+  "page_boundary_checked_in_aux_and_pdf_text": true,
+  "font_size_and_margins_unchanged": true
 }

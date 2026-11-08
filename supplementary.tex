@@ -122,6 +122,9 @@ branches' predictions, errors, and costs before fitting the preview encoder and 
 Validation selects the operating point; the test split contributes no labels or profiling
 targets to learning. If data are insufficient for a disjoint holdout, use cross-fitting with
 explicit folds and never silently substitute in-sample branch errors.
+Fix branch-specific output thresholds before generating policy targets. If a branch
+checkpoint, geometric configuration, or output threshold changes, regenerate the targets
+and retrain the policy before selecting its operating point.
 
 \paragraph{Inference contract.}
 The deployed predictor has no access to $G$, $\ell_{\rm m}$, $\ell_{\rm a}$, or outputs from
